@@ -1,4 +1,8 @@
 {
   "name": "ek-loop-connect",
-  "packageManager": "yarn@3.0.0"
+  "packageManager": "yarn@3.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
 }

@@ -4,6 +4,24 @@
 __metadata:
   version: 4
 
+"ek-cli@workspace:packages/ek-cli":
+  version: 0.0.0-use.local
+  resolution: "ek-cli@workspace:packages/ek-cli"
+  languageName: unknown
+  linkType: soft
+
+"ek-gui@workspace:packages/ek-gui":
+  version: 0.0.0-use.local
+  resolution: "ek-gui@workspace:packages/ek-gui"
+  languageName: unknown
+  linkType: soft
+
+"ek-lib@workspace:packages/ek-lib":
+  version: 0.0.0-use.local
+  resolution: "ek-lib@workspace:packages/ek-lib"
+  languageName: unknown
+  linkType: soft
+
 "ek-loop-connect@workspace:.":
   version: 0.0.0-use.local
   resolution: "ek-loop-connect@workspace:."

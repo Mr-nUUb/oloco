@@ -21,11 +21,26 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       {
         "name": "ek-loop-connect",
         "reference": "workspace:."
+      },
+      {
+        "name": "ek-cli",
+        "reference": "workspace:packages/ek-cli"
+      },
+      {
+        "name": "ek-gui",
+        "reference": "workspace:packages/ek-gui"
+      },
+      {
+        "name": "ek-lib",
+        "reference": "workspace:packages/ek-lib"
       }
     ],
     "enableTopLevelFallback": true,
     "ignorePatternData": "(^(?:\\.yarn\\/sdks(?:\\/(?!\\.{1,2}(?:\\/|$))(?:(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$)).)*?)|$))$)",
     "fallbackExclusionList": [
+      ["ek-cli", ["workspace:packages/ek-cli"]],
+      ["ek-gui", ["workspace:packages/ek-gui"]],
+      ["ek-lib", ["workspace:packages/ek-lib"]],
       ["ek-loop-connect", ["workspace:."]]
     ],
     "fallbackPool": [
@@ -35,6 +50,33 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {
           "packageLocation": "./",
           "packageDependencies": [
+          ],
+          "linkType": "SOFT",
+        }]
+      ]],
+      ["ek-cli", [
+        ["workspace:packages/ek-cli", {
+          "packageLocation": "./packages/ek-cli/",
+          "packageDependencies": [
+            ["ek-cli", "workspace:packages/ek-cli"]
+          ],
+          "linkType": "SOFT",
+        }]
+      ]],
+      ["ek-gui", [
+        ["workspace:packages/ek-gui", {
+          "packageLocation": "./packages/ek-gui/",
+          "packageDependencies": [
+            ["ek-gui", "workspace:packages/ek-gui"]
+          ],
+          "linkType": "SOFT",
+        }]
+      ]],
+      ["ek-lib", [
+        ["workspace:packages/ek-lib", {
+          "packageLocation": "./packages/ek-lib/",
+          "packageDependencies": [
+            ["ek-lib", "workspace:packages/ek-lib"]
           ],
           "linkType": "SOFT",
         }]
