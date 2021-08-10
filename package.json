@@ -5,6 +5,13 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "eslint": "eslint",
+    "prettier": "prettier --check .",
+    "build": "yarn workspaces foreach -v -i -p -t run build",
+    "clean": "yarn workspaces foreach -v -i -p -t run clean",
+    "compile": "yarn workspaces foreach -v -i -p -t run compile"
+  },
   "devDependencies": {
     "@types/eslint": "^7",
     "@types/eslint-plugin-prettier": "^3",

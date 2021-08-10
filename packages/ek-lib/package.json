@@ -1,4 +1,18 @@
 {
   "name": "ek-lib",
-  "packageManager": "yarn@3.0.0"
+  "packageManager": "yarn@3.0.0",
+  "scripts": {
+    "build": "yarn clean && yarn compile",
+    "clean": "rimraf ./dist ./tsconfig.build.tsbuildinfo",
+    "compile": "tsc -b tsconfig.build.json --verbose"
+  },
+  "dependencies": {
+    "node-hid": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node-hid": "^1",
+    "@types/rimraf": "^3",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.3.5"
+  }
 }
