@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "baseUrl": "./packages",
+    "paths": {
+      "@qr-suite/*": ["*/src"]
+    },
+    "types": ["node"]
+  }
+}
