@@ -141,7 +141,7 @@ export function getInformation(device: HID): DeviceInformation {
     F5: getFanspeed(device, 'F5'),
     F6: getFanspeed(device, 'F6'),
     Lx: getLightmode(device),
-  } as DeviceInformation
+  }
 }
 
 export function setFanspeed(device: HID, fanPort: FanPort, fanSpeed: number): number[] {
