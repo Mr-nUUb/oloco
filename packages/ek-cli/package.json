@@ -19,11 +19,17 @@
     "url": "ssh://git@github.com/Mr-nUUb/ek-loop-connect.git",
     "directory": "packages/ek-cli"
   },
+  "scripts": {
+    "build": "yarn clean && yarn compile",
+    "clean": "rimraf ./dist ./tsconfig.build.tsbuildinfo",
+    "compile": "tsc -b tsconfig.build.json --verbose"
+  },
   "dependencies": {
     "@ek-loop-connect/ek-lib": "workspace:^0.0.1",
     "node-hid": "^2.1.1"
   },
   "devDependencies": {
-    "@types/node-hid": "^1"
+    "@types/node-hid": "^1",
+    "rimraf": "^3.0.2"
   }
 }
