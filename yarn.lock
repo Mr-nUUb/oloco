@@ -32,6 +32,55 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ek-loop-connect/ek-cli@workspace:packages/ek-cli":
+  version: 0.0.0-use.local
+  resolution: "@ek-loop-connect/ek-cli@workspace:packages/ek-cli"
+  dependencies:
+    "@ek-loop-connect/ek-lib": "workspace:^0.0.1"
+    "@types/node-hid": ^1
+    node-hid: ^2.1.1
+  languageName: unknown
+  linkType: soft
+
+"@ek-loop-connect/ek-gui@workspace:packages/ek-gui":
+  version: 0.0.0-use.local
+  resolution: "@ek-loop-connect/ek-gui@workspace:packages/ek-gui"
+  languageName: unknown
+  linkType: soft
+
+"@ek-loop-connect/ek-lib@workspace:^0.0.1, @ek-loop-connect/ek-lib@workspace:packages/ek-lib":
+  version: 0.0.0-use.local
+  resolution: "@ek-loop-connect/ek-lib@workspace:packages/ek-lib"
+  dependencies:
+    "@types/node-hid": ^1
+    "@types/rimraf": ^3
+    node-hid: ^2.1.1
+    rimraf: ^3.0.2
+    typescript: ^4.3.5
+  languageName: unknown
+  linkType: soft
+
+"@ek-loop-connect/monorepo@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@ek-loop-connect/monorepo@workspace:."
+  dependencies:
+    "@types/eslint": ^7
+    "@types/eslint-plugin-prettier": ^3
+    "@types/prettier": ^2
+    "@typescript-eslint/eslint-plugin": latest
+    "@typescript-eslint/parser": latest
+    eslint: ^7.32.0
+    eslint-config-prettier: ^8.3.0
+    eslint-import-resolver-node: ^0.3.5
+    eslint-plugin-import: ^2.24.0
+    eslint-plugin-prettier: ^3.4.0
+    eslint-plugin-react: latest
+    eslint-plugin-tsdoc: ^0.2.14
+    prettier: ^2.3.2
+    typescript: ^4.3.5
+  languageName: unknown
+  linkType: soft
+
 "@eslint/eslintrc@npm:^0.4.3":
   version: 0.4.3
   resolution: "@eslint/eslintrc@npm:0.4.3"
@@ -842,51 +891,6 @@ __metadata:
   checksum: fd7673ca77fe26cd5cba38d816bc72d641f500f1f9b25b83e8ce28827fe2da7ad583a8da26ab6af85f834138cf8dae9f69b0cd6ab925f52ddab1754db44d99ce
   languageName: node
   linkType: hard
-
-"ek-cli@workspace:packages/ek-cli":
-  version: 0.0.0-use.local
-  resolution: "ek-cli@workspace:packages/ek-cli"
-  languageName: unknown
-  linkType: soft
-
-"ek-gui@workspace:packages/ek-gui":
-  version: 0.0.0-use.local
-  resolution: "ek-gui@workspace:packages/ek-gui"
-  languageName: unknown
-  linkType: soft
-
-"ek-lib@workspace:packages/ek-lib":
-  version: 0.0.0-use.local
-  resolution: "ek-lib@workspace:packages/ek-lib"
-  dependencies:
-    "@types/node-hid": ^1
-    "@types/rimraf": ^3
-    node-hid: ^2.1.1
-    rimraf: ^3.0.2
-    typescript: ^4.3.5
-  languageName: unknown
-  linkType: soft
-
-"ek-loop-connect@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "ek-loop-connect@workspace:."
-  dependencies:
-    "@types/eslint": ^7
-    "@types/eslint-plugin-prettier": ^3
-    "@types/prettier": ^2
-    "@typescript-eslint/eslint-plugin": latest
-    "@typescript-eslint/parser": latest
-    eslint: ^7.32.0
-    eslint-config-prettier: ^8.3.0
-    eslint-import-resolver-node: ^0.3.5
-    eslint-plugin-import: ^2.24.0
-    eslint-plugin-prettier: ^3.4.0
-    eslint-plugin-react: latest
-    eslint-plugin-tsdoc: ^0.2.14
-    prettier: ^2.3.2
-    typescript: ^4.3.5
-  languageName: unknown
-  linkType: soft
 
 "emoji-regex@npm:^8.0.0":
   version: 8.0.0

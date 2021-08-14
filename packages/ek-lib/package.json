@@ -1,6 +1,24 @@
 {
-  "name": "ek-lib",
+  "name": "@ek-loop-connect/ek-lib",
   "packageManager": "yarn@3.0.0",
+  "licence": "MIT",
+  "version": "0.0.1",
+  "main": "./src/main.ts",
+  "files": [
+    "/dist/**/*"
+  ],
+  "publishConfig": {
+    "main": "./dist/main.js",
+    "typings": "./dist/main.d.ts"
+  },
+  "engines": {
+    "node": ">=14.17.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/Mr-nUUb/ek-loop-connect.git",
+    "directory": "packages/ek-lib"
+  },
   "scripts": {
     "build": "yarn clean && yarn compile",
     "clean": "rimraf ./dist ./tsconfig.build.tsbuildinfo",

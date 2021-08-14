@@ -1,7 +1,8 @@
 {
-  "name": "ek-loop-connect",
+  "name": "@ek-loop-connect/monorepo",
   "packageManager": "yarn@3.0.0",
   "private": true,
+  "license": "MIT",
   "workspaces": [
     "packages/*"
   ],
@@ -11,6 +12,14 @@
     "build": "yarn workspaces foreach -v -i -p -t run build",
     "clean": "yarn workspaces foreach -v -i -p -t run clean",
     "compile": "yarn workspaces foreach -v -i -p -t run compile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/Mr-nUUb/ek-loop-connect.git",
+    "directory": "."
+  },
+  "engines": {
+    "node": ">=14.17.0"
   },
   "devDependencies": {
     "@types/eslint": "^7",
