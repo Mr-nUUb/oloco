@@ -28,10 +28,12 @@
   },
   "dependencies": {
     "@ek-loop-connect/ek-lib": "workspace:^0.0.1",
-    "node-hid": "^2.1.1"
+    "node-hid": "^2.1.1",
+    "yargs": "^17.1.1"
   },
   "devDependencies": {
     "@types/node-hid": "^1",
+    "@types/yargs": "^17",
     "rimraf": "^3.0.2"
   }
 }
