@@ -44,13 +44,15 @@ __metadata:
     rimraf: ^3.0.2
     yargs: ^17.1.1
   bin:
-    ek-cli: ./dist/main.js
+    ek-loop-cli: ./dist/main.js
   languageName: unknown
   linkType: soft
 
 "@ek-loop-connect/ek-gui@workspace:packages/ek-gui":
   version: 0.0.0-use.local
   resolution: "@ek-loop-connect/ek-gui@workspace:packages/ek-gui"
+  bin:
+    ek-loop-gui: ./dist/main.js
   languageName: unknown
   linkType: soft
 
