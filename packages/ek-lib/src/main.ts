@@ -191,6 +191,9 @@ function createPacket(mode: CommMode, port: FanPort | 'Lights' | 'Sensors'): num
 }
 
 function sendPacket(device: HID, packet: number[]): number[] {
+  // calculate checksum here. Checksum is optional though...
+  // anybody got an idea what kind of checksum EKWB is using?
+
   // workaround for first byte going MIA :shrug:
   packet.unshift(0x00)
   packet.pop()
@@ -198,8 +201,9 @@ function sendPacket(device: HID, packet: number[]): number[] {
   device.write(packet)
   const recv = device.readTimeout(readTimeout)
   if (recv.length === 0) throw 'Unable to read response!'
-  // check response here.
-  // since checksums are optional (the controller accepts packages w/o checksums),
-  // I don't know if we want to do it.
+
+  // check response here
+  // since checksums are optional, I doubt checking the response is worth it
+
   return recv
 }

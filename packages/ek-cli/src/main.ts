@@ -22,4 +22,6 @@ devices
 
     const hiddev = new HID.HID(path)
     console.log(getInformation(hiddev))
+
+    hiddev.close()
   })
