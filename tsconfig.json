@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./packages",
     "paths": {
-      "@qr-suite/*": ["*/src"]
+      "@ek-loop-connect/*": ["*/src"]
     },
     "types": ["node"]
   }
