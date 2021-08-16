@@ -44,7 +44,7 @@ __metadata:
     rimraf: ^3.0.2
     yargs: ^17.1.1
   bin:
-    ek-cli: ./src/main.ts
+    ek-cli: ./dist/main.js
   languageName: unknown
   linkType: soft
 

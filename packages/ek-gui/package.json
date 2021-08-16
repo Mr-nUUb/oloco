@@ -3,15 +3,12 @@
   "packageManager": "yarn@3.0.0",
   "licence": "MIT",
   "version": "0.0.1",
+  "bin": "./dist/main.js",
   "main": "./dist/main.js",
   "typings": "./dist/main.d.ts",
   "files": [
     "/dist/**/*"
   ],
-  "publishConfig": {
-    "main": "./dist/main.js",
-    "typings": "./dist/main.d.ts"
-  },
   "engines": {
     "node": ">=14.17.0"
   },
