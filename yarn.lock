@@ -37,6 +37,7 @@ __metadata:
   resolution: "@ek-loop-connect/ek-cli@workspace:packages/ek-cli"
   dependencies:
     "@ek-loop-connect/ek-lib": "workspace:^0.0.1"
+    "@types/node": ^14
     "@types/node-hid": ^1
     "@types/yargs": ^17
     node-hid: ^2.1.1
@@ -70,7 +71,7 @@ __metadata:
   dependencies:
     "@types/eslint": ^7
     "@types/eslint-plugin-prettier": ^3
-    "@types/node": ^16.6.1
+    "@types/node": ^14
     "@types/prettier": ^2
     "@typescript-eslint/eslint-plugin": latest
     "@typescript-eslint/parser": latest
@@ -233,10 +234,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^16.6.1":
-  version: 16.6.1
-  resolution: "@types/node@npm:16.6.1"
-  checksum: c13aa0da0c2bf9070e521d1b537ba38f64b213dd1b8aeec66c279fc21f8c0ccaf380364f6dc2ec8f84440c4cd1460b67dfe47de2cafcb6eaf4b648817cb27dc4
+"@types/node@npm:^14":
+  version: 14.17.9
+  resolution: "@types/node@npm:14.17.9"
+  checksum: e59b92e4346ed0db61e042d439f9658d1d3e8ad1d14825b714804cafae8ce22220ff6c8d907c4e4c6384aac748de07283fa321ef13cb8bdeb460eb789d634244
   languageName: node
   linkType: hard
 
