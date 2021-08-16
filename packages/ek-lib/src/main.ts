@@ -85,11 +85,11 @@ enum LightSpeedEnum {
   Fastest = 0x64,
 }
 
+const readTimeout = 1000
+
 export function getFanspeed(device: HID, fanPort: FanPort): FanSensorData {
   const packet = createPacket('Read', fanPort)
-
-  device.write(fixPacket(packet))
-  const recv = device.readSync()
+  const recv = sendPacket(device, packet)
 
   return {
     RPM: parseInt('0x' + recv[12].toString(16) + padLeadingZeros(recv[13].toString(16), 2)),
@@ -99,8 +99,7 @@ export function getFanspeed(device: HID, fanPort: FanPort): FanSensorData {
 
 export function getLightmode(device: HID): LightData {
   const packet = createPacket('Read', 'Lx')
-  device.write(fixPacket(packet))
-  const recv = device.readSync()
+  const recv = sendPacket(device, packet)
 
   return {
     Color: { Red: recv[13], Green: recv[14], Blue: recv[15] },
@@ -114,8 +113,7 @@ export function getSensors(device: HID): SensorData {
 
   packet[9] = 0x20 // offset for checksum? length of answer?
 
-  device.write(fixPacket(packet))
-  const recv = device.readSync()
+  const recv = sendPacket(device, packet)
 
   return {
     T1: recv[11] !== 231 ? recv[11] : undefined,
@@ -149,8 +147,9 @@ export function setFanspeed(device: HID, fanPort: FanPort, fanSpeed: number): nu
 
   packet[24] = fanSpeed
 
-  device.write(fixPacket(packet))
-  return device.readSync() // I don'w know what to expect here
+  const recv = sendPacket(device, packet) // I don'w know what to expect here
+
+  return recv
 }
 
 export function setLightmode(device: HID, LightData: LightData): number[] {
@@ -162,8 +161,9 @@ export function setLightmode(device: HID, LightData: LightData): number[] {
   packet[17] = LightData.Color.Green
   packet[18] = LightData.Color.Blue
 
-  device.write(fixPacket(packet))
-  return device.readSync()
+  const recv = sendPacket(device, packet) // I don'w know what to expect here
+
+  return recv
 }
 
 export function padLeadingZeros(s: string, n: number): string {
@@ -192,7 +192,7 @@ function createPacket(mode: CommMode, port: FanPort | 'Lx' | 'Sx'): number[] {
   if (mode === 'Read') {
     packet[2] = 0x08
     packet[5] = 0x03
-  } else if (mode === 'Write') {
+  } else {
     packet[2] = 0x29
     packet[5] = 0x10
   }
@@ -202,9 +202,16 @@ function createPacket(mode: CommMode, port: FanPort | 'Lx' | 'Sx'): number[] {
   return packet
 }
 
-// workaround for first byte going MIA :shrug:
-function fixPacket(packet: number[]): number[] {
+function sendPacket(device: HID, packet: number[]): number[] {
+  // workaround for first byte going MIA :shrug:
   packet.unshift(0x00)
   packet.pop()
-  return packet
+
+  device.write(packet)
+  const recv = device.readTimeout(readTimeout)
+  if (recv.length === 0) throw 'Unable to read response!'
+  // check response here.
+  // since checksums are optional (the controller accepts packages w/o checksums),
+  // I don't know if we want to do it.
+  return recv
 }
