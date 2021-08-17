@@ -1,138 +1,139 @@
 import { HID } from 'node-hid'
 
-interface FanData {
-  RPM: number
-  PWM: number
+export interface FanData {
+  rpm: number
+  pwm: number
 }
-interface SensorData {
-  Temps: { [key in TempPort]: number | undefined }
-  Flow: number
-  Level: LevelData
+export interface SensorData {
+  temps: { [key in TempPort]: number | undefined }
+  flow: number
+  level: LevelData
 }
-interface DeviceInformation {
-  Sensors: SensorData
-  Fans: { [key in FanPort]: FanData }
-  Lights: LightData
+export interface DeviceInformation {
+  sensors: SensorData
+  fans: { [key in FanPort]: FanData }
+  lights: LightData
 }
-interface LightColor {
-  Red: number
-  Green: number
-  Blue: number
+export interface LightColor {
+  red: number
+  green: number
+  blue: number
 }
-interface LightData {
-  Color: LightColor
-  Mode: LightMode
-  Speed: LightSpeed
+export interface LightData {
+  color: LightColor
+  mode: LightMode
+  speed: LightSpeed
 }
 
-type LevelData = 'Warning' | 'Good'
-type FanPort = 'Fan1' | 'Fan2' | 'Fan3' | 'Fan4' | 'Fan5' | 'Fan6'
-type TempPort = 'Temp1' | 'Temp2' | 'Temp3'
-type LightMode =
-  | 'Off'
-  | 'Static'
-  | 'Breathing'
-  | 'Fading'
-  | 'Marquee'
-  | 'CoveringMarquee'
-  | 'Pulse'
-  | 'SpectrumWave'
-  | 'Alternating'
-  | 'Candle'
-type LightSpeed =
-  | 'Slowest'
-  | 'Slower'
-  | 'Slow'
-  | 'Slowish'
-  | 'Normal'
-  | 'Fastish'
-  | 'Fast'
-  | 'Faster'
-  | 'Fastest'
-type CommMode = 'Read' | 'Write'
+export type LevelData = 'warning' | 'good'
+export type FanPort = 'fan1' | 'fan2' | 'fan3' | 'fan4' | 'fan5' | 'fan6'
+export type TempPort = 'temp1' | 'temp2' | 'temp3'
+export type EkPort = FanPort | 'lights' | 'sensors'
+export type LightMode =
+  | 'off'
+  | 'static'
+  | 'breathing'
+  | 'fading'
+  | 'marquee'
+  | 'coveringMarquee'
+  | 'pulse'
+  | 'spectrumWave'
+  | 'alternating'
+  | 'candle'
+export type LightSpeed =
+  | 'slowest'
+  | 'slower'
+  | 'slow'
+  | 'slowish'
+  | 'normal'
+  | 'fastish'
+  | 'fast'
+  | 'faster'
+  | 'fastest'
+type CommMode = 'read' | 'write'
 
 enum LightModeEnum {
-  Off = 0x00,
-  Static,
-  Breathing,
-  Fading,
-  Marquee,
-  CoveringMarquee,
-  Pulse,
-  SpectrumWave,
-  Alternating,
-  Candle,
+  off = 0x00,
+  static,
+  breathing,
+  fading,
+  marquee,
+  coveringMarquee,
+  pulse,
+  spectrumWave,
+  alternating,
+  candle,
 }
 enum LightSpeedEnum {
-  Slowest = 0x00,
-  Slower = 0x0c,
-  Slow = 0x19,
-  Slowish = 0x25,
-  Normal = 0x32,
-  Fastish = 0xe3,
-  Fast = 0x4b,
-  Faster = 0x57,
-  Fastest = 0x64,
+  slowest = 0x00,
+  slower = 0x0c,
+  slow = 0x19,
+  slowish = 0x25,
+  normal = 0x32,
+  fastish = 0xe3,
+  fast = 0x4b,
+  faster = 0x57,
+  fastest = 0x64,
 }
 
 const readTimeout = 1000
 
 export function getFanspeed(device: HID, fanPort: FanPort): FanData {
-  const packet = createPacket('Read', fanPort)
+  const packet = createPacket('read', fanPort)
   const recv = sendPacket(device, packet)
 
   return {
-    RPM: parseInt('0x' + recv[12].toString(16) + padLeadingZeros(recv[13].toString(16), 2)),
-    PWM: recv[21],
+    rpm: parseInt('0x' + recv[12].toString(16) + padLeadingZeros(recv[13].toString(16), 2)),
+    pwm: recv[21],
   }
 }
 
-export function getLightmode(device: HID): LightData {
-  const packet = createPacket('Read', 'Lights')
+export function getLights(device: HID): LightData {
+  const packet = createPacket('read', 'lights')
   const recv = sendPacket(device, packet)
 
   return {
-    Mode: LightModeEnum[recv[9]] as LightMode,
-    Speed: LightSpeedEnum[recv[11]] as LightSpeed,
-    Color: { Red: recv[13], Green: recv[14], Blue: recv[15] },
+    mode: LightModeEnum[recv[9]] as LightMode,
+    speed: LightSpeedEnum[recv[11]] as LightSpeed,
+    color: { red: recv[13], green: recv[14], blue: recv[15] },
   }
 }
 
 export function getSensors(device: HID): SensorData {
-  const packet = createPacket('Read', 'Sensors')
+  const packet = createPacket('read', 'sensors')
 
   packet[9] = 0x20 // offset for checksum? length of answer?
 
   const recv = sendPacket(device, packet)
 
   return {
-    Temps: {
-      Temp1: recv[11] !== 231 ? recv[11] : undefined,
-      Temp2: recv[15] !== 231 ? recv[15] : undefined,
-      Temp3: recv[19] !== 231 ? recv[19] : undefined,
+    temps: {
+      temp1: recv[11] !== 231 ? recv[11] : undefined,
+      temp2: recv[15] !== 231 ? recv[15] : undefined,
+      temp3: recv[19] !== 231 ? recv[19] : undefined,
     },
-    Flow: recv[23],
-    Level: recv[27] === 100 ? 'Good' : 'Warning',
+    flow: recv[23],
+    level: recv[27] === 100 ? 'good' : 'warning',
   }
 }
 
 export function getInformation(device: HID): DeviceInformation {
   return {
-    Sensors: getSensors(device),
-    Fans: {
-      Fan1: getFanspeed(device, 'Fan1'),
-      Fan2: getFanspeed(device, 'Fan2'),
-      Fan3: getFanspeed(device, 'Fan3'),
-      Fan4: getFanspeed(device, 'Fan4'),
-      Fan5: getFanspeed(device, 'Fan5'),
-      Fan6: getFanspeed(device, 'Fan6'),
+    sensors: getSensors(device),
+    fans: {
+      fan1: getFanspeed(device, 'fan1'),
+      fan2: getFanspeed(device, 'fan2'),
+      fan3: getFanspeed(device, 'fan3'),
+      fan4: getFanspeed(device, 'fan4'),
+      fan5: getFanspeed(device, 'fan5'),
+      fan6: getFanspeed(device, 'fan6'),
     },
-    Lights: getLightmode(device),
+    lights: getLights(device),
   }
 }
 
 export function setFanspeed(device: HID, fanPort: FanPort, fanSpeed: number): number[] {
-  const packet = createPacket('Write', fanPort)
+  const packet = createPacket('write', fanPort)
 
   packet[24] = fanSpeed
 
@@ -142,13 +143,13 @@ export function setFanspeed(device: HID, fanPort: FanPort, fanSpeed: number): nu
 }
 
 export function setLightmode(device: HID, LightData: LightData): number[] {
-  const packet = createPacket('Write', 'Lights')
+  const packet = createPacket('write', 'lights')
 
-  packet[12] = LightModeEnum[LightData.Mode]
-  packet[14] = LightSpeedEnum[LightData.Speed]
-  packet[16] = LightData.Color.Red
-  packet[17] = LightData.Color.Green
-  packet[18] = LightData.Color.Blue
+  packet[12] = LightModeEnum[LightData.mode]
+  packet[14] = LightSpeedEnum[LightData.speed]
+  packet[16] = LightData.color.red
+  packet[17] = LightData.color.green
+  packet[18] = LightData.color.blue
 
   const recv = sendPacket(device, packet) // I don'w know what to expect here
 
@@ -161,23 +162,23 @@ export function padLeadingZeros(s: string, n: number): string {
   return p
 }
 
-function createPacket(mode: CommMode, port: FanPort | 'Lights' | 'Sensors'): number[] {
+function createPacket(mode: CommMode, port: EkPort): number[] {
   const packet = new Array<number>(63)
 
   const packetTemplate = [0x10, 0x12, 0x00, 0xaa, 0x01, 0x00, 0x00, 0x00, 0x00, 0x10, 0x20]
   const portAddress = {
-    Fan1: [0xa0, 0xa0],
-    Fan2: [0xa0, 0xc0],
-    Fan3: [0xa0, 0xe0],
-    Fan4: [0xa1, 0x00],
-    Fan5: [0xa1, 0x20],
-    Fan6: [0xa1, 0xe0],
-    Sensors: [0xa2, 0x20],
-    Lights: [0xa2, 0x60],
+    fan1: [0xa0, 0xa0],
+    fan2: [0xa0, 0xc0],
+    fan3: [0xa0, 0xe0],
+    fan4: [0xa1, 0x00],
+    fan5: [0xa1, 0x20],
+    fan6: [0xa1, 0xe0],
+    sensors: [0xa2, 0x20],
+    lights: [0xa2, 0x60],
   }
   const commMode = {
-    Read: [0x00, 0x00, 0x08, 0x00, 0x00, 0x03],
-    Write: [0x00, 0x00, 0x29, 0x00, 0x00, 0x10],
+    read: [0x00, 0x00, 0x08, 0x00, 0x00, 0x03],
+    write: [0x00, 0x00, 0x29, 0x00, 0x00, 0x10],
   }
 
   for (let i = 0; i < packet.length; i++) {
