@@ -8,6 +8,8 @@
     "forceConsistentCasingInFileNames": true,
     "composite": true,
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   }
 }
