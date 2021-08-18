@@ -28,7 +28,7 @@ export interface LightData {
 export type LevelData = 'warning' | 'good'
 export type FanPort = 'fan1' | 'fan2' | 'fan3' | 'fan4' | 'fan5' | 'fan6'
 export type TempPort = 'temp1' | 'temp2' | 'temp3'
-export type EkPort = FanPort | 'lights' | 'sensors'
+export type DevicePort = FanPort | 'lights' | 'sensors'
 export type LightMode =
   | 'off'
   | 'static'
@@ -135,6 +135,8 @@ export function getInformation(device: HID): DeviceInformation {
 export function setFanspeed(device: HID, fanPort: FanPort, fanSpeed: number): number[] {
   const packet = createPacket('write', fanPort)
 
+  // original packet contains RPM on bytes 15 and 16 - why?
+  // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
   packet[24] = fanSpeed
 
   const recv = sendPacket(device, packet) // I don'w know what to expect here
@@ -142,10 +144,11 @@ export function setFanspeed(device: HID, fanPort: FanPort, fanSpeed: number): nu
   return recv
 }
 
-export function setLightmode(device: HID, LightData: LightData): number[] {
+export function setLights(device: HID, LightData: LightData): number[] {
   const packet = createPacket('write', 'lights')
 
   packet[12] = LightModeEnum[LightData.mode]
+  packet[13] = LightData.mode === 'coveringMarquee' ? 0xff : 0x00 // this is just dumb
   packet[14] = LightSpeedEnum[LightData.speed]
   packet[16] = LightData.color.red
   packet[17] = LightData.color.green
@@ -162,7 +165,7 @@ export function padLeadingZeros(s: string, n: number): string {
   return p
 }
 
-function createPacket(mode: CommMode, port: EkPort): number[] {
+function createPacket(mode: CommMode, port: DevicePort): number[] {
   const packet = new Array<number>(63)
 
   const packetTemplate = [0x10, 0x12, 0x00, 0xaa, 0x01, 0x00, 0x00, 0x00, 0x00, 0x10, 0x20]

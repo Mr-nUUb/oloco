@@ -2,7 +2,7 @@ import HID from 'node-hid'
 import yargs from 'yargs/yargs'
 
 import {
-  EkPort,
+  DevicePort,
   padLeadingZeros,
   getInformation,
   getLights,
@@ -15,8 +15,8 @@ import {
 } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
 
-type EkPorts = EkPort | 'all'
-const ekPorts: ReadonlyArray<EkPorts> = [
+type DevicePorts = DevicePort | 'all'
+const ekPorts: ReadonlyArray<DevicePorts> = [
   'fan1',
   'fan2',
   'fan3',
@@ -58,7 +58,7 @@ yargs(process.argv.slice(2))
       }),
     handler: (argv) => {
       let data: FanData | LightData | SensorData | DeviceInformation
-      const port = argv.port as EkPorts
+      const port = argv.port as DevicePorts
       if (port === 'all') data = getInformation(hiddev)
       else if (port === 'lights') data = getLights(hiddev)
       else if (port === 'sensors') data = getSensors(hiddev)
