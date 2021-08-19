@@ -96,8 +96,8 @@ yargs(process.argv.slice(2))
   .scriptName('ek-connect-cli')
   .usage('Usage: $0 <command>')
   .command({
-    command: 'get-fancurve [port]',
-    describe: 'Get RPM response curve for a specific fan port.',
+    command: 'get [port]',
+    describe: 'Get information from your EK Loop Connect.',
     builder: (args) =>
       args.positional('port', {
         choices: devicePortChoices,
