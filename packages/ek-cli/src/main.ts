@@ -27,8 +27,16 @@ import { exit } from 'process'
 type DevicePorts = DevicePort | 'fans' | 'all'
 type FanPorts = FanPort | 'fans'
 
-const fanPorts: ReadonlyArray<FanPorts> = ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6', 'fans']
-const lightModes: ReadonlyArray<LightMode> = [
+const fanPortChoices: ReadonlyArray<FanPorts> = [
+  'fan1',
+  'fan2',
+  'fan3',
+  'fan4',
+  'fan5',
+  'fan6',
+  'fans',
+]
+const lightModeChoices: ReadonlyArray<LightMode> = [
   'off',
   'static',
   'breathing',
@@ -40,7 +48,7 @@ const lightModes: ReadonlyArray<LightMode> = [
   'alternating',
   'candle',
 ]
-const lightSpeeds: ReadonlyArray<LightSpeed> = [
+const lightSpeedChoices: ReadonlyArray<LightSpeed> = [
   'slowest',
   'slower',
   'slow',
@@ -51,7 +59,7 @@ const lightSpeeds: ReadonlyArray<LightSpeed> = [
   'faster',
   'fastest',
 ]
-const ekPorts: ReadonlyArray<DevicePorts> = [
+const devicePortChoices: ReadonlyArray<DevicePorts> = [
   'fan1',
   'fan2',
   'fan3',
@@ -88,11 +96,11 @@ yargs(process.argv.slice(2))
   .scriptName('ek-connect-cli')
   .usage('Usage: $0 <command>')
   .command({
-    command: 'get [port]',
-    describe: 'Get information from your EK Loop Connect.',
+    command: 'get-fancurve [port]',
+    describe: 'Get RPM response curve for a specific fan port.',
     builder: (args) =>
       args.positional('port', {
-        choices: ekPorts,
+        choices: devicePortChoices,
         describe: 'Read a specific port.',
         default: 'all',
       }),
@@ -115,7 +123,7 @@ yargs(process.argv.slice(2))
     builder: (args) =>
       args
         .positional('port', {
-          choices: fanPorts,
+          choices: fanPortChoices,
           describe: 'The fan to configure.',
         })
         .positional('speed', {
@@ -140,12 +148,12 @@ yargs(process.argv.slice(2))
     builder: (args) =>
       args
         .positional('mode', {
-          choices: lightModes,
+          choices: lightModeChoices,
           describe: 'The pattern.',
           default: 'static',
         })
         .positional('speed', {
-          choices: lightSpeeds,
+          choices: lightSpeedChoices,
           describe: 'The speed.',
           default: 'normal',
         })
