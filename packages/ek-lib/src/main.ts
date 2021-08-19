@@ -4,6 +4,9 @@ export interface FanData {
   rpm: number
   pwm: number
 }
+export interface AllFanData {
+  fans: { [key in FanPort]: FanData }
+}
 export interface SensorData {
   temps: { [key in TempPort]: number | undefined }
   flow: number
@@ -78,13 +81,26 @@ enum LightSpeedEnum {
 
 const readTimeout = 1000
 
-export function getFanspeed(device: HID, fanPort: FanPort): FanData {
+export function getFan(device: HID, fanPort: FanPort): FanData {
   const packet = createPacket('read', fanPort)
   const recv = sendPacket(device, packet)
 
   return {
     rpm: parseInt('0x' + recv[12].toString(16) + padLeadingZeros(recv[13].toString(16), 2)),
     pwm: recv[21],
+  }
+}
+
+export function getFans(device: HID): AllFanData {
+  return {
+    fans: {
+      fan1: getFan(device, 'fan1'),
+      fan2: getFan(device, 'fan2'),
+      fan3: getFan(device, 'fan3'),
+      fan4: getFan(device, 'fan4'),
+      fan5: getFan(device, 'fan5'),
+      fan6: getFan(device, 'fan6'),
+    },
   }
 }
 
@@ -119,20 +135,13 @@ export function getSensors(device: HID): SensorData {
 
 export function getInformation(device: HID): DeviceInformation {
   return {
-    sensors: getSensors(device),
-    fans: {
-      fan1: getFanspeed(device, 'fan1'),
-      fan2: getFanspeed(device, 'fan2'),
-      fan3: getFanspeed(device, 'fan3'),
-      fan4: getFanspeed(device, 'fan4'),
-      fan5: getFanspeed(device, 'fan5'),
-      fan6: getFanspeed(device, 'fan6'),
-    },
+    ...getFans(device),
     lights: getLights(device),
+    sensors: getSensors(device),
   }
 }
 
-export function setFanspeed(device: HID, fanPort: FanPort, fanSpeed: number): number[] {
+export function setFan(device: HID, fanPort: FanPort, fanSpeed: number): number[] {
   const packet = createPacket('write', fanPort)
 
   // original packet contains RPM on bytes 15 and 16 - why?
@@ -142,6 +151,15 @@ export function setFanspeed(device: HID, fanPort: FanPort, fanSpeed: number): nu
   const recv = sendPacket(device, packet) // I don'w know what to expect here
 
   return recv
+}
+
+export function setFans(device: HID, fanspeed: number): void {
+  setFan(device, 'fan1', fanspeed)
+  setFan(device, 'fan2', fanspeed)
+  setFan(device, 'fan3', fanspeed)
+  setFan(device, 'fan4', fanspeed)
+  setFan(device, 'fan5', fanspeed)
+  setFan(device, 'fan6', fanspeed)
 }
 
 export function setLights(device: HID, LightData: LightData): number[] {
