@@ -2,20 +2,55 @@ import HID from 'node-hid'
 import yargs from 'yargs/yargs'
 
 import {
-  DevicePort,
   padLeadingZeros,
+  DevicePort,
   getInformation,
   getLights,
   getSensors,
-  getFanspeed,
+  getFans,
+  getFan,
   SensorData,
   LightData,
   DeviceInformation,
   FanData,
+  AllFanData,
+  FanPort,
+  LightMode,
+  setFan,
+  setFans,
+  LightSpeed,
+  setLights,
+  LightColor,
 } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
 
-type DevicePorts = DevicePort | 'all'
+type DevicePorts = DevicePort | 'fans' | 'all'
+type FanPorts = FanPort | 'fans'
+
+const fanPorts: ReadonlyArray<FanPorts> = ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6', 'fans']
+const lightModes: ReadonlyArray<LightMode> = [
+  'off',
+  'static',
+  'breathing',
+  'fading',
+  'marquee',
+  'coveringMarquee',
+  'pulse',
+  'spectrumWave',
+  'alternating',
+  'candle',
+]
+const lightSpeeds: ReadonlyArray<LightSpeed> = [
+  'slowest',
+  'slower',
+  'slow',
+  'slowish',
+  'normal',
+  'fastish',
+  'fast',
+  'faster',
+  'fastest',
+]
 const ekPorts: ReadonlyArray<DevicePorts> = [
   'fan1',
   'fan2',
@@ -23,12 +58,18 @@ const ekPorts: ReadonlyArray<DevicePorts> = [
   'fan4',
   'fan5',
   'fan6',
+  'fans',
   'lights',
   'sensors',
   'all',
 ]
 
 const device = HID.devices(0x0483, 0x5750).filter((dev) => dev.interface === 0)[0]
+if (device === undefined) {
+  console.error("Couldn't find EK LOOP Connect! Is it connected?")
+  exit(2)
+}
+
 const vend = padLeadingZeros(device.vendorId.toString(16), 4)
 const prod = padLeadingZeros(device.productId.toString(16), 4)
 const iface = padLeadingZeros(device.interface.toString(16), 2)
@@ -37,12 +78,11 @@ console.log(`Product:       ${device.product}`)
 console.log(`Identifier:    USB\\VID_${vend}&PID_${prod}&MI_${iface}`)
 console.log()
 
-const path = device.path || ''
-if (path === '') {
-  console.error('Invalid path for device!')
+if (!device.path) {
+  console.error("Couldn't open device: path not available!")
   exit(2)
 }
-const hiddev = new HID.HID(path)
+const hiddev = new HID.HID(device.path)
 
 yargs(process.argv.slice(2))
   .scriptName('ek-connect-cli')
@@ -57,14 +97,78 @@ yargs(process.argv.slice(2))
         default: 'all',
       }),
     handler: (argv) => {
-      let data: FanData | LightData | SensorData | DeviceInformation
+      let data: AllFanData | FanData | LightData | SensorData | DeviceInformation
       const port = argv.port as DevicePorts
+
       if (port === 'all') data = getInformation(hiddev)
       else if (port === 'lights') data = getLights(hiddev)
       else if (port === 'sensors') data = getSensors(hiddev)
-      else data = getFanspeed(hiddev, port)
+      else if (port === 'fans') data = getFans(hiddev)
+      else data = getFan(hiddev, port)
 
       console.log(data)
+    },
+  })
+  .command({
+    command: 'set-fan [port] [speed]',
+    describe: 'Set fan speed on a specific port.',
+    builder: (args) =>
+      args
+        .positional('port', {
+          choices: fanPorts,
+          describe: 'The fan to configure.',
+        })
+        .positional('speed', {
+          type: 'number',
+          describe: 'The desired fan speed (PWM duty cycle).',
+        }),
+    handler: (argv) => {
+      const port = argv.port as FanPorts
+      const speed = argv.speed as number
+      if (port === 'fans') {
+        setFans(hiddev, speed)
+        console.log(getFans(hiddev))
+      } else {
+        setFan(hiddev, port, speed)
+        console.log(getFan(hiddev, port))
+      }
+    },
+  })
+  .command({
+    command: 'set-light [mode] [speed] [color]',
+    describe: 'Configure RGB lights.',
+    builder: (args) =>
+      args
+        .positional('mode', {
+          choices: lightModes,
+          describe: 'The pattern.',
+          default: 'static',
+        })
+        .positional('speed', {
+          choices: lightSpeeds,
+          describe: 'The speed.',
+          default: 'normal',
+        })
+        .positional('color', {
+          type: 'string',
+          describe: 'Color code in hex format.',
+          default: '#FFFFFF',
+        }),
+    handler: (argv) => {
+      const mode = argv.mode as LightMode
+      const speed = argv.speed as LightSpeed
+      const userColor = argv.color as string
+      if (!(userColor.length === 7 || userColor.startsWith('#'))) {
+        console.log("Couln't set color: wrong format!")
+        exit(1)
+      }
+      const color: LightColor = {
+        red: parseInt(userColor.slice(1, 3), 16),
+        green: parseInt(userColor.slice(3, 5), 16),
+        blue: parseInt(userColor.slice(5, 7), 16),
+      }
+      setLights(hiddev, { mode, speed, color })
+      console.log(getLights(hiddev))
     },
   })
   .alias('h', 'help')
