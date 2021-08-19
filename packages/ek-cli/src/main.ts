@@ -9,11 +9,14 @@ import {
   getSensors,
   getFans,
   getFan,
+  getFanPwmCurve,
+  getFanPwmCurves,
   SensorData,
   LightData,
   DeviceInformation,
   FanData,
   AllFanData,
+  AllFanPwmCurveData,
   FanPort,
   LightMode,
   setFan,
@@ -118,6 +121,23 @@ yargs(process.argv.slice(2))
     },
   })
   .command({
+    command: 'get-fancurve [port]',
+    describe: 'Get a RPM response curve for a specific fan port.',
+    builder: (args) =>
+      args.positional('port', {
+        choices: fanPortChoices,
+        describe: 'The port to read.',
+        default: 'fans',
+      }),
+    handler: async (argv) => {
+      let data: AllFanPwmCurveData | FanData[]
+      const port = argv.port as FanPorts
+      if (port === 'fans') data = await getFanPwmCurves(hiddev)
+      else data = await getFanPwmCurve(hiddev, port)
+      console.log(JSON.stringify(data))
+    },
+  })
+  .command({
     command: 'set-fan [port] [speed]',
     describe: 'Set fan speed on a specific port.',
     builder: (args) =>
@@ -131,15 +151,17 @@ yargs(process.argv.slice(2))
           describe: 'The desired fan speed (PWM duty cycle).',
         }),
     handler: (argv) => {
+      let data: FanData | AllFanData
       const port = argv.port as FanPorts
       const speed = argv.speed as number
       if (port === 'fans') {
         setFans(hiddev, speed)
-        console.log(getFans(hiddev))
+        data = getFans(hiddev)
       } else {
         setFan(hiddev, port, speed)
-        console.log(getFan(hiddev, port))
+        data = getFan(hiddev, port)
       }
+      console.log(data)
     },
   })
   .command({

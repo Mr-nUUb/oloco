@@ -7,14 +7,16 @@ export interface FanData {
 export interface AllFanData {
   fans: { [key in FanPort]: FanData }
 }
+export interface AllFanPwmCurveData {
+  curves: { [key in FanPort]: FanData[] }
+}
 export interface SensorData {
   temps: { [key in TempPort]: number | undefined }
   flow: number
   level: LevelData
 }
-export interface DeviceInformation {
+export interface DeviceInformation extends AllFanData {
   sensors: SensorData
-  fans: { [key in FanPort]: FanData }
   lights: LightData
 }
 export interface LightColor {
@@ -100,6 +102,34 @@ export function getFans(device: HID): AllFanData {
       fan4: getFan(device, 'fan4'),
       fan5: getFan(device, 'fan5'),
       fan6: getFan(device, 'fan6'),
+    },
+  }
+}
+
+export async function getFanPwmCurve(device: HID, port: FanPort): Promise<FanData[]> {
+  const interval = 15000
+  const curve: FanData[] = []
+  const backup = getFan(device, port)
+
+  for (let i = 0; i < 110; i += 10) {
+    setFan(device, port, i)
+    await sleep(interval)
+    curve.push(getFan(device, port))
+  }
+  setFan(device, port, backup.pwm)
+
+  return curve
+}
+
+export async function getFanPwmCurves(device: HID): Promise<AllFanPwmCurveData> {
+  return {
+    curves: {
+      fan1: await getFanPwmCurve(device, 'fan1'),
+      fan2: await getFanPwmCurve(device, 'fan2'),
+      fan3: await getFanPwmCurve(device, 'fan3'),
+      fan4: await getFanPwmCurve(device, 'fan4'),
+      fan5: await getFanPwmCurve(device, 'fan5'),
+      fan6: await getFanPwmCurve(device, 'fan6'),
     },
   }
 }
@@ -228,4 +258,8 @@ function sendPacket(device: HID, packet: number[]): number[] {
   // since checksums are optional, I doubt checking the response is worth it
 
   return recv
+}
+
+function sleep(ms: number): Promise<unknown> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
