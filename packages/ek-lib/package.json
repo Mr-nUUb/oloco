@@ -20,9 +20,10 @@
     "directory": "packages/ek-lib"
   },
   "scripts": {
-    "build": "yarn clean && yarn compile",
+    "build": "run clean && run compile",
     "clean": "rimraf ./dist ./tsconfig.build.tsbuildinfo",
-    "compile": "tsc -b tsconfig.build.json --verbose"
+    "compile": "tsc -b tsconfig.build.json --verbose",
+    "prepack": "run build"
   },
   "dependencies": {
     "node-hid": "^2.1.1"

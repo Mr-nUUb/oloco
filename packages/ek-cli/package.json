@@ -23,9 +23,10 @@
     "directory": "packages/ek-cli"
   },
   "scripts": {
-    "build": "yarn clean && yarn compile",
+    "build": "run clean && run compile",
     "clean": "rimraf ./dist ./tsconfig.build.tsbuildinfo",
     "compile": "tsc -b tsconfig.build.json --verbose",
+    "prepack": "run build",
     "start": "ts-node src/main.ts"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "@types/node-hid": "^1",
     "@types/yargs": "^17",
     "rimraf": "^3.0.2",
-    "ts-node": "^10.2.1"
+    "ts-node": "^10.2.1",
+    "typescript": "^4.3.5"
   }
 }
