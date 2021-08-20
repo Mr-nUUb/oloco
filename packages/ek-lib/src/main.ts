@@ -82,6 +82,7 @@ enum LightSpeedEnum {
 }
 
 const readTimeout = 1000
+const pwmCurveInterval = 15000
 
 export function getFan(device: HID, fanPort: FanPort): FanData {
   const packet = createPacket('read', fanPort)
@@ -107,13 +108,12 @@ export function getFans(device: HID): AllFanData {
 }
 
 export async function getFanPwmCurve(device: HID, port: FanPort): Promise<FanData[]> {
-  const interval = 15000
   const curve: FanData[] = []
   const backup = getFan(device, port)
 
   for (let i = 0; i < 110; i += 10) {
     setFan(device, port, i)
-    await sleep(interval)
+    await sleep(pwmCurveInterval)
     curve.push(getFan(device, port))
   }
   setFan(device, port, backup.pwm)
@@ -122,16 +122,33 @@ export async function getFanPwmCurve(device: HID, port: FanPort): Promise<FanDat
 }
 
 export async function getFanPwmCurves(device: HID): Promise<AllFanPwmCurveData> {
-  return {
+  const curves: AllFanPwmCurveData = {
     curves: {
-      fan1: await getFanPwmCurve(device, 'fan1'),
-      fan2: await getFanPwmCurve(device, 'fan2'),
-      fan3: await getFanPwmCurve(device, 'fan3'),
-      fan4: await getFanPwmCurve(device, 'fan4'),
-      fan5: await getFanPwmCurve(device, 'fan5'),
-      fan6: await getFanPwmCurve(device, 'fan6'),
+      fan1: [],
+      fan2: [],
+      fan3: [],
+      fan4: [],
+      fan5: [],
+      fan6: [],
     },
   }
+  const backups = getFans(device)
+  for (let i = 0; i < 110; i += 10) {
+    for (let p = 1; p < 7; p++) {
+      const port = `fan${p}` as FanPort
+      setFan(device, port, i)
+    }
+    await sleep(pwmCurveInterval)
+    for (let p = 1; p < 7; p++) {
+      const port = `fan${p}` as FanPort
+      curves.curves[port].push(getFan(device, port))
+    }
+  }
+  for (let p = 1; p < 7; p++) {
+    const port = `fan${p}` as FanPort
+    setFan(device, port, backups.fans[port].pwm)
+  }
+  return curves
 }
 
 export function getLights(device: HID): LightData {

@@ -134,7 +134,7 @@ yargs(process.argv.slice(2))
       const port = argv.port as FanPorts
       if (port === 'fans') data = await getFanPwmCurves(hiddev)
       else data = await getFanPwmCurve(hiddev, port)
-      console.log(JSON.stringify(data))
+      console.log(JSON.stringify(data, null, 2))
     },
   })
   .command({
