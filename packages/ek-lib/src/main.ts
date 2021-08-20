@@ -89,7 +89,7 @@ export function getFan(device: HID, fanPort: FanPort): FanData {
   const recv = sendPacket(device, packet)
 
   return {
-    rpm: parseInt('0x' + recv[12].toString(16) + padLeadingZeros(recv[13].toString(16), 2)),
+    rpm: parseInt(`0x${recv[12].toString(16)}${padLeadingZeros(recv[13].toString(16), 2)}`),
     pwm: recv[21],
   }
 }
