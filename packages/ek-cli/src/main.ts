@@ -2,7 +2,6 @@ import HID from 'node-hid'
 import yargs from 'yargs/yargs'
 
 import {
-  padLeadingZeros,
   DevicePort,
   getInformation,
   getLights,
@@ -76,21 +75,8 @@ const devicePortChoices: ReadonlyArray<DevicePorts> = [
 ]
 
 const device = HID.devices(0x0483, 0x5750).filter((dev) => dev.interface === 0)[0]
-if (device === undefined) {
-  console.error("Couldn't find EK LOOP Connect! Is it connected?")
-  exit(2)
-}
-
-const vend = padLeadingZeros(device.vendorId.toString(16), 4)
-const prod = padLeadingZeros(device.productId.toString(16), 4)
-const iface = padLeadingZeros(device.interface.toString(16), 2)
-console.log(`Manufacturer:  ${device.manufacturer}`)
-console.log(`Product:       ${device.product}`)
-console.log(`Identifier:    USB\\VID_${vend}&PID_${prod}&MI_${iface}`)
-console.log()
-
-if (!device.path) {
-  console.error("Couldn't open device: path not available!")
+if (device === undefined || !device.path) {
+  console.error("Couldn't find EK Loop Connect! Is it connected?")
   exit(2)
 }
 const hiddev = new HID.HID(device.path)

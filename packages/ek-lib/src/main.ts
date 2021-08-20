@@ -211,7 +211,7 @@ export function setLights(device: HID, LightData: LightData): number[] {
   return recv
 }
 
-export function padLeadingZeros(s: string, n: number): string {
+function padLeadingZeros(s: string, n: number): string {
   let p = s
   while (p.length < n) p = `0${p}`
   return p
