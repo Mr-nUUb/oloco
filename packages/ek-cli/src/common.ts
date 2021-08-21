@@ -20,7 +20,7 @@ export function openController(): HID.HID {
   return new HID.HID(device.path)
 }
 
-export type FanPorts = FanPort | 'fans'
+export type FanPorts = FanPort | 'all'
 export type PwmCurve = 'curve1' | 'curve2' | 'curve3' | 'curve4' | 'curve5' | 'curve6'
 export type PwmCurves = PwmCurve | 'curves'
 export type DeviceGadgets = DevicePort | PwmCurves | 'fans' | 'infos'
@@ -32,7 +32,7 @@ export const fanPortChoices: ReadonlyArray<FanPorts> = [
   'fan4',
   'fan5',
   'fan6',
-  'fans',
+  'all',
 ]
 export const lightModeChoices: ReadonlyArray<LightMode> = [
   'off',

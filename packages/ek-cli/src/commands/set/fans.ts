@@ -1,15 +1,15 @@
 import { Arguments, Argv } from 'yargs'
-import { openController, fanPortChoices, FanPorts } from '../../common'
+import { fanPortChoices, FanPorts, openController } from '../../common'
 import { FanData, AllFanData, setFan, setFans, getFan, getFans } from '@ek-loop-connect/ek-lib'
 
-export const command = 'fan <port> <speed>'
+export const command = 'fans <port> <speed>'
 export const describe = 'Set a speed of a fan or all fans.'
 
 export const builder = (yargs: Argv): Argv =>
   yargs
     .positional('port', {
       choices: fanPortChoices,
-      describe: 'The fan to configure.',
+      describe: 'The fan(s) to configure.',
     })
     .positional('speed', {
       type: 'number',
@@ -22,7 +22,7 @@ export const handler = (yargs: Arguments): void => {
   const speed = yargs.speed as number
   const controller = openController()
 
-  if (port === 'fans') {
+  if (port === 'all') {
     setFans(controller, speed)
     data = getFans(controller)
   } else {
