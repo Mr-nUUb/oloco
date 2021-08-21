@@ -3,7 +3,7 @@ import { openController, lightModeChoices, lightSpeedChoices } from '../../commo
 import { getLights, LightColor, LightMode, LightSpeed, setLights } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
 
-export const command = 'light <mode> <speed> <color>'
+export const command = 'lights <mode> <speed> <color>'
 export const describe = 'Configure RGB lights.'
 
 export const builder = (yargs: Argv): Argv =>
