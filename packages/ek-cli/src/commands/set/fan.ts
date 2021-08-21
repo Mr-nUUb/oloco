@@ -1,5 +1,5 @@
 import { Arguments, Argv } from 'yargs'
-import { hiddev, fanPortChoices, FanPorts } from '../../common'
+import { openController, fanPortChoices, FanPorts } from '../../common'
 import { FanData, AllFanData, setFan, setFans, getFan, getFans } from '@ek-loop-connect/ek-lib'
 
 export const command = 'fan <port> <speed>'
@@ -20,12 +20,16 @@ export const handler = (yargs: Arguments): void => {
   let data: FanData | AllFanData
   const port = yargs.port as FanPorts
   const speed = yargs.speed as number
+  const controller = openController()
+
   if (port === 'fans') {
-    setFans(hiddev, speed)
-    data = getFans(hiddev)
+    setFans(controller, speed)
+    data = getFans(controller)
   } else {
-    setFan(hiddev, port, speed)
-    data = getFan(hiddev, port)
+    setFan(controller, port, speed)
+    data = getFan(controller, port)
   }
+
+  controller.close()
   console.log(data)
 }

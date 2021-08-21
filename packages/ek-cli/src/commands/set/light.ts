@@ -1,5 +1,5 @@
 import { Arguments, Argv } from 'yargs'
-import { hiddev, lightModeChoices, lightSpeedChoices } from '../../common'
+import { openController, lightModeChoices, lightSpeedChoices } from '../../common'
 import { getLights, LightColor, LightMode, LightSpeed, setLights } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
 
@@ -34,6 +34,11 @@ export const handler = (yargs: Arguments): void => {
     green: parseInt(userColor.slice(3, 5), 16),
     blue: parseInt(userColor.slice(5, 7), 16),
   }
-  setLights(hiddev, { mode, speed, color })
-  console.log(getLights(hiddev))
+  const controller = openController()
+
+  setLights(controller, { mode, speed, color })
+  const recv = getLights(controller)
+
+  controller.close()
+  console.log(recv)
 }
