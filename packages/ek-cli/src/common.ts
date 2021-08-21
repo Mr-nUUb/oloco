@@ -1,4 +1,4 @@
-import { DevicePort, FanPort, LightMode, LightSpeed } from '@ek-loop-connect/ek-lib'
+import { FanPort, LightMode, LightSpeed } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
 import HID from 'node-hid'
 
@@ -21,9 +21,6 @@ export function openController(): HID.HID {
 }
 
 export type FanPorts = FanPort | 'all'
-export type PwmCurve = 'curve1' | 'curve2' | 'curve3' | 'curve4' | 'curve5' | 'curve6'
-export type PwmCurves = PwmCurve | 'curves'
-export type DeviceGadgets = DevicePort | PwmCurves | 'fans' | 'infos'
 
 export const fanPortChoices: ReadonlyArray<FanPorts> = [
   'fan1',
@@ -56,23 +53,4 @@ export const lightSpeedChoices: ReadonlyArray<LightSpeed> = [
   'fast',
   'faster',
   'fastest',
-]
-export const deviceGadgetChoices: ReadonlyArray<DeviceGadgets> = [
-  'fan1',
-  'fan2',
-  'fan3',
-  'fan4',
-  'fan5',
-  'fan6',
-  'fans',
-  'curve1',
-  'curve2',
-  'curve3',
-  'curve4',
-  'curve5',
-  'curve6',
-  'curves',
-  'lights',
-  'sensors',
-  'infos',
 ]
