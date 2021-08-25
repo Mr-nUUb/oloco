@@ -49,30 +49,55 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   while (device) {
     console.time()
     const current = getSensors(device)
+
     tempportIterable.forEach((port) => {
       if (userConfig.sensors.temps[port].enabled) {
+        const name = userConfig.sensors.temps[port].name
         let temp = current.temps[port]
+        const warn = userConfig.sensors.temps[port].warning
         if (!temp) {
           console.error("Couldn't read current temperature!")
           device.close()
           exit(2)
         }
-        const warn = userConfig.sensors.temps[port].warning
         temp += userConfig.sensors.temps[port].offset
         if (temp > userConfig.sensors.temps[port].warning) {
-          const name = userConfig.sensors.temps[port].name
-          console.warn(`Sensor ${name} is above warning temperature: ${temp} > ${warn}!`)
+          console.warn(`WARN - Sensor ${name} is above warning temperature: ${temp} > ${warn} °C!`)
+        } else {
+          console.log(`Sensor ${name}: ${temp} °C`)
         }
       }
     })
 
+    if (userConfig.sensors.flow.enabled) {
+      const name = userConfig.sensors.flow.name
+      const flow = (current.flow * userConfig.sensors.flow.signalsPerLiter) / 100
+      const warn = userConfig.sensors.flow.warning
+      if (flow < warn) {
+        console.warn(`WARN - Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
+      } else {
+        console.log(`Sensor ${name}: ${flow} l/h`)
+      }
+    }
+
+    if (userConfig.sensors.level.enabled) {
+      const name = userConfig.sensors.level.name
+      const level = current.level
+      const warn = userConfig.sensors.level.warning
+      if (warn && level === 'warning') {
+        console.warn(`WARN - Sensor ${name} is below warning level!`)
+      } else {
+        console.log(`Sensor ${name}: ${level}`)
+      }
+    }
+
     fanportIterable.forEach((port) => {
       if (userConfig.fans[port].enabled) {
+        const name = userConfig.fans[port].name
         const currentSpeed = getFan(device, port).rpm
         const warn = userConfig.fans[port].warning
         if (currentSpeed < warn) {
-          const name = userConfig.fans[port].name
-          console.warn(`Fan ${name} is below warning speed: ${currentSpeed} > ${warn}!`)
+          console.warn(`Fan ${name} is below warning speed: ${currentSpeed} < ${warn} RPM!`)
         }
         const fanProfiles: FanProfileCurves = {
           profiles: {
@@ -96,7 +121,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
         const speed = interpolate(currentTemp, lower.x, higher.x, lower.y, higher.y)
 
         console.info(
-          `Fan: ${userConfig.fans[port].name}; ` +
+          `Fan ${userConfig.fans[port].name}; ` +
             `Current RPM: ${currentSpeed}; ` +
             `Profile: ${profile}; ` +
             `Temperature: ${currentTemp}; ` +
