@@ -264,6 +264,6 @@ function sendPacket(device: HID, packet: number[]): number[] {
   return recv
 }
 
-function sleep(ms: number): Promise<unknown> {
+export function sleep(ms: number): Promise<unknown> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }

@@ -21,6 +21,7 @@ export function openController(): HID.HID {
 }
 
 export type FanPorts = FanPort | 'all'
+export type FanProfileName = 'silent' | 'balanced' | 'max' | 'custom'
 
 export const fanPortChoices: ReadonlyArray<FanPorts> = [
   'fan1',
@@ -54,3 +55,17 @@ export const lightSpeedChoices: ReadonlyArray<LightSpeed> = [
   'faster',
   'fastest',
 ]
+export const fanProfileChoices: ReadonlyArray<FanProfileName> = [
+  'silent',
+  'balanced',
+  'max',
+  'custom',
+]
+
+export interface FanProfilePoint {
+  x: number
+  y: number
+}
+export interface FanProfileCurves {
+  profiles: { [key in FanProfileName]: FanProfilePoint[] }
+}
