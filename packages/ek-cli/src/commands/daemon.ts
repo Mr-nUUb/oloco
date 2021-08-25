@@ -62,9 +62,9 @@ export const handler = async (yargs: Arguments): Promise<void> => {
         }
         temp += userConfig.sensors.temps[port].offset
         if (temp > userConfig.sensors.temps[port].warning) {
-          console.warn(`WARN - Sensor ${name} is above warning temperature: ${temp} > ${warn} °C!`)
+          console.warn(`WARN - Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
         } else {
-          console.log(`Sensor ${name}: ${temp} °C`)
+          console.log(`Temp ${name}: ${temp} °C`)
         }
       }
     })
