@@ -2,7 +2,15 @@ import { Argv, Arguments } from 'yargs'
 import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
-import { FanPort, getSensors, setFan, setLights, sleep, TempPort } from '@ek-loop-connect/ek-lib'
+import {
+  FanPort,
+  getFan,
+  getSensors,
+  setFan,
+  setLights,
+  sleep,
+  TempPort,
+} from '@ek-loop-connect/ek-lib'
 import {
   fanProfileChoices,
   FanProfileCurves,
@@ -59,34 +67,43 @@ export const handler = async (yargs: Arguments): Promise<void> => {
     })
 
     fanportIterable.forEach((port) => {
-      const fanProfiles: FanProfileCurves = {
-        profiles: {
-          silent: fanSilent,
-          balanced: fanBalanced,
-          max: fanMax,
-          custom: userConfig.fans[port].customProfile,
-        },
-      }
-      let currentTemp = current.temps[userConfig.fans[port].tempSource]
-      if (!currentTemp) {
-        console.error("Couldn't read current temperature!")
-        device.close()
-        exit(2)
-      }
-      currentTemp += userConfig.sensors.temps[userConfig.fans[port].tempSource].offset
-      const curve = fanProfiles.profiles[profile]
-      const index = nextLowerPoint(curve, currentTemp)
-      const lower = curve[index]
-      const higher = curve[index + 1]
-      const speed = interpolate(currentTemp, lower.x, higher.x, lower.y, higher.y)
+      if (userConfig.fans[port].enabled) {
+        const currentSpeed = getFan(device, port).rpm
+        const warn = userConfig.fans[port].warning
+        if (currentSpeed < warn) {
+          const name = userConfig.fans[port].name
+          console.warn(`Fan ${name} is below warning speed: ${currentSpeed} > ${warn}!`)
+        }
+        const fanProfiles: FanProfileCurves = {
+          profiles: {
+            silent: fanSilent,
+            balanced: fanBalanced,
+            max: fanMax,
+            custom: userConfig.fans[port].customProfile,
+          },
+        }
+        let currentTemp = current.temps[userConfig.fans[port].tempSource]
+        if (!currentTemp) {
+          console.error("Couldn't read current temperature!")
+          device.close()
+          exit(2)
+        }
+        currentTemp += userConfig.sensors.temps[userConfig.fans[port].tempSource].offset
+        const curve = fanProfiles.profiles[profile]
+        const index = nextLowerPoint(curve, currentTemp)
+        const lower = curve[index]
+        const higher = curve[index + 1]
+        const speed = interpolate(currentTemp, lower.x, higher.x, lower.y, higher.y)
 
-      console.info(
-        `Fan: ${userConfig.fans[port].name}; ` +
-          `Profile: ${profile}; ` +
-          `Temperature: ${currentTemp}; ` +
-          `Speed: ${speed}; `,
-      )
-      setFan(device, port, speed)
+        console.info(
+          `Fan: ${userConfig.fans[port].name}; ` +
+            `Current RPM: ${currentSpeed}; ` +
+            `Profile: ${profile}; ` +
+            `Temperature: ${currentTemp}; ` +
+            `New PWM: ${speed}; `,
+        )
+        setFan(device, port, speed)
+      }
     })
     console.timeEnd()
     await sleep(1000)
