@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@ek-loop-connect/ek-lib": "workspace:^0.0.1",
+    "js-logger": "^1.6.1",
     "node-hid": "^2.1.1",
     "yargs": "^17.1.1"
   },

@@ -22,6 +22,8 @@ export function openController(): HID.HID {
 
 export type FanPorts = FanPort | 'all'
 export type FanProfileName = 'silent' | 'balanced' | 'max' | 'custom'
+export type LogTarget = 'terminal'
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 export const fanPortChoices: ReadonlyArray<FanPorts> = [
   'fan1',

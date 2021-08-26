@@ -1,5 +1,5 @@
 import { FanPort, LightData, TempPort } from '@ek-loop-connect/ek-lib'
-import { FanProfileName, FanProfilePoint } from './common'
+import { FanProfileName, FanProfilePoint, LogLevel, LogTarget } from './common'
 import os from 'os'
 import path from 'path'
 import balanced from './res/balanced.json'
@@ -39,6 +39,10 @@ export interface UserConfig {
     }
   }
   lights: LightData
+  logger: {
+    target: LogTarget
+    level: LogLevel
+  }
 }
 
 export const userConfigTemplate: UserConfig = {
@@ -133,5 +137,9 @@ export const userConfigTemplate: UserConfig = {
       green: 0,
       blue: 0,
     },
+  },
+  logger: {
+    target: 'terminal',
+    level: 'info',
   },
 }

@@ -56,6 +56,7 @@ __metadata:
     "@types/node": ^14
     "@types/node-hid": ^1
     "@types/yargs": ^17
+    js-logger: ^1.6.1
     node-hid: ^2.1.1
     rimraf: ^3.0.2
     ts-node: ^10.2.1
@@ -1960,6 +1961,13 @@ __metadata:
   version: 1.4.0
   resolution: "jju@npm:1.4.0"
   checksum: 3790481bd2b7827dd6336e6e3dc2dcc6d425679ba7ebde7b679f61dceb4457ea0cda330972494de608571f4973c6dfb5f70fab6f3c5037dbab19ac449a60424f
+  languageName: node
+  linkType: hard
+
+"js-logger@npm:^1.6.1":
+  version: 1.6.1
+  resolution: "js-logger@npm:1.6.1"
+  checksum: c191a612a198c6a3263cb35a1953b8de9bc9ff8962cfdb393a771c26be726630a18a15765aa471dd8e0a20666011e3ddbc5addb2d2494e964d39fd13f2246aca
   languageName: node
   linkType: hard
 
