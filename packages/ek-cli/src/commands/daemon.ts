@@ -22,8 +22,6 @@ Logger.useDefaults()
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user configuration.'
 
-export const builder = {}
-
 export const handler = async (): Promise<void> => {
   const userConfig = loadUserConfig()
 
