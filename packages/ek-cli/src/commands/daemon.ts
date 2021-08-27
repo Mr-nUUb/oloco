@@ -12,8 +12,7 @@ import {
 } from '@ek-loop-connect/ek-lib'
 import { FanProfileCurves, FanProfilePoint, openController } from '../common'
 import { exit } from 'process'
-import fs from 'fs'
-import { configFilePath, UserConfig } from '../userconfig'
+import { loadUserConfig, UserConfig } from '../userconfig'
 import Logger from 'js-logger'
 import { HID } from 'node-hid'
 
@@ -24,6 +23,8 @@ export const describe = 'Run this tool in daemon mode using custom user configur
 
 export const handler = async (): Promise<void> => {
   const userConfig = loadUserConfig()
+  Logger.setLevel(Logger[LogLevel[userConfig.logger.level]])
+  logUserConfig(userConfig)
 
   const device = openController()
   Logger.info('Successfully connected to controller!')
@@ -33,18 +34,6 @@ export const handler = async (): Promise<void> => {
   await loop(device, userConfig)
 
   device.close()
-}
-
-function loadUserConfig() {
-  if (!fs.existsSync(configFilePath)) {
-    Logger.error(`Config file "${configFilePath}" does not exist, please create first!`)
-    exit(2)
-  }
-  const userConfig: UserConfig = JSON.parse(fs.readFileSync(configFilePath).toString())
-  Logger.setLevel(Logger[LogLevel[userConfig.logger.level]])
-  Logger.info('Successfully loaded user config!')
-  logUserConfig(userConfig)
-  return userConfig
 }
 
 function logUserConfig(userConfig: UserConfig) {

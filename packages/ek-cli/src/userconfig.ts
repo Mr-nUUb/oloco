@@ -2,7 +2,9 @@ import { FanPort, LightData, TempPort } from '@ek-loop-connect/ek-lib'
 import { FanProfileName, FanProfilePoint, LogLevel, LogTarget } from './common'
 import os from 'os'
 import path from 'path'
+import fs from 'fs'
 import balanced from './res/balanced.json'
+import { exit } from 'process'
 
 export const configFilePath = path.resolve(os.homedir(), '.config/ek-loop-connect/cli/config.json')
 
@@ -142,4 +144,13 @@ export const userConfigTemplate: UserConfig = {
     target: 'terminal',
     level: 'info',
   },
+}
+
+export function loadUserConfig(): UserConfig {
+  if (!fs.existsSync(configFilePath)) {
+    console.error(`Config file "${configFilePath}" does not exist, please create first!`)
+    exit(2)
+  }
+  const userConfig: UserConfig = JSON.parse(fs.readFileSync(configFilePath).toString())
+  return userConfig
 }
