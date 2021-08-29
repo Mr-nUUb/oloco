@@ -1,6 +1,6 @@
 import { FanPort, LightMode, LightSpeed } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
-import HID from 'node-hid'
+import * as HID from 'node-hid'
 
 export function openController(): HID.HID {
   const devices = HID.devices(0x0483, 0x5750).filter((dev) => dev.interface === 0)

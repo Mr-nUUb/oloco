@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@ek-loop-connect/ek-lib": "workspace:^0.0.1",
+    "conf": "^10.0.2",
     "js-logger": "^1.6.1",
     "node-hid": "^2.1.1",
     "yargs": "^17.1.1"
@@ -41,6 +42,6 @@
     "@types/yargs": "^17",
     "rimraf": "^3.0.2",
     "ts-node": "^10.2.1",
-    "typescript": "^4.3.5"
+    "typescript": "~4.3"
   }
 }

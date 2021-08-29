@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { configFilePath } from '../../userconfig'
+import { configFilePath } from '../../config'
 
 export const command = 'delete'
 export const describe = 'Delete the user config file.'
