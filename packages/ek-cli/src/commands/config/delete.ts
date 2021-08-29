@@ -1,12 +1,12 @@
 import fs from 'fs'
-import { configFilePath } from '../../config'
+import { config } from '../../config'
 
 export const command = 'delete'
 export const describe = 'Delete the user config file.'
 
 export const handler = async (): Promise<void> => {
-  console.log(`Deleting config file "${configFilePath}"...`)
-  if (fs.existsSync(configFilePath)) {
-    fs.unlinkSync(configFilePath)
+  console.log(`Deleting config file...`)
+  if (fs.existsSync(config.path)) {
+    fs.unlinkSync(config.path)
   }
 }
