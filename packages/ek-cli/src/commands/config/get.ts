@@ -5,7 +5,7 @@ export const command = 'get [entry]'
 export const describe = 'Query an entry from the current configuration.'
 
 export const builder = (yargs: Argv): Argv =>
-  yargs.positional('port', {
+  yargs.positional('entry', {
     type: 'string',
     describe: 'The entry to query.',
   })
