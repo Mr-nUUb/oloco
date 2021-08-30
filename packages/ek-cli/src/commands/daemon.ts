@@ -5,16 +5,13 @@ import {
   FanPort,
   getFan,
   getSensors,
-  LightMode,
-  LightSpeed,
   setFan,
   setLights,
   sleep,
   TempPort,
 } from '@ek-loop-connect/ek-lib'
-import { FanProfileCurves, FanProfileName, FanProfilePoint, openController } from '../common'
-import { exit } from 'process'
-import { config } from '../config'
+import { FanProfileCurves, FanProfilePoint, openController } from '../common'
+import { config, FanConfig, FlowConfig, LevelConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
 import { HID } from 'node-hid'
 
@@ -25,7 +22,6 @@ export const describe = 'Run this tool in daemon mode using custom user configur
 
 export const handler = async (): Promise<void> => {
   //Logger.setLevel(Logger[LogLevel[config.get('logger.level') as LogLevel]])
-  logConfig()
 
   const device = openController()
   Logger.info('Successfully connected to controller!')
@@ -37,75 +33,26 @@ export const handler = async (): Promise<void> => {
   device.close()
 }
 
-function logConfig() {
-  Logger.info()
-  fanportIterable.forEach((port) => {
-    const name = config.get(`fans.${port}.name`) as string
-    if (config.get(`fans.${port}.enabled`) as boolean) {
-      const profile = config.get(`fans.${port}.activeProfile`) as FanProfileName
-      const tempSource = config.get(
-        `sensors.temps.${config.get(`fans.${port}.tempSource`) as TempPort}.name`,
-      ) as string
-      const warn = config.get(`fans.${port}.warning`) as number
-      Logger.info(`Fan ${name}: Profile ${profile}; Temp Source ${tempSource}; Warning ${warn} RPM`)
-    } else {
-      Logger.info(`Fan ${name}: disabled`)
-    }
-  })
-
-  tempportIterable.forEach((port) => {
-    const name = config.get(`sensors.temps.${port}.name`) as string
-    if (config.get(`sensors.temps.${port}.enabled`) as boolean) {
-      const offset = config.get(`sensors.temps.${port}.offset`) as number
-      const warn = config.get(`sensors.temps.${port}.warning`) as number
-      Logger.info(`Temp ${name}: Offset ${offset} °C; Warning ${warn} °C`)
-    } else {
-      Logger.info(`Temp ${name}: disabled`)
-    }
-  })
-
-  let name = config.get(`sensors.flow.name`) as string
-  if (config.get(`sensors.flow.enabled`) as boolean) {
-    const signals = config.get(`sensors.flow.signalsPerLiter`) as number
-    const warn = config.get(`sensors.flow.warning`) as number
-    Logger.info(`Sensor ${name}: ${signals} signals/l; Warning ${warn} l/h`)
-  } else {
-    Logger.info(`Sensor ${name}: disabled`)
-  }
-
-  name = config.get(`sensors.level.name`) as string
-  if (config.get(`sensors.level.enabled`) as boolean) {
-    const warn = config.get(`sensors.level.warning`) as boolean
-    Logger.info(`Sensor ${name}: Warning ${warn ? 'enabled' : 'disabled'}`)
-  } else {
-    Logger.info(`Sensor ${name}: disabled`)
-  }
-
-  const mode = config.get(`lights.mode`) as LightMode
-  const speed = config.get(`lights.speed`) as LightSpeed
-  const red = config.get(`lights.color.red`) as number
-  const green = config.get(`lights.color.green`) as number
-  const blue = config.get(`lights.color.blue`) as number
-  Logger.info(`Lights: Mode ${mode}; Speed ${speed}; Red ${red} Green ${green} Blue ${blue}`)
-
-  Logger.info()
-}
-
 async function loop(device: HID) {
   while (device) {
+    Logger.time('Loop')
+    Logger.time('Get Sensors')
     const current = getSensors(device)
+    Logger.timeEnd('Get Sensors')
 
     tempportIterable.forEach((port) => {
-      if (config.get(`sensors.temps.${port}.enabled`) as boolean) {
-        const name = config.get(`sensors.temps.${port}.name`) as string
+      const tempConfig = (config.get('sensors.temps') as TempConfig[]).find(
+        (cfg) => cfg.id === port,
+      ) as TempConfig
+      if (tempConfig.enabled) {
+        const name = tempConfig.name
+        const warn = tempConfig.warning
         let temp = current.temps[port]
-        const warn = config.get(`sensors.temps.${port}.warning`) as number
         if (!temp) {
-          Logger.error("Couldn't read current temperature!")
-          device.close()
-          exit(2)
+          Logger.warn("Couldn't read current temperature!")
+          return
         }
-        temp += config.get(`sensors.temps.${port}.offset`) as number
+        temp += tempConfig.offset
         if (temp > warn) {
           Logger.warn(`Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
         } else {
@@ -114,10 +61,11 @@ async function loop(device: HID) {
       }
     })
 
-    if (config.get(`sensors.flow.enabled`) as boolean) {
-      const name = config.get(`sensors.flow.name`) as string
-      const flow = (current.flow * (config.get(`sensors.flow.signalsPerLiter`) as number)) / 100
-      const warn = config.get(`sensors.flow.warning`) as number
+    const flowConfig = config.get('sensors.flow') as FlowConfig
+    if (flowConfig.enabled) {
+      const name = flowConfig.name
+      const warn = flowConfig.warning
+      const flow = (current.flow * flowConfig.signalsPerLiter) / 100
       if (flow < warn) {
         Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
       } else {
@@ -125,20 +73,20 @@ async function loop(device: HID) {
       }
     }
 
-    if (config.get(`sensors.level.enabled`) as boolean) {
-      const name = config.get(`sensors.level.name`) as string
-      const level = current.level
-      const warn = config.get(`sensors.level.warning`) as boolean
-      if (warn && level === 'warning') {
-        Logger.warn(`Sensor ${name} is below warning level!`)
+    const levelConfig = config.get('sensors.level') as LevelConfig
+    if (levelConfig.enabled) {
+      if (levelConfig.warning && current.level === 'warning') {
+        Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
       }
     }
 
+    Logger.time('Set Fans')
     fanportIterable.forEach((port) => {
-      if (config.get(`fans.${port}.enabled`) as boolean) {
-        const name = config.get(`fans.${port}.name`) as string
+      const fanConfig = config.get('fans').find((cfg) => cfg.id === port) as FanConfig
+      if (fanConfig.enabled) {
+        const name = fanConfig.name
+        const warn = fanConfig.warning
         const currentSpeed = getFan(device, port).rpm
-        const warn = config.get(`fans.${port}.warning`) as number
         if (currentSpeed < warn) {
           Logger.warn(`Fan ${name} is below warning speed: ${currentSpeed} < ${warn} RPM!`)
         }
@@ -147,20 +95,20 @@ async function loop(device: HID) {
             silent: fanSilent,
             balanced: fanBalanced,
             max: fanMax,
-            custom: config.get(`fans.${port}.customProfile`) as FanProfilePoint[],
+            custom: fanConfig.customProfile,
           },
         }
-        let currentTemp = current.temps[config.get(`fans.${port}.tempSource`) as TempPort]
+        let currentTemp = current.temps[fanConfig.tempSource]
         if (!currentTemp) {
           Logger.error("Couldn't read current temperature!")
-          device.close()
-          exit(2)
+          return
         }
-        currentTemp += config.get(
-          `sensors.temps.${config.get(`fans.${port}.tempSource`) as TempPort}.offset`,
-        ) as number
-        const profile = config.get(`fans.${port}.activeProfile`) as FanProfileName
-        const curve = fanProfiles.profiles[profile]
+        currentTemp += (
+          (config.get('sensors.temps') as TempConfig[]).find(
+            (cfg) => cfg.id === fanConfig.tempSource,
+          ) as TempConfig
+        ).offset
+        const curve = fanProfiles.profiles[fanConfig.activeProfile]
         const index = nextLowerPoint(curve, currentTemp)
         const lower = curve[index]
         const higher = curve[index + 1]
@@ -170,7 +118,9 @@ async function loop(device: HID) {
         setFan(device, port, speed)
       }
     })
+    Logger.timeEnd('Set Fans')
 
+    Logger.timeEnd('Loop')
     await sleep(1000)
   }
 }

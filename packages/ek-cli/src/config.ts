@@ -3,37 +3,39 @@ import { FanProfileName, FanProfilePoint, LogLevel, LogTarget } from './common'
 import balanced from './res/balanced.json'
 import Conf from 'conf'
 
+export type FanConfig = {
+  id: FanPort
+  name: string
+  enabled: boolean
+  warning: number
+  tempSource: TempPort
+  activeProfile: FanProfileName
+  customProfile: FanProfilePoint[]
+}
+export type FlowConfig = {
+  name: string
+  enabled: boolean
+  warning: number
+  signalsPerLiter: number
+}
+export type LevelConfig = {
+  name: string
+  enabled: boolean
+  warning: boolean
+}
+export type TempConfig = {
+  id: TempPort
+  name: string
+  enabled: boolean
+  warning: number
+  offset: number
+}
 export type Config = {
-  fans: {
-    [key in FanPort]: {
-      name: string
-      enabled: boolean
-      warning: number
-      tempSource: TempPort
-      activeProfile: FanProfileName
-      customProfile: FanProfilePoint[]
-    }
-  }
+  fans: FanConfig[]
   sensors: {
-    temps: {
-      [key in TempPort]: {
-        name: string
-        enabled: boolean
-        warning: number
-        offset: number
-      }
-    }
-    flow: {
-      name: string
-      enabled: boolean
-      warning: number
-      signalsPerLiter: number
-    }
-    level: {
-      name: string
-      enabled: boolean
-      warning: boolean
-    }
+    temps: TempConfig[]
+    flow: FlowConfig
+    level: LevelConfig
   }
   lights: LightData
   logger: {
@@ -46,251 +48,62 @@ export const config = new Conf<Config>({
   accessPropertiesByDotNotation: true,
   schema: {
     fans: {
-      additionalProperties: false,
-      properties: {
-        fan1: {
-          additionalProperties: false,
-          properties: {
-            activeProfile: {
-              enum: ['silent', 'balanced', 'max', 'custom'],
-              type: 'string',
-            },
-            customProfile: {
-              items: {
-                additionalProperties: false,
-                properties: {
-                  x: {
-                    type: 'number',
-                  },
-                  y: {
-                    type: 'number',
-                  },
-                },
-                required: ['x', 'y'],
-                type: 'object',
-              },
-              type: 'array',
-            },
-            enabled: {
-              type: 'boolean',
-            },
-            name: {
-              type: 'string',
-            },
-            tempSource: {
-              enum: ['temp1', 'temp2', 'temp3'],
-              type: 'string',
-            },
-            warning: {
-              type: 'number',
-            },
+      items: {
+        additionalProperties: false,
+        properties: {
+          activeProfile: {
+            enum: ['silent', 'balanced', 'max', 'custom'],
+            type: 'string',
           },
-          required: ['name', 'enabled', 'warning', 'tempSource', 'activeProfile', 'customProfile'],
-          type: 'object',
-        },
-        fan2: {
-          additionalProperties: false,
-          properties: {
-            activeProfile: {
-              enum: ['silent', 'balanced', 'max', 'custom'],
-              type: 'string',
-            },
-            customProfile: {
-              items: {
-                additionalProperties: false,
-                properties: {
-                  x: {
-                    type: 'number',
-                  },
-                  y: {
-                    type: 'number',
-                  },
+          customProfile: {
+            items: {
+              additionalProperties: false,
+              properties: {
+                x: {
+                  type: 'number',
                 },
-                required: ['x', 'y'],
-                type: 'object',
-              },
-              type: 'array',
-            },
-            enabled: {
-              type: 'boolean',
-            },
-            name: {
-              type: 'string',
-            },
-            tempSource: {
-              enum: ['temp1', 'temp2', 'temp3'],
-              type: 'string',
-            },
-            warning: {
-              type: 'number',
-            },
-          },
-          required: ['name', 'enabled', 'warning', 'tempSource', 'activeProfile', 'customProfile'],
-          type: 'object',
-        },
-        fan3: {
-          additionalProperties: false,
-          properties: {
-            activeProfile: {
-              enum: ['silent', 'balanced', 'max', 'custom'],
-              type: 'string',
-            },
-            customProfile: {
-              items: {
-                additionalProperties: false,
-                properties: {
-                  x: {
-                    type: 'number',
-                  },
-                  y: {
-                    type: 'number',
-                  },
+                y: {
+                  type: 'number',
                 },
-                required: ['x', 'y'],
-                type: 'object',
               },
-              type: 'array',
+              required: ['x', 'y'],
+              type: 'object',
             },
-            enabled: {
-              type: 'boolean',
-            },
-            name: {
-              type: 'string',
-            },
-            tempSource: {
-              enum: ['temp1', 'temp2', 'temp3'],
-              type: 'string',
-            },
-            warning: {
-              type: 'number',
-            },
+            type: 'array',
           },
-          required: ['name', 'enabled', 'warning', 'tempSource', 'activeProfile', 'customProfile'],
-          type: 'object',
-        },
-        fan4: {
-          additionalProperties: false,
-          properties: {
-            activeProfile: {
-              enum: ['silent', 'balanced', 'max', 'custom'],
-              type: 'string',
-            },
-            customProfile: {
-              items: {
-                additionalProperties: false,
-                properties: {
-                  x: {
-                    type: 'number',
-                  },
-                  y: {
-                    type: 'number',
-                  },
-                },
-                required: ['x', 'y'],
-                type: 'object',
-              },
-              type: 'array',
-            },
-            enabled: {
-              type: 'boolean',
-            },
-            name: {
-              type: 'string',
-            },
-            tempSource: {
-              enum: ['temp1', 'temp2', 'temp3'],
-              type: 'string',
-            },
-            warning: {
-              type: 'number',
-            },
+          enabled: {
+            type: 'boolean',
           },
-          required: ['name', 'enabled', 'warning', 'tempSource', 'activeProfile', 'customProfile'],
-          type: 'object',
-        },
-        fan5: {
-          additionalProperties: false,
-          properties: {
-            activeProfile: {
-              enum: ['silent', 'balanced', 'max', 'custom'],
-              type: 'string',
-            },
-            customProfile: {
-              items: {
-                additionalProperties: false,
-                properties: {
-                  x: {
-                    type: 'number',
-                  },
-                  y: {
-                    type: 'number',
-                  },
-                },
-                required: ['x', 'y'],
-                type: 'object',
-              },
-              type: 'array',
-            },
-            enabled: {
-              type: 'boolean',
-            },
-            name: {
-              type: 'string',
-            },
-            tempSource: {
-              enum: ['temp1', 'temp2', 'temp3'],
-              type: 'string',
-            },
-            warning: {
-              type: 'number',
-            },
+          id: {
+            enum: ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6'],
+            type: 'string',
           },
-          required: ['name', 'enabled', 'warning', 'tempSource', 'activeProfile', 'customProfile'],
-          type: 'object',
-        },
-        fan6: {
-          additionalProperties: false,
-          properties: {
-            activeProfile: {
-              enum: ['silent', 'balanced', 'max', 'custom'],
-              type: 'string',
-            },
-            customProfile: {
-              items: {
-                additionalProperties: false,
-                properties: {
-                  x: {
-                    type: 'number',
-                  },
-                  y: {
-                    type: 'number',
-                  },
-                },
-                required: ['x', 'y'],
-                type: 'object',
-              },
-              type: 'array',
-            },
-            enabled: {
-              type: 'boolean',
-            },
-            name: {
-              type: 'string',
-            },
-            tempSource: {
-              enum: ['temp1', 'temp2', 'temp3'],
-              type: 'string',
-            },
-            warning: {
-              type: 'number',
-            },
+          name: {
+            type: 'string',
           },
-          required: ['name', 'enabled', 'warning', 'tempSource', 'activeProfile', 'customProfile'],
-          type: 'object',
+          tempSource: {
+            enum: ['temp1', 'temp2', 'temp3'],
+            type: 'string',
+          },
+          warning: {
+            type: 'number',
+          },
         },
+        required: [
+          'name',
+          'enabled',
+          'id',
+          'warning',
+          'tempSource',
+          'activeProfile',
+          'customProfile',
+        ],
+        type: 'object',
       },
-      required: ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6'],
-      type: 'object',
+      minItems: 6,
+      maxItems: 6,
+      type: 'array',
+      uniqueItems: true,
     },
     lights: {
       additionalProperties: false,
@@ -398,68 +211,33 @@ export const config = new Conf<Config>({
           type: 'object',
         },
         temps: {
-          additionalProperties: false,
-          properties: {
-            temp1: {
-              additionalProperties: false,
-              properties: {
-                enabled: {
-                  type: 'boolean',
-                },
-                name: {
-                  type: 'string',
-                },
-                offset: {
-                  type: 'number',
-                },
-                warning: {
-                  type: 'number',
-                },
+          items: {
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: 'boolean',
               },
-              required: ['name', 'enabled', 'warning', 'offset'],
-              type: 'object',
-            },
-            temp2: {
-              additionalProperties: false,
-              properties: {
-                enabled: {
-                  type: 'boolean',
-                },
-                name: {
-                  type: 'string',
-                },
-                offset: {
-                  type: 'number',
-                },
-                warning: {
-                  type: 'number',
-                },
+              id: {
+                enum: ['temp1', 'temp2', 'temp3'],
+                type: 'string',
               },
-              required: ['name', 'enabled', 'warning', 'offset'],
-              type: 'object',
-            },
-            temp3: {
-              additionalProperties: false,
-              properties: {
-                enabled: {
-                  type: 'boolean',
-                },
-                name: {
-                  type: 'string',
-                },
-                offset: {
-                  type: 'number',
-                },
-                warning: {
-                  type: 'number',
-                },
+              name: {
+                type: 'string',
               },
-              required: ['name', 'enabled', 'warning', 'offset'],
-              type: 'object',
+              offset: {
+                type: 'number',
+              },
+              warning: {
+                type: 'number',
+              },
             },
+            required: ['name', 'enabled', 'warning', 'offset'],
+            type: 'object',
           },
-          required: ['temp1', 'temp2', 'temp3'],
-          type: 'object',
+          minItems: 3,
+          maxItems: 3,
+          type: 'array',
+          uniqueItems: true,
         },
       },
       required: ['temps', 'flow', 'level'],
@@ -467,8 +245,9 @@ export const config = new Conf<Config>({
     },
   },
   defaults: {
-    fans: {
-      fan1: {
+    fans: [
+      {
+        id: 'fan1',
         name: 'F1',
         enabled: true,
         warning: 500,
@@ -476,7 +255,8 @@ export const config = new Conf<Config>({
         activeProfile: 'balanced',
         customProfile: balanced,
       },
-      fan2: {
+      {
+        id: 'fan2',
         name: 'F2',
         enabled: true,
         warning: 500,
@@ -484,7 +264,8 @@ export const config = new Conf<Config>({
         activeProfile: 'balanced',
         customProfile: balanced,
       },
-      fan3: {
+      {
+        id: 'fan3',
         name: 'F3',
         enabled: true,
         warning: 500,
@@ -492,7 +273,8 @@ export const config = new Conf<Config>({
         activeProfile: 'balanced',
         customProfile: balanced,
       },
-      fan4: {
+      {
+        id: 'fan4',
         name: 'F4',
         enabled: true,
         warning: 500,
@@ -500,7 +282,8 @@ export const config = new Conf<Config>({
         activeProfile: 'balanced',
         customProfile: balanced,
       },
-      fan5: {
+      {
+        id: 'fan5',
         name: 'F5',
         enabled: true,
         warning: 500,
@@ -508,7 +291,8 @@ export const config = new Conf<Config>({
         activeProfile: 'balanced',
         customProfile: balanced,
       },
-      fan6: {
+      {
+        id: 'fan6',
         name: 'F6',
         enabled: true,
         warning: 500,
@@ -516,28 +300,31 @@ export const config = new Conf<Config>({
         activeProfile: 'balanced',
         customProfile: balanced,
       },
-    },
+    ],
     sensors: {
-      temps: {
-        temp1: {
+      temps: [
+        {
+          id: 'temp1',
           name: 'T1',
           enabled: true,
           warning: 50,
           offset: 0,
         },
-        temp2: {
+        {
+          id: 'temp2',
           name: 'T2',
           enabled: true,
           warning: 50,
           offset: 0,
         },
-        temp3: {
+        {
+          id: 'temp3',
           name: 'T3',
           enabled: true,
           warning: 50,
           offset: 0,
         },
-      },
+      ],
       flow: {
         name: 'FLO',
         enabled: true,
