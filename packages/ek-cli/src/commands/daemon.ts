@@ -11,22 +11,22 @@ import {
   TempPort,
 } from '@ek-loop-connect/ek-lib'
 import { FanProfileCurves, FanProfilePoint, openController } from '../common'
-import { config, FanConfig, FlowConfig, LevelConfig, TempConfig } from '../config'
+import { Config, FanConfig, FlowConfig, LevelConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
 import { HID } from 'node-hid'
 
 Logger.useDefaults()
 
 export const command = 'daemon'
-export const describe = 'Run this tool in daemon mode using custom user configuration.'
+export const describe = 'Run this tool in daemon mode using custom user Configuration.'
 
 export const handler = async (): Promise<void> => {
-  //Logger.setLevel(Logger[LogLevel[config.get('logger.level') as LogLevel]])
+  Logger.setLevel(Logger[LogLevel[Config.get('logger').level]])
 
   const device = openController()
   Logger.info('Successfully connected to controller!')
 
-  setLights(device, config.get('lights'))
+  setLights(device, Config.get('lights'))
 
   await loop(device)
 
@@ -41,7 +41,7 @@ async function loop(device: HID) {
     Logger.timeEnd('Get Sensors')
 
     tempportIterable.forEach((port) => {
-      const tempConfig = (config.get('sensors.temps') as TempConfig[]).find(
+      const tempConfig = (Config.get('sensors.temps') as TempConfig[]).find(
         (cfg) => cfg.id === port,
       ) as TempConfig
       if (tempConfig.enabled) {
@@ -61,7 +61,7 @@ async function loop(device: HID) {
       }
     })
 
-    const flowConfig = config.get('sensors.flow') as FlowConfig
+    const flowConfig = Config.get('sensors.flow') as FlowConfig
     if (flowConfig.enabled) {
       const name = flowConfig.name
       const warn = flowConfig.warning
@@ -73,7 +73,7 @@ async function loop(device: HID) {
       }
     }
 
-    const levelConfig = config.get('sensors.level') as LevelConfig
+    const levelConfig = Config.get('sensors.level') as LevelConfig
     if (levelConfig.enabled) {
       if (levelConfig.warning && current.level === 'warning') {
         Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
@@ -82,7 +82,7 @@ async function loop(device: HID) {
 
     Logger.time('Set Fans')
     fanportIterable.forEach((port) => {
-      const fanConfig = config.get('fans').find((cfg) => cfg.id === port) as FanConfig
+      const fanConfig = Config.get('fans').find((cfg) => cfg.id === port) as FanConfig
       if (fanConfig.enabled) {
         const name = fanConfig.name
         const warn = fanConfig.warning
@@ -104,7 +104,7 @@ async function loop(device: HID) {
           return
         }
         currentTemp += (
-          (config.get('sensors.temps') as TempConfig[]).find(
+          (Config.get('sensors.temps') as TempConfig[]).find(
             (cfg) => cfg.id === fanConfig.tempSource,
           ) as TempConfig
         ).offset
@@ -140,11 +140,9 @@ function interpolate(x: number, x1: number, x2: number, y1: number, y2: number) 
 const fanportIterable: ReadonlyArray<FanPort> = ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6']
 const tempportIterable: ReadonlyArray<TempPort> = ['temp1', 'temp2', 'temp3']
 
-/*
 enum LogLevel {
   debug = 'DEBUG',
   info = 'INFO',
   warn = 'WARN',
   error = 'ERROR',
 }
-*/

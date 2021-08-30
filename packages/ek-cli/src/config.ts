@@ -23,6 +23,10 @@ export type LevelConfig = {
   enabled: boolean
   warning: boolean
 }
+export type LogConfig = {
+  target: LogTarget
+  level: LogLevel
+}
 export type TempConfig = {
   id: TempPort
   name: string
@@ -30,7 +34,7 @@ export type TempConfig = {
   warning: number
   offset: number
 }
-export type Config = {
+export type AppConfig = {
   fans: FanConfig[]
   sensors: {
     temps: TempConfig[]
@@ -38,13 +42,10 @@ export type Config = {
     level: LevelConfig
   }
   lights: LightData
-  logger: {
-    target: LogTarget
-    level: LogLevel
-  }
+  logger: LogConfig
 }
 
-export const config = new Conf<Config>({
+export const Config = new Conf<AppConfig>({
   accessPropertiesByDotNotation: true,
   schema: {
     fans: {
