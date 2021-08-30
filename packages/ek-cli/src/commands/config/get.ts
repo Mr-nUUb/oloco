@@ -1,4 +1,3 @@
-import fs from 'fs'
 import { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
 
