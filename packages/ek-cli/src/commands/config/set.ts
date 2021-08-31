@@ -24,6 +24,10 @@ export const handler = (yargs: Arguments): void => {
     console.error(`Entry "${entry}" does not exist!`)
     exit(2)
   }
+  if (entry.endsWith('.id')) {
+    console.error('Changing IDs is not allowed!')
+    exit(1)
+  }
 
   let val: string | number | boolean
   if (Number.parseInt(value)) val = Number.parseInt(value)
