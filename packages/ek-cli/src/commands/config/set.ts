@@ -30,7 +30,7 @@ export const handler = (yargs: Arguments): void => {
   }
 
   let val: string | number | boolean
-  if (Number.parseInt(value)) val = Number.parseInt(value)
+  if (!isNaN(Number.parseInt(value))) val = Number.parseInt(value)
   else if (value.toUpperCase() === 'TRUE') val = true
   else if (value.toUpperCase() === 'FALSE') val = false
   else val = value as string
