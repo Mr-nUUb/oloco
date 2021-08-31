@@ -66,8 +66,8 @@ export const fanProfileChoices: ReadonlyArray<FanProfileName> = [
 ]
 
 export interface FanProfilePoint {
-  x: number
-  y: number
+  temp: number
+  pwm: number
 }
 export interface FanProfileCurves {
   profiles: { [key in FanProfileName]: FanProfilePoint[] }

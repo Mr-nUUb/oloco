@@ -103,10 +103,10 @@ async function loop(device: HID) {
           Config.get('temps').find((cfg) => cfg.id === fanConfig.tempSource) as TempConfig
         ).offset
         const curve = fanProfiles.profiles[fanConfig.activeProfile]
-        const index = nextLowerPoint(curve, currentTemp)
+        const index = nextLowerFanProfilePoint(curve, currentTemp)
         const lower = curve[index]
         const higher = curve[index + 1]
-        const speed = interpolate(currentTemp, lower.x, higher.x, lower.y, higher.y)
+        const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
         Logger.info(`Fan ${name}: Current ${currentSpeed} RPM; New ${speed}%`)
         setFan(device, port, speed)
@@ -119,12 +119,12 @@ async function loop(device: HID) {
   }
 }
 
-function nextLowerPoint(curve: FanProfilePoint[], find: number) {
+function nextLowerFanProfilePoint(curve: FanProfilePoint[], find: number) {
   let max = 0
   curve.forEach((value) => {
-    if (value.x < find && value.x - find > max - find) max = value.x
+    if (value.temp < find && value.temp - find > max - find) max = value.temp
   })
-  return curve.findIndex((val) => val.x === max)
+  return curve.findIndex((val) => val.temp === max)
 }
 
 function interpolate(x: number, x1: number, x2: number, y1: number, y2: number) {

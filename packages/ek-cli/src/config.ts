@@ -1,4 +1,4 @@
-import { FanPort, LightData, TempPort } from '@ek-loop-connect/ek-lib'
+import { FanData, FanPort, LightData, TempPort } from '@ek-loop-connect/ek-lib'
 import {
   fanportIterable,
   fanProfileChoices,
@@ -13,6 +13,20 @@ import {
 import balanced from './res/balanced.json'
 import Conf from 'conf'
 
+const emptyCurve: FanData[] = [
+  { pwm: 0, rpm: 0 },
+  { pwm: 10, rpm: 0 },
+  { pwm: 20, rpm: 0 },
+  { pwm: 30, rpm: 0 },
+  { pwm: 40, rpm: 0 },
+  { pwm: 50, rpm: 0 },
+  { pwm: 60, rpm: 0 },
+  { pwm: 70, rpm: 0 },
+  { pwm: 80, rpm: 0 },
+  { pwm: 90, rpm: 0 },
+  { pwm: 100, rpm: 0 },
+]
+
 export type FanConfig = {
   id: FanPort
   name: string
@@ -21,6 +35,7 @@ export type FanConfig = {
   tempSource: TempPort
   activeProfile: FanProfileName
   customProfile: FanProfilePoint[]
+  responseCurve: FanData[]
 }
 export type FlowConfig = {
   name: string
@@ -68,14 +83,14 @@ export const Config = new Conf<AppConfig>({
             items: {
               additionalProperties: false,
               properties: {
-                x: {
+                temp: {
                   type: 'number',
                 },
-                y: {
+                pwm: {
                   type: 'number',
                 },
               },
-              required: ['x', 'y'],
+              required: ['temp', 'pwm'],
               type: 'object',
             },
             type: 'array',
@@ -90,6 +105,22 @@ export const Config = new Conf<AppConfig>({
           },
           name: {
             type: 'string',
+          },
+          responseCurve: {
+            items: {
+              additionalProperties: false,
+              properties: {
+                rpm: {
+                  type: 'number',
+                },
+                pwm: {
+                  type: 'number',
+                },
+              },
+              required: ['pwm', 'rpm'],
+              type: 'object',
+            },
+            type: 'array',
           },
           tempSource: {
             enum: tempportIterable as string[],
@@ -237,6 +268,7 @@ export const Config = new Conf<AppConfig>({
         tempSource: 'temp1',
         activeProfile: 'balanced',
         customProfile: balanced,
+        responseCurve: emptyCurve,
       },
       {
         id: 'fan2',
@@ -246,6 +278,7 @@ export const Config = new Conf<AppConfig>({
         tempSource: 'temp1',
         activeProfile: 'balanced',
         customProfile: balanced,
+        responseCurve: emptyCurve,
       },
       {
         id: 'fan3',
@@ -255,6 +288,7 @@ export const Config = new Conf<AppConfig>({
         tempSource: 'temp1',
         activeProfile: 'balanced',
         customProfile: balanced,
+        responseCurve: emptyCurve,
       },
       {
         id: 'fan4',
@@ -264,6 +298,7 @@ export const Config = new Conf<AppConfig>({
         tempSource: 'temp1',
         activeProfile: 'balanced',
         customProfile: balanced,
+        responseCurve: emptyCurve,
       },
       {
         id: 'fan5',
@@ -273,6 +308,7 @@ export const Config = new Conf<AppConfig>({
         tempSource: 'temp1',
         activeProfile: 'balanced',
         customProfile: balanced,
+        responseCurve: emptyCurve,
       },
       {
         id: 'fan6',
@@ -282,6 +318,7 @@ export const Config = new Conf<AppConfig>({
         tempSource: 'temp1',
         activeProfile: 'balanced',
         customProfile: balanced,
+        responseCurve: emptyCurve,
       },
     ],
     flow: {
