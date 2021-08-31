@@ -9,7 +9,7 @@ export const builder = (yargs: Argv): Argv =>
   yargs
     .positional('entry', {
       type: 'string',
-      describe: 'The entry to change.',
+      describe: "The entry to change. To get an overview, run 'config get -h' first.",
     })
     .positional('value', {
       type: 'string',

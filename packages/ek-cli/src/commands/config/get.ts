@@ -9,7 +9,9 @@ export const describe = 'Query an entry from the current configuration.'
 export const builder = (yargs: Argv): Argv =>
   yargs.positional('entry', {
     type: 'string',
-    describe: 'The entry to query.',
+    describe: `The entry to query. To get an overview, try one of [${Object.keys(Config.store).join(
+      ', ',
+    )}].`,
   })
 
 export const handler = (yargs: Arguments): void => {
