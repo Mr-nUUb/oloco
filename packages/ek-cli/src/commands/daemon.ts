@@ -33,10 +33,7 @@ export const handler = async (): Promise<void> => {
 
 async function loop(device: HID) {
   while (device) {
-    Logger.time('Loop')
-    Logger.time('Get Sensors')
     const current = getSensors(device)
-    Logger.timeEnd('Get Sensors')
 
     tempportIterable.forEach((port) => {
       const tempConfig = Config.get('temps').find((cfg) => cfg.id === port) as TempConfig
@@ -76,7 +73,6 @@ async function loop(device: HID) {
       }
     }
 
-    Logger.time('Set Fans')
     fanportIterable.forEach((port) => {
       const fanConfig = Config.get('fans').find((cfg) => cfg.id === port) as FanConfig
       if (fanConfig.enabled) {
@@ -112,9 +108,7 @@ async function loop(device: HID) {
         setFan(device, port, speed)
       }
     })
-    Logger.timeEnd('Set Fans')
 
-    Logger.timeEnd('Loop')
     await sleep(1000)
   }
 }
