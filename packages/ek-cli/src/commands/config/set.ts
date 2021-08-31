@@ -20,7 +20,7 @@ export const handler = (yargs: Arguments): void => {
   const entry = yargs.entry as string
   const value = yargs.value as string
 
-  if (!Config.get(entry)) {
+  if (Config.get(entry) === undefined) {
     console.error(`Entry "${entry}" does not exist!`)
     exit(2)
   }
