@@ -1,5 +1,6 @@
 import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
+import util from 'util'
 import { Config } from '../../config'
 
 export const command = 'get [entry]'
@@ -21,5 +22,5 @@ export const handler = (yargs: Arguments): void => {
   }
 
   if (typeof value === 'string') value = `"${value}"`
-  console.log(`${entry}: ${value}`)
+  console.log(`${entry}: ${util.inspect(value, { depth: null, colors: true })}`)
 }
