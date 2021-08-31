@@ -1,17 +1,15 @@
 import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
+import { getFan, getSensors, setFan, setLights, sleep } from '@ek-loop-connect/ek-lib'
 import {
-  FanPort,
-  getFan,
-  getSensors,
-  setFan,
-  setLights,
-  sleep,
-  TempPort,
-} from '@ek-loop-connect/ek-lib'
-import { FanProfileCurves, FanProfilePoint, openController } from '../common'
-import { Config, FanConfig, FlowConfig, LevelConfig, TempConfig } from '../config'
+  fanportIterable,
+  FanProfileCurves,
+  FanProfilePoint,
+  openController,
+  tempportIterable,
+} from '../common'
+import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
 import { HID } from 'node-hid'
 
@@ -41,9 +39,7 @@ async function loop(device: HID) {
     Logger.timeEnd('Get Sensors')
 
     tempportIterable.forEach((port) => {
-      const tempConfig = (Config.get('sensors.temps') as TempConfig[]).find(
-        (cfg) => cfg.id === port,
-      ) as TempConfig
+      const tempConfig = Config.get('temps').find((cfg) => cfg.id === port) as TempConfig
       if (tempConfig.enabled) {
         const name = tempConfig.name
         const warn = tempConfig.warning
@@ -61,7 +57,7 @@ async function loop(device: HID) {
       }
     })
 
-    const flowConfig = Config.get('sensors.flow') as FlowConfig
+    const flowConfig = Config.get('flow')
     if (flowConfig.enabled) {
       const name = flowConfig.name
       const warn = flowConfig.warning
@@ -73,7 +69,7 @@ async function loop(device: HID) {
       }
     }
 
-    const levelConfig = Config.get('sensors.level') as LevelConfig
+    const levelConfig = Config.get('level')
     if (levelConfig.enabled) {
       if (levelConfig.warning && current.level === 'warning') {
         Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
@@ -104,9 +100,7 @@ async function loop(device: HID) {
           return
         }
         currentTemp += (
-          (Config.get('sensors.temps') as TempConfig[]).find(
-            (cfg) => cfg.id === fanConfig.tempSource,
-          ) as TempConfig
+          Config.get('temps').find((cfg) => cfg.id === fanConfig.tempSource) as TempConfig
         ).offset
         const curve = fanProfiles.profiles[fanConfig.activeProfile]
         const index = nextLowerPoint(curve, currentTemp)
@@ -136,9 +130,6 @@ function nextLowerPoint(curve: FanProfilePoint[], find: number) {
 function interpolate(x: number, x1: number, x2: number, y1: number, y2: number) {
   return Math.round(y1 + ((y2 - y1) * (x - x1)) / (x2 - x1))
 }
-
-const fanportIterable: ReadonlyArray<FanPort> = ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6']
-const tempportIterable: ReadonlyArray<TempPort> = ['temp1', 'temp2', 'temp3']
 
 enum LogLevel {
   debug = 'DEBUG',

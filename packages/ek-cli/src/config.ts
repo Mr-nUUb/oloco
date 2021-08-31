@@ -1,5 +1,15 @@
 import { FanPort, LightData, TempPort } from '@ek-loop-connect/ek-lib'
-import { FanProfileName, FanProfilePoint, LogLevel, LogTarget } from './common'
+import {
+  fanportIterable,
+  fanProfileChoices,
+  FanProfileName,
+  FanProfilePoint,
+  lightModeChoices,
+  lightSpeedChoices,
+  LogLevel,
+  LogTarget,
+  tempportIterable,
+} from './common'
 import balanced from './res/balanced.json'
 import Conf from 'conf'
 
@@ -36,13 +46,11 @@ export type TempConfig = {
 }
 export type AppConfig = {
   fans: FanConfig[]
-  sensors: {
-    temps: TempConfig[]
-    flow: FlowConfig
-    level: LevelConfig
-  }
+  flow: FlowConfig
+  level: LevelConfig
   lights: LightData
   logger: LogConfig
+  temps: TempConfig[]
 }
 
 export const Config = new Conf<AppConfig>({
@@ -53,7 +61,7 @@ export const Config = new Conf<AppConfig>({
         additionalProperties: false,
         properties: {
           activeProfile: {
-            enum: ['silent', 'balanced', 'max', 'custom'],
+            enum: fanProfileChoices as string[],
             type: 'string',
           },
           customProfile: {
@@ -76,14 +84,15 @@ export const Config = new Conf<AppConfig>({
             type: 'boolean',
           },
           id: {
-            enum: ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6'],
+            enum: fanportIterable as string[],
+            readOnly: true,
             type: 'string',
           },
           name: {
             type: 'string',
           },
           tempSource: {
-            enum: ['temp1', 'temp2', 'temp3'],
+            enum: tempportIterable as string[],
             type: 'string',
           },
           warning: {
@@ -106,6 +115,41 @@ export const Config = new Conf<AppConfig>({
       type: 'array',
       uniqueItems: true,
     },
+    flow: {
+      additionalProperties: false,
+      properties: {
+        enabled: {
+          type: 'boolean',
+        },
+        name: {
+          type: 'string',
+        },
+        signalsPerLiter: {
+          type: 'number',
+        },
+        warning: {
+          type: 'number',
+        },
+      },
+      required: ['name', 'enabled', 'warning', 'signalsPerLiter'],
+      type: 'object',
+    },
+    level: {
+      additionalProperties: false,
+      properties: {
+        enabled: {
+          type: 'boolean',
+        },
+        name: {
+          type: 'string',
+        },
+        warning: {
+          type: 'boolean',
+        },
+      },
+      required: ['name', 'enabled', 'warning'],
+      type: 'object',
+    },
     lights: {
       additionalProperties: false,
       properties: {
@@ -126,32 +170,11 @@ export const Config = new Conf<AppConfig>({
           type: 'object',
         },
         mode: {
-          enum: [
-            'off',
-            'static',
-            'breathing',
-            'fading',
-            'marquee',
-            'coveringMarquee',
-            'pulse',
-            'spectrumWave',
-            'alternating',
-            'candle',
-          ],
+          enum: lightModeChoices as string[],
           type: 'string',
         },
         speed: {
-          enum: [
-            'slowest',
-            'slower',
-            'slow',
-            'slowish',
-            'normal',
-            'fastish',
-            'fast',
-            'faster',
-            'fastest',
-          ],
+          enum: lightSpeedChoices as string[],
           type: 'string',
         },
       },
@@ -173,76 +196,35 @@ export const Config = new Conf<AppConfig>({
       required: ['target', 'level'],
       type: 'object',
     },
-    sensors: {
-      additionalProperties: false,
-      properties: {
-        flow: {
-          additionalProperties: false,
-          properties: {
-            enabled: {
-              type: 'boolean',
-            },
-            name: {
-              type: 'string',
-            },
-            signalsPerLiter: {
-              type: 'number',
-            },
-            warning: {
-              type: 'number',
-            },
+    temps: {
+      items: {
+        additionalProperties: false,
+        properties: {
+          enabled: {
+            type: 'boolean',
           },
-          required: ['name', 'enabled', 'warning', 'signalsPerLiter'],
-          type: 'object',
-        },
-        level: {
-          additionalProperties: false,
-          properties: {
-            enabled: {
-              type: 'boolean',
-            },
-            name: {
-              type: 'string',
-            },
-            warning: {
-              type: 'boolean',
-            },
+          id: {
+            enum: tempportIterable as string[],
+            readOnly: true,
+            type: 'string',
           },
-          required: ['name', 'enabled', 'warning'],
-          type: 'object',
-        },
-        temps: {
-          items: {
-            additionalProperties: false,
-            properties: {
-              enabled: {
-                type: 'boolean',
-              },
-              id: {
-                enum: ['temp1', 'temp2', 'temp3'],
-                type: 'string',
-              },
-              name: {
-                type: 'string',
-              },
-              offset: {
-                type: 'number',
-              },
-              warning: {
-                type: 'number',
-              },
-            },
-            required: ['name', 'enabled', 'warning', 'offset'],
-            type: 'object',
+          name: {
+            type: 'string',
           },
-          minItems: 3,
-          maxItems: 3,
-          type: 'array',
-          uniqueItems: true,
+          offset: {
+            type: 'number',
+          },
+          warning: {
+            type: 'number',
+          },
         },
+        required: ['name', 'enabled', 'warning', 'offset'],
+        type: 'object',
       },
-      required: ['temps', 'flow', 'level'],
-      type: 'object',
+      minItems: 3,
+      maxItems: 3,
+      type: 'array',
+      uniqueItems: true,
     },
   },
   defaults: {
@@ -302,41 +284,16 @@ export const Config = new Conf<AppConfig>({
         customProfile: balanced,
       },
     ],
-    sensors: {
-      temps: [
-        {
-          id: 'temp1',
-          name: 'T1',
-          enabled: true,
-          warning: 50,
-          offset: 0,
-        },
-        {
-          id: 'temp2',
-          name: 'T2',
-          enabled: true,
-          warning: 50,
-          offset: 0,
-        },
-        {
-          id: 'temp3',
-          name: 'T3',
-          enabled: true,
-          warning: 50,
-          offset: 0,
-        },
-      ],
-      flow: {
-        name: 'FLO',
-        enabled: true,
-        warning: 100,
-        signalsPerLiter: 80,
-      },
-      level: {
-        name: 'LVL',
-        enabled: true,
-        warning: true,
-      },
+    flow: {
+      name: 'FLO',
+      enabled: true,
+      warning: 100,
+      signalsPerLiter: 80,
+    },
+    level: {
+      name: 'LVL',
+      enabled: true,
+      warning: true,
     },
     lights: {
       mode: 'spectrumWave',
@@ -351,5 +308,28 @@ export const Config = new Conf<AppConfig>({
       target: 'terminal',
       level: 'info',
     },
+    temps: [
+      {
+        id: 'temp1',
+        name: 'T1',
+        enabled: true,
+        warning: 50,
+        offset: 0,
+      },
+      {
+        id: 'temp2',
+        name: 'T2',
+        enabled: true,
+        warning: 50,
+        offset: 0,
+      },
+      {
+        id: 'temp3',
+        name: 'T3',
+        enabled: true,
+        warning: 50,
+        offset: 0,
+      },
+    ],
   },
 })
