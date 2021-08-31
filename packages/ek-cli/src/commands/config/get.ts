@@ -1,3 +1,4 @@
+import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
 
@@ -12,5 +13,13 @@ export const builder = (yargs: Argv): Argv =>
 
 export const handler = (yargs: Arguments): void => {
   const entry = yargs.entry as string
-  console.log(Config.get(entry))
+  let value = Config.get(entry)
+
+  if (!value) {
+    console.error(`Entry "${entry}" does not exist!`)
+    exit(2)
+  }
+
+  if (typeof value === 'string') value = `"${value}"`
+  console.log(`${entry}: ${value}`)
 }

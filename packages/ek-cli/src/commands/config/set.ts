@@ -1,3 +1,4 @@
+import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
 
@@ -18,10 +19,26 @@ export const builder = (yargs: Argv): Argv =>
 export const handler = (yargs: Arguments): void => {
   const entry = yargs.entry as string
   const value = yargs.value as string
+
+  if (!Config.get(entry)) {
+    console.error(`Entry "${entry}" does not exist!`)
+    exit(2)
+  }
+
   let val: string | number | boolean
   if (Number.parseInt(value)) val = Number.parseInt(value)
   else if (value.toUpperCase() === 'TRUE') val = true
   else if (value.toUpperCase() === 'FALSE') val = false
   else val = value as string
-  Config.set(entry, val)
+
+  try {
+    Config.set(entry, val)
+
+    val = Config.get(entry)
+    if (typeof val === 'string') val = `"${val}"`
+    console.log(`${entry}: ${val}`)
+  } catch (error) {
+    console.error(`Couldn't set entry "${entry}"! Wrong type?`)
+    exit(1)
+  }
 }
