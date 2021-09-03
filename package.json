@@ -9,6 +9,7 @@
   "scripts": {
     "eslint": "eslint",
     "prettier": "prettier --check .",
+    "snyk": "snyk test --dev --yarn-workspaces",
     "build": "yarn workspaces foreach -v -i -p -t run build",
     "clean": "yarn workspaces foreach -v -i -p -t run clean",
     "compile": "yarn workspaces foreach -v -i -p -t run compile"
@@ -36,6 +37,7 @@
     "eslint-plugin-react": "latest",
     "eslint-plugin-tsdoc": "^0.2.14",
     "prettier": "^2.3.2",
+    "snyk": "^1.696.0",
     "typescript": "~4.3"
   }
 }
