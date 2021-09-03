@@ -2,7 +2,7 @@ import { CurveData, getResponseCurve, getResponseCurves } from '@ek-loop-connect
 import { Arguments, Argv } from 'yargs'
 import util from 'util'
 import { fanPortChoices, FanPorts, openController } from '../../common'
-import { Config, FanConfig } from '../../config'
+import { Config } from '../../config'
 
 export const command = 'curves [port]'
 export const describe = 'Get PWM response curves for a specific fan port.'
@@ -33,8 +33,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
     if (save) {
       const fanConfig = Config.get('fans')
       data.forEach((curve) => {
-        const fan = fanConfig.find((f) => f.port === curve.port) as FanConfig
-        const index = fanConfig.indexOf(fan)
+        const index = fanConfig.findIndex((f) => f.port === curve.port)
         Config.set(`fans.${index}.responseCurve`, curve.curve)
       })
     }
@@ -43,9 +42,8 @@ export const handler = async (yargs: Arguments): Promise<void> => {
     logData = data
     if (save) {
       const fanConfig = Config.get('fans')
-      const fan = fanConfig.find((f) => f.port === port) as FanConfig
-      const i = fanConfig.indexOf(fan)
-      Config.set(`fans.${i}.responseCurve`, data)
+      const index = fanConfig.findIndex((f) => f.port === port)
+      Config.set(`fans.${index}.responseCurve`, data)
     }
   }
 
