@@ -8,7 +8,6 @@ import {
   setFan,
   setRgb,
   sleep,
-  TempData,
   tempportIterable,
 } from '@ek-loop-connect/ek-lib'
 import { FanProfileCurves, FanProfilePoint, openController } from '../common'
