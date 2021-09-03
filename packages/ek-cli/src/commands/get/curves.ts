@@ -26,12 +26,12 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   const save = yargs.save as boolean
   const port = yargs.port as FanPorts
 
+  const fanConfig = Config.get('fans')
   const controller = openController()
   if (port === 'all') {
     const data = await getResponseCurves(controller)
     logData = data
     if (save) {
-      const fanConfig = Config.get('fans')
       data.forEach((curve) => {
         const index = fanConfig.findIndex((f) => f.port === curve.port)
         Config.set(`fans.${index}.responseCurve`, curve.curve)
@@ -41,7 +41,6 @@ export const handler = async (yargs: Arguments): Promise<void> => {
     const data = await getResponseCurve(controller, port)
     logData = data
     if (save) {
-      const fanConfig = Config.get('fans')
       const index = fanConfig.findIndex((f) => f.port === port)
       Config.set(`fans.${index}.responseCurve`, data)
     }
