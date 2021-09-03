@@ -1,4 +1,4 @@
-import { FanPort, LightMode, LightSpeed, TempPort } from '@ek-loop-connect/ek-lib'
+import { FanPort, fanportIterable } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
 import * as HID from 'node-hid'
 
@@ -25,39 +25,7 @@ export type FanProfileName = 'silent' | 'balanced' | 'max' | 'custom'
 export type LogTarget = 'terminal'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
-export const fanportIterable: ReadonlyArray<FanPort> = [
-  'fan1',
-  'fan2',
-  'fan3',
-  'fan4',
-  'fan5',
-  'fan6',
-]
-export const tempportIterable: ReadonlyArray<TempPort> = ['temp1', 'temp2', 'temp3']
 export const fanPortChoices: ReadonlyArray<FanPorts> = [...fanportIterable, 'all']
-export const lightModeChoices: ReadonlyArray<LightMode> = [
-  'off',
-  'static',
-  'breathing',
-  'fading',
-  'marquee',
-  'coveringMarquee',
-  'pulse',
-  'spectrumWave',
-  'alternating',
-  'candle',
-]
-export const lightSpeedChoices: ReadonlyArray<LightSpeed> = [
-  'slowest',
-  'slower',
-  'slow',
-  'slowish',
-  'normal',
-  'fastish',
-  'fast',
-  'faster',
-  'fastest',
-]
 export const fanProfileChoices: ReadonlyArray<FanProfileName> = [
   'silent',
   'balanced',

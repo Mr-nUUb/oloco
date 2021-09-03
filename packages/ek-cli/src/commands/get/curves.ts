@@ -1,10 +1,4 @@
-import {
-  AllFanPwmCurveData,
-  FanData,
-  FanPort,
-  getFanPwmCurve,
-  getFanPwmCurves,
-} from '@ek-loop-connect/ek-lib'
+import { CurveData, getResponseCurve, getResponseCurves } from '@ek-loop-connect/ek-lib'
 import { Arguments, Argv } from 'yargs'
 import util from 'util'
 import { fanPortChoices, FanPorts, openController } from '../../common'
@@ -28,28 +22,28 @@ export const builder = (yargs: Argv): Argv =>
     })
 
 export const handler = async (yargs: Arguments): Promise<void> => {
-  let logData: FanData[] | AllFanPwmCurveData
+  let logData: CurveData | CurveData[]
   const save = yargs.save as boolean
   const port = yargs.port as FanPorts
 
   const controller = openController()
   if (port === 'all') {
-    const data = await getFanPwmCurves(controller)
+    const data = await getResponseCurves(controller)
     logData = data
     if (save) {
       const fanConfig = Config.get('fans')
-      for (const element in data.curves) {
-        const fan = fanConfig.find((f) => f.id === (element as FanPort)) as FanConfig
-        const i = fanConfig.indexOf(fan)
-        Config.set(`fans.${i}.responseCurve`, data.curves[element as FanPort])
-      }
+      data.forEach((curve) => {
+        const fan = fanConfig.find((f) => f.port === curve.port) as FanConfig
+        const index = fanConfig.indexOf(fan)
+        Config.set(`fans.${index}.responseCurve`, curve.curve)
+      })
     }
   } else {
-    const data = await getFanPwmCurve(controller, port as FanPort)
+    const data = await getResponseCurve(controller, port)
     logData = data
     if (save) {
       const fanConfig = Config.get('fans')
-      const fan = fanConfig.find((f) => f.id === port) as FanConfig
+      const fan = fanConfig.find((f) => f.port === port) as FanConfig
       const i = fanConfig.indexOf(fan)
       Config.set(`fans.${i}.responseCurve`, data)
     }

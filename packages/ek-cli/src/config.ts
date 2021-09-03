@@ -1,41 +1,26 @@
-import { FanData, FanPort, LightData, TempPort } from '@ek-loop-connect/ek-lib'
 import {
+  CurvePoint,
+  FanPort,
   fanportIterable,
-  fanProfileChoices,
-  FanProfileName,
-  FanProfilePoint,
-  lightModeChoices,
-  lightSpeedChoices,
-  LogLevel,
-  LogTarget,
+  RgbData,
+  rgbmodeIterable,
+  rgbspeedIterable,
+  TempPort,
   tempportIterable,
-} from './common'
+} from '@ek-loop-connect/ek-lib'
+import { fanProfileChoices, FanProfileName, FanProfilePoint, LogLevel, LogTarget } from './common'
 import balanced from './res/balanced.json'
 import Conf from 'conf'
 
-const emptyCurve: FanData[] = [
-  { pwm: 0, rpm: 0 },
-  { pwm: 10, rpm: 0 },
-  { pwm: 20, rpm: 0 },
-  { pwm: 30, rpm: 0 },
-  { pwm: 40, rpm: 0 },
-  { pwm: 50, rpm: 0 },
-  { pwm: 60, rpm: 0 },
-  { pwm: 70, rpm: 0 },
-  { pwm: 80, rpm: 0 },
-  { pwm: 90, rpm: 0 },
-  { pwm: 100, rpm: 0 },
-]
-
 export type FanConfig = {
-  id: FanPort
+  port: FanPort
   name: string
   enabled: boolean
   warning: number
   tempSource: TempPort
   activeProfile: FanProfileName
   customProfile: FanProfilePoint[]
-  responseCurve: FanData[]
+  responseCurve: CurvePoint[]
 }
 export type FlowConfig = {
   name: string
@@ -53,7 +38,7 @@ export type LogConfig = {
   level: LogLevel
 }
 export type TempConfig = {
-  id: TempPort
+  port: TempPort
   name: string
   enabled: boolean
   warning: number
@@ -63,7 +48,7 @@ export type AppConfig = {
   fans: FanConfig[]
   flow: FlowConfig
   level: LevelConfig
-  lights: LightData
+  rgb: RgbData
   logger: LogConfig
   temps: TempConfig[]
 }
@@ -98,12 +83,12 @@ export const Config = new Conf<AppConfig>({
           enabled: {
             type: 'boolean',
           },
-          id: {
-            enum: fanportIterable as string[],
-            readOnly: true,
+          name: {
             type: 'string',
           },
-          name: {
+          port: {
+            enum: fanportIterable as string[],
+            readOnly: true,
             type: 'string',
           },
           responseCurve: {
@@ -133,11 +118,12 @@ export const Config = new Conf<AppConfig>({
         required: [
           'name',
           'enabled',
-          'id',
+          'port',
           'warning',
           'tempSource',
           'activeProfile',
           'customProfile',
+          'responseCurve',
         ],
         type: 'object',
       },
@@ -181,7 +167,7 @@ export const Config = new Conf<AppConfig>({
       required: ['name', 'enabled', 'warning'],
       type: 'object',
     },
-    lights: {
+    rgb: {
       additionalProperties: false,
       properties: {
         color: {
@@ -201,11 +187,11 @@ export const Config = new Conf<AppConfig>({
           type: 'object',
         },
         mode: {
-          enum: lightModeChoices as string[],
+          enum: rgbmodeIterable as string[],
           type: 'string',
         },
         speed: {
-          enum: lightSpeedChoices as string[],
+          enum: rgbspeedIterable as string[],
           type: 'string',
         },
       },
@@ -234,22 +220,22 @@ export const Config = new Conf<AppConfig>({
           enabled: {
             type: 'boolean',
           },
-          id: {
-            enum: tempportIterable as string[],
-            readOnly: true,
-            type: 'string',
-          },
           name: {
             type: 'string',
           },
           offset: {
             type: 'number',
           },
+          port: {
+            enum: tempportIterable as string[],
+            readOnly: true,
+            type: 'string',
+          },
           warning: {
             type: 'number',
           },
         },
-        required: ['name', 'enabled', 'warning', 'offset'],
+        required: ['port', 'name', 'enabled', 'warning', 'offset'],
         type: 'object',
       },
       minItems: 3,
@@ -261,64 +247,64 @@ export const Config = new Conf<AppConfig>({
   defaults: {
     fans: [
       {
-        id: 'fan1',
+        port: 'F1',
         name: 'F1',
         enabled: true,
         warning: 500,
-        tempSource: 'temp1',
+        tempSource: 'T1',
         activeProfile: 'balanced',
         customProfile: balanced,
-        responseCurve: emptyCurve,
+        responseCurve: [],
       },
       {
-        id: 'fan2',
+        port: 'F2',
         name: 'F2',
         enabled: true,
         warning: 500,
-        tempSource: 'temp1',
+        tempSource: 'T1',
         activeProfile: 'balanced',
         customProfile: balanced,
-        responseCurve: emptyCurve,
+        responseCurve: [],
       },
       {
-        id: 'fan3',
+        port: 'F3',
         name: 'F3',
         enabled: true,
         warning: 500,
-        tempSource: 'temp1',
+        tempSource: 'T1',
         activeProfile: 'balanced',
         customProfile: balanced,
-        responseCurve: emptyCurve,
+        responseCurve: [],
       },
       {
-        id: 'fan4',
+        port: 'F4',
         name: 'F4',
         enabled: true,
         warning: 500,
-        tempSource: 'temp1',
+        tempSource: 'T1',
         activeProfile: 'balanced',
         customProfile: balanced,
-        responseCurve: emptyCurve,
+        responseCurve: [],
       },
       {
-        id: 'fan5',
+        port: 'F5',
         name: 'F5',
         enabled: true,
         warning: 500,
-        tempSource: 'temp1',
+        tempSource: 'T1',
         activeProfile: 'balanced',
         customProfile: balanced,
-        responseCurve: emptyCurve,
+        responseCurve: [],
       },
       {
-        id: 'fan6',
+        port: 'F6',
         name: 'F6',
         enabled: true,
         warning: 500,
-        tempSource: 'temp1',
+        tempSource: 'T1',
         activeProfile: 'balanced',
         customProfile: balanced,
-        responseCurve: emptyCurve,
+        responseCurve: [],
       },
     ],
     flow: {
@@ -332,9 +318,9 @@ export const Config = new Conf<AppConfig>({
       enabled: true,
       warning: true,
     },
-    lights: {
-      mode: 'spectrumWave',
-      speed: 'normal',
+    rgb: {
+      mode: 'SpectrumWave',
+      speed: 'Normal',
       color: {
         red: 0,
         green: 0,
@@ -347,21 +333,21 @@ export const Config = new Conf<AppConfig>({
     },
     temps: [
       {
-        id: 'temp1',
+        port: 'T1',
         name: 'T1',
         enabled: true,
         warning: 50,
         offset: 0,
       },
       {
-        id: 'temp2',
+        port: 'T2',
         name: 'T2',
         enabled: true,
         warning: 50,
         offset: 0,
       },
       {
-        id: 'temp3',
+        port: 'T3',
         name: 'T3',
         enabled: true,
         warning: 50,

@@ -1,14 +1,17 @@
 import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
-import { getFan, getSensors, setFan, setLights, sleep } from '@ek-loop-connect/ek-lib'
 import {
   fanportIterable,
-  FanProfileCurves,
-  FanProfilePoint,
-  openController,
+  getFan,
+  getSensors,
+  setFan,
+  setRgb,
+  sleep,
+  TempData,
   tempportIterable,
-} from '../common'
+} from '@ek-loop-connect/ek-lib'
+import { FanProfileCurves, FanProfilePoint, openController } from '../common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
 import { HID } from 'node-hid'
@@ -24,7 +27,7 @@ export const handler = async (): Promise<void> => {
   const device = openController()
   Logger.info('Successfully connected to controller!')
 
-  setLights(device, Config.get('lights'))
+  setRgb(device, Config.get('rgb'))
 
   await loop(device)
 
@@ -36,11 +39,11 @@ async function loop(device: HID) {
     const current = getSensors(device)
 
     tempportIterable.forEach((port) => {
-      const tempConfig = Config.get('temps').find((cfg) => cfg.id === port) as TempConfig
+      const tempConfig = Config.get('temps').find((cfg) => cfg.port === port) as TempConfig
       if (tempConfig.enabled) {
         const name = tempConfig.name
         const warn = tempConfig.warning
-        let temp = current.temps[port]
+        let temp = current.temps.find((t) => t.port === port)?.temp
         if (!temp) {
           Logger.warn("Couldn't read current temperature!")
           return
@@ -58,7 +61,7 @@ async function loop(device: HID) {
     if (flowConfig.enabled) {
       const name = flowConfig.name
       const warn = flowConfig.warning
-      const flow = (current.flow * flowConfig.signalsPerLiter) / 100
+      const flow = (current.flow.flow * flowConfig.signalsPerLiter) / 100
       if (flow < warn) {
         Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
       } else {
@@ -68,13 +71,13 @@ async function loop(device: HID) {
 
     const levelConfig = Config.get('level')
     if (levelConfig.enabled) {
-      if (levelConfig.warning && current.level === 'warning') {
+      if (levelConfig.warning && current.level.level === 'warning') {
         Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
       }
     }
 
     fanportIterable.forEach((port) => {
-      const fanConfig = Config.get('fans').find((cfg) => cfg.id === port) as FanConfig
+      const fanConfig = Config.get('fans').find((cfg) => cfg.port === port) as FanConfig
       if (fanConfig.enabled) {
         const name = fanConfig.name
         const warn = fanConfig.warning
@@ -90,13 +93,13 @@ async function loop(device: HID) {
             custom: fanConfig.customProfile,
           },
         }
-        let currentTemp = current.temps[fanConfig.tempSource]
+        let currentTemp = current.temps.find((t) => t.port === fanConfig.tempSource)?.temp
         if (!currentTemp) {
           Logger.error("Couldn't read current temperature!")
           return
         }
         currentTemp += (
-          Config.get('temps').find((cfg) => cfg.id === fanConfig.tempSource) as TempConfig
+          Config.get('temps').find((cfg) => cfg.port === fanConfig.tempSource) as TempConfig
         ).offset
         const curve = fanProfiles.profiles[fanConfig.activeProfile]
         const index = nextLowerFanProfilePoint(curve, currentTemp)
