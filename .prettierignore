@@ -13,3 +13,6 @@ packages/*/dist/*
 
 # all package.json (managed by yarn)
 package.json
+
+# DeepCode / Snyk
+.dccache
