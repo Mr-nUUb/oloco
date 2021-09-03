@@ -9,18 +9,12 @@ on:
     - cron: '0 6 * * 5'
 
 jobs:
-  analyze:
-    name: Analyze
+  snyk:
+    name: Snyk
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
       - name: Run Snyk
         uses: snyk/actions@0.3.0
         continue-on-error: true
@@ -33,6 +27,16 @@ jobs:
         with:
           sarif_file: snyk.sarif
 
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
