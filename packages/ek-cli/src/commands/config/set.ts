@@ -1,6 +1,7 @@
 import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
+import { convertConfigEntry } from '../../common'
 
 export const command = 'set [entry] [value]'
 export const describe = 'Change the current configuration.'
@@ -19,15 +20,7 @@ export const builder = (yargs: Argv): Argv =>
 export const handler = (yargs: Arguments): void => {
   const entry = yargs.entry as string
   const value = yargs.value as string
-
-  if (Config.get(entry) === undefined) {
-    console.error(`Entry "${entry}" does not exist!`)
-    exit(2)
-  }
-  if (entry.endsWith('.port')) {
-    console.error('Changing Ports is not allowed!')
-    exit(1)
-  }
+  const key = convertConfigEntry(entry)
 
   let val: string | number | boolean
   if (!isNaN(Number.parseInt(value))) val = Number.parseInt(value)
@@ -36,9 +29,9 @@ export const handler = (yargs: Arguments): void => {
   else val = value as string
 
   try {
-    Config.set(entry, val)
+    Config.set(key, val)
 
-    val = Config.get(entry)
+    val = Config.get(key)
     if (typeof val === 'string') val = `"${val}"`
     console.log(`${entry}: ${val}`)
   } catch (error) {

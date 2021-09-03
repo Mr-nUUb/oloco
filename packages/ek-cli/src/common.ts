@@ -1,6 +1,7 @@
-import { FanPort, fanportIterable } from '@ek-loop-connect/ek-lib'
+import { FanPort, fanportIterable, TempPort } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
 import * as HID from 'node-hid'
+import { Config } from './config'
 
 export function openController(): HID.HID {
   const devices = HID.devices(0x0483, 0x5750).filter((dev) => dev.interface === 0)
@@ -39,4 +40,18 @@ export interface FanProfilePoint {
 }
 export interface FanProfileCurves {
   profiles: { [key in FanProfileName]: FanProfilePoint[] }
+}
+
+export function convertConfigEntry(entry: string): string {
+  const match = entry.match(/(F[1-6]|T[1-3])/)
+  let key: string
+  if (match) {
+    const port = match[0] as FanPort | TempPort
+    const type = entry.startsWith('fans') ? 'fans' : 'temps'
+    const index = Config.store[type].findIndex((t) => t.port === port)
+    key = entry.replace(/[F,T][1-6]/, `${index}`)
+  } else {
+    key = entry
+  }
+  return key
 }
