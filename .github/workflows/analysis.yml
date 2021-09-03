@@ -15,13 +15,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Run Snyk
+      - name: Snyk Test
         uses: snyk/actions@0.3.0
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --yarn-workspaces --sarif-file-output=snyk.sarif
+      - name: Snyk Monitor
+        uses: snyk/actions@0.3.0
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --yarn-workspaces
       - name: Upload result
         uses: github/codeql-action/upload-sarif@v1
         with:
