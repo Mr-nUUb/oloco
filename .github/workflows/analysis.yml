@@ -1,4 +1,4 @@
-name: 'CodeQL'
+name: 'CodeQL & Snyk'
 
 on:
   push:
@@ -17,19 +17,25 @@ jobs:
       contents: read
       security-events: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['javascript']
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Run Snyk
+        uses: snyk/actions@0.3.0
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --yarn-workspaces --sarif-file-output=snyk.sarif
+      - name: Upload result
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
-          languages: ${{ matrix.language }}
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v1
+          languages: javascript
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
