@@ -26,26 +26,26 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   const save = yargs.save as boolean
   const port = yargs.port as FanPorts
 
-  const fanConfig = Config.get('fans')
   const controller = openController()
   if (port === 'all') {
     const data = await getResponseCurves(controller)
     logData = data
     if (save) {
-      data.forEach((curve) => {
-        const index = fanConfig.findIndex((f) => f.port === curve.port)
-        Config.set(`fans.${index}.responseCurve`, curve.curve)
-      })
+      data.forEach((curve) => setCurve(curve))
     }
   } else {
     const data = await getResponseCurve(controller, port)
     logData = data
     if (save) {
-      const index = fanConfig.findIndex((f) => f.port === port)
-      Config.set(`fans.${index}.responseCurve`, data)
+      setCurve(data)
     }
   }
 
   console.log(util.inspect(logData, { depth: null, colors: true }))
   controller.close()
+}
+
+function setCurve(curve: CurveData): void {
+  const index = Config.get('fans').findIndex((f) => f.port === curve.port)
+  Config.set(`fans.${index}.responseCurve`, curve.curve)
 }
