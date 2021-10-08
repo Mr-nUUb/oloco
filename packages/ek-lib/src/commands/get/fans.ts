@@ -11,7 +11,7 @@ export const builder = (yargs: Argv): Argv =>
   })
 
 export const handler = (yargs: Arguments): void => {
-  const port = yargs.port ? (yargs.port as FanPort) : undefined
+  const port = (yargs.port as FanPort) || undefined
 
   const controller = new EkLoopConnect()
   const data = controller.getFan(port)

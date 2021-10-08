@@ -20,7 +20,7 @@ export const builder = (yargs: Argv): Argv =>
     })
 
 export const handler = async (yargs: Arguments): Promise<void> => {
-  const port = yargs.port ? (yargs.port as FanPort) : undefined
+  const port = (yargs.port as FanPort) || undefined
   const save = yargs.save as boolean
 
   const controller = new EkLoopConnect()
