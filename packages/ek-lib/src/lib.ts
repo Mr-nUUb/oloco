@@ -144,7 +144,7 @@ export class EkLoopConnect {
   private _device: HID
 
   private _getFan(port: FanPort): FanData {
-    const recv = this.sendPacket(createPacket('Read', port))
+    const recv = this.write(createPacket('Read', port))
 
     return {
       port,
@@ -177,7 +177,7 @@ export class EkLoopConnect {
   }
 
   public getRgb(): RgbData {
-    const recv = this.sendPacket(createPacket('Read', 'RGB'))
+    const recv = this.write(createPacket('Read', 'RGB'))
 
     return {
       port: 'Lx',
@@ -193,7 +193,7 @@ export class EkLoopConnect {
 
     packet[9] = 0x20 // offset for checksum? length of answer?
 
-    const recv = this.sendPacket(packet)
+    const recv = this.write(packet)
 
     return {
       temps: tempportIterable.map((port) => {
@@ -220,7 +220,7 @@ export class EkLoopConnect {
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
     packet[24] = speed
 
-    const recv = this.sendPacket(packet) // I don'w know what to expect here
+    const recv = this.write(packet) // I don'w know what to expect here
 
     return recv
   }
@@ -239,12 +239,12 @@ export class EkLoopConnect {
     packet[17] = rgb.color.green
     packet[18] = rgb.color.blue
 
-    const recv = this.sendPacket(packet) // I don'w know what to expect here
+    const recv = this.write(packet) // I don'w know what to expect here
 
     return recv
   }
 
-  private sendPacket(packet: number[]): number[] {
+  private write(packet: number[]): number[] {
     // calculate checksum here. Checksum is optional though...
     // anybody got an idea what kind of checksum EKWB is using?
 
