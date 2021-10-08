@@ -95,8 +95,6 @@ enum RgbSpeedEnum {
   Fastest = 0x64,
 }
 
-const readTimeout = 1000
-const pwmCurveInterval = 10000
 export const fanportIterable: ReadonlyArray<FanPort> = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6']
 export const tempportIterable: ReadonlyArray<TempPort> = ['T1', 'T2', 'T3']
 export const rgbmodeIterable: ReadonlyArray<RgbMode> = [
@@ -142,7 +140,8 @@ export class EkLoopConnect {
     }
   }
 
-  private _device: HID
+  private _device
+  private _readTimeout = 1000
 
   private _getFan(port: FanPort): FanData {
     const recv = this._write(createPacket('Read', port))
@@ -173,8 +172,8 @@ export class EkLoopConnect {
     // prepend report number for windows
     if (os.platform() === 'win32') packet.unshift(0x00)
 
-    this._device._write(packet)
-    const recv = this._device.readTimeout(readTimeout)
+    this._device.write(packet)
+    const recv = this._device.readTimeout(this._readTimeout)
     if (recv.length === 0) throw 'Unable to read response!'
 
     // check response here
@@ -183,11 +182,15 @@ export class EkLoopConnect {
     return recv
   }
 
+  public setTimeout(timeout: number): void {
+    this._readTimeout = timeout
+  }
+
   public getFan(port?: FanPort): FanData[] {
     return port ? [this._getFan(port)] : fanportIterable.map((p) => this._getFan(p))
   }
 
-  public async getResponseCurve(port?: FanPort): Promise<CurveData[]> {
+  public async getResponseCurve(port?: FanPort, interval = 10000): Promise<CurveData[]> {
     const curves: CurveData[] = port
       ? [{ port, curve: [] }]
       : fanportIterable.map((p) => ({ port: p, curve: [] }))
@@ -195,7 +198,7 @@ export class EkLoopConnect {
 
     for (let i = 0; i <= 100; i += 10) {
       this.setFan(i, port)
-      await sleep(pwmCurveInterval)
+      await sleep(interval)
       curves.forEach((c) => {
         const current = this._getFan(c.port)
         c.curve.push({ pwm: current.pwm, rpm: current.rpm })
