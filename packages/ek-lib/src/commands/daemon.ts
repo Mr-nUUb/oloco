@@ -2,7 +2,7 @@ import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
 import { EkLoopConnect, fanportIterable, tempportIterable, sleep } from '@ek-loop-connect/ek-lib'
-import { FanProfileCurves, FanProfilePoint } from '../common'
+import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
 
