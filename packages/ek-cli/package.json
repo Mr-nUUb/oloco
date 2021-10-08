@@ -33,12 +33,10 @@
     "@ek-loop-connect/ek-lib": "workspace:^0.0.1",
     "conf": "^10.0.3",
     "js-logger": "^1.6.1",
-    "node-hid": "^2.1.1",
     "yargs": "^17.2.1"
   },
   "devDependencies": {
     "@types/node": "^14",
-    "@types/node-hid": "^1",
     "@types/yargs": "^17",
     "rimraf": "^3.0.2",
     "ts-node": "^10.2.1",

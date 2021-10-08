@@ -1,4 +1,4 @@
-import { HID } from 'node-hid'
+import { HID, devices } from 'node-hid'
 
 export interface CurvePoint {
   rpm: number
@@ -122,171 +122,197 @@ export const rgbspeedIterable: ReadonlyArray<RgbSpeed> = [
   'Fastest',
 ]
 
-export function getFan(device: HID, port: FanPort): FanData {
-  const packet = createPacket('Read', port)
-  const recv = sendPacket(device, packet)
+export class EkLoopConnect {
+  private device: HID
 
-  return {
-    port,
-    rpm: parseInt(`0x${recv[12].toString(16)}${padLeadingZeros(recv[13].toString(16), 2)}`),
-    pwm: recv[21],
+  constructor(device?: HID) {
+    if (device) this.device = device
+    else {
+      const devs = devices(0x0483, 0x5750).filter((dev) => dev.interface === 0)
+      if (devs.length === 0) {
+        throw new Error("Couldn't find controller: not connected!")
+      }
+      if (devs.length > 1) {
+        throw new Error('Multiple controllers detected: not yet implemented!')
+      }
+      const dev = devs[0]
+      if (!dev.path) {
+        throw new Error("Couldn't connect to controller: no path available!")
+      }
+      this.device = new HID(dev.path)
+    }
   }
-}
 
-export function getFans(device: HID): FanData[] {
-  return fanportIterable.map((port) => getFan(device, port))
-}
-
-export async function getResponseCurve(device: HID, port: FanPort): Promise<CurveData> {
-  const curve: CurveData = { port, curve: [] }
-  const backup = getFan(device, port)
-
-  for (let i = 0; i <= 100; i += 10) {
-    setFan(device, port, i)
-    await sleep(pwmCurveInterval)
-    const current = getFan(device, port)
-    curve.curve.push({ pwm: current.pwm, rpm: current.rpm })
+  public close(): void {
+    this.device.close()
   }
-  setFan(device, port, backup.pwm)
 
-  return curve
-}
+  public getFan(port: FanPort): FanData {
+    const packet = this.createPacket('Read', port)
+    const recv = this.sendPacket(packet)
 
-export async function getResponseCurves(device: HID): Promise<CurveData[]> {
-  const curves = fanportIterable.map((port) => ({ port, curve: [] } as CurveData))
-  const backups = getFans(device)
+    return {
+      port,
+      rpm: parseInt(`0x${recv[12].toString(16)}${this.padLeadingZeros(recv[13].toString(16), 2)}`),
+      pwm: recv[21],
+    }
+  }
 
-  for (let i = 0; i <= 100; i += 10) {
-    curves.forEach((curve) => setFan(device, curve.port, i))
-    await sleep(pwmCurveInterval)
-    curves.forEach((curve) => {
-      const current = getFan(device, curve.port)
+  public getFans(): FanData[] {
+    return fanportIterable.map((port) => this.getFan(port))
+  }
+
+  public async getResponseCurve(port: FanPort): Promise<CurveData> {
+    const curve: CurveData = { port, curve: [] }
+    const backup = this.getFan(port)
+
+    for (let i = 0; i <= 100; i += 10) {
+      this.setFan(port, i)
+      await sleep(pwmCurveInterval)
+      const current = this.getFan(port)
       curve.curve.push({ pwm: current.pwm, rpm: current.rpm })
-    })
-  }
-  backups.forEach((backup) => setFan(device, backup.port, backup.pwm))
+    }
+    this.setFan(port, backup.pwm)
 
-  return curves
-}
-
-export function getRgb(device: HID): RgbData {
-  const packet = createPacket('Read', 'RGB')
-  const recv = sendPacket(device, packet)
-
-  return {
-    port: 'Lx',
-    mode: RgbModeEnum[recv[9]] as RgbMode,
-    speed: RgbSpeedEnum[recv[11]] as RgbSpeed,
-    color: { red: recv[13], green: recv[14], blue: recv[15] },
-  }
-}
-
-export function getSensors(device: HID): SensorData {
-  const packet = createPacket('Read', 'Sensors')
-  let offset = 7
-
-  packet[9] = 0x20 // offset for checksum? length of answer?
-
-  const recv = sendPacket(device, packet)
-
-  return {
-    temps: tempportIterable.map((port) => {
-      const temp = recv[(offset += 4)]
-      return { port, temp: temp !== 231 ? temp : undefined }
-    }),
-    flow: { port: 'FLO', flow: recv[23] },
-    level: { port: 'LVL', level: recv[27] === 100 ? 'good' : 'warning' },
-  }
-}
-
-export function getInformation(device: HID): DeviceInformation {
-  return {
-    fans: getFans(device),
-    rgb: getRgb(device),
-    sensors: getSensors(device),
-  }
-}
-
-export function setFan(device: HID, port: FanPort, speed: number): number[] {
-  const packet = createPacket('Write', port)
-
-  // original packet contains RPM on bytes 15 and 16 - why?
-  // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
-  packet[24] = speed
-
-  const recv = sendPacket(device, packet) // I don'w know what to expect here
-
-  return recv
-}
-
-export function setFans(device: HID, speed: number): void {
-  fanportIterable.forEach((port) => setFan(device, port, speed))
-}
-
-export function setRgb(device: HID, rgb: RgbData): number[] {
-  const packet = createPacket('Write', 'RGB')
-
-  packet[12] = RgbModeEnum[rgb.mode]
-  packet[13] = rgb.mode === 'CoveringMarquee' ? 0xff : 0x00 // this is just dumb
-  packet[14] = RgbSpeedEnum[rgb.speed]
-  packet[16] = rgb.color.red
-  packet[17] = rgb.color.green
-  packet[18] = rgb.color.blue
-
-  const recv = sendPacket(device, packet) // I don'w know what to expect here
-
-  return recv
-}
-
-function padLeadingZeros(s: string, n: number): string {
-  let p = s
-  while (p.length < n) p = `0${p}`
-  return p
-}
-
-function createPacket(mode: CommMode, port: DevicePort): number[] {
-  const packet = new Array<number>(63)
-
-  const header = {
-    Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
-    Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
-  }
-  const portAddress = {
-    F1: [0xa0, 0xa0],
-    F2: [0xa0, 0xc0],
-    F3: [0xa0, 0xe0],
-    F4: [0xa1, 0x00],
-    F5: [0xa1, 0x20],
-    F6: [0xa1, 0xe0],
-    Sensors: [0xa2, 0x20],
-    RGB: [0xa2, 0x60],
+    return curve
   }
 
-  for (let i = 0; i < packet.length; i++) {
-    if (i === 6 || i === 7) packet[i] = portAddress[port][i - 6]
-    else if (i < header[mode].length) packet[i] = header[mode][i]
-    else packet[i] = 0
+  public async getResponseCurves(): Promise<CurveData[]> {
+    const curves = fanportIterable.map((port) => ({ port, curve: [] } as CurveData))
+    const backups = this.getFans()
+
+    for (let i = 0; i <= 100; i += 10) {
+      curves.forEach((curve) => this.setFan(curve.port, i))
+      await sleep(pwmCurveInterval)
+      curves.forEach((curve) => {
+        const current = this.getFan(curve.port)
+        curve.curve.push({ pwm: current.pwm, rpm: current.rpm })
+      })
+    }
+    backups.forEach((backup) => this.setFan(backup.port, backup.pwm))
+
+    return curves
   }
 
-  return packet
-}
+  public getRgb(): RgbData {
+    const packet = this.createPacket('Read', 'RGB')
+    const recv = this.sendPacket(packet)
 
-function sendPacket(device: HID, packet: number[]): number[] {
-  // calculate checksum here. Checksum is optional though...
-  // anybody got an idea what kind of checksum EKWB is using?
+    return {
+      port: 'Lx',
+      mode: RgbModeEnum[recv[9]] as RgbMode,
+      speed: RgbSpeedEnum[recv[11]] as RgbSpeed,
+      color: { red: recv[13], green: recv[14], blue: recv[15] },
+    }
+  }
 
-  // workaround for first byte going MIA :shrug:
-  packet.unshift(0x00)
-  packet.pop()
+  public getSensors(): SensorData {
+    const packet = this.createPacket('Read', 'Sensors')
+    let offset = 7
 
-  device.write(packet)
-  const recv = device.readTimeout(readTimeout)
-  if (recv.length === 0) throw 'Unable to read response!'
+    packet[9] = 0x20 // offset for checksum? length of answer?
 
-  // check response here
-  // since checksums are optional, I doubt checking the response is worth it
+    const recv = this.sendPacket(packet)
 
-  return recv
+    return {
+      temps: tempportIterable.map((port) => {
+        const temp = recv[(offset += 4)]
+        return { port, temp: temp !== 231 ? temp : undefined }
+      }),
+      flow: { port: 'FLO', flow: recv[23] },
+      level: { port: 'LVL', level: recv[27] === 100 ? 'good' : 'warning' },
+    }
+  }
+
+  public getInformation(): DeviceInformation {
+    return {
+      fans: this.getFans(),
+      rgb: this.getRgb(),
+      sensors: this.getSensors(),
+    }
+  }
+
+  public setFan(port: FanPort, speed: number): number[] {
+    const packet = this.createPacket('Write', port)
+
+    // original packet contains RPM on bytes 15 and 16 - why?
+    // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
+    packet[24] = speed
+
+    const recv = this.sendPacket(packet) // I don'w know what to expect here
+
+    return recv
+  }
+
+  public setFans(speed: number): void {
+    fanportIterable.forEach((port) => this.setFan(port, speed))
+  }
+
+  public setRgb(rgb: RgbData): number[] {
+    const packet = this.createPacket('Write', 'RGB')
+
+    packet[12] = RgbModeEnum[rgb.mode]
+    packet[13] = rgb.mode === 'CoveringMarquee' ? 0xff : 0x00 // this is just dumb
+    packet[14] = RgbSpeedEnum[rgb.speed]
+    packet[16] = rgb.color.red
+    packet[17] = rgb.color.green
+    packet[18] = rgb.color.blue
+
+    const recv = this.sendPacket(packet) // I don'w know what to expect here
+
+    return recv
+  }
+
+  private padLeadingZeros(s: string, n: number): string {
+    let p = s
+    while (p.length < n) p = `0${p}`
+    return p
+  }
+
+  private createPacket(mode: CommMode, port: DevicePort): number[] {
+    const packet = new Array<number>(63)
+
+    const header = {
+      Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
+      Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
+    }
+    const portAddress = {
+      F1: [0xa0, 0xa0],
+      F2: [0xa0, 0xc0],
+      F3: [0xa0, 0xe0],
+      F4: [0xa1, 0x00],
+      F5: [0xa1, 0x20],
+      F6: [0xa1, 0xe0],
+      Sensors: [0xa2, 0x20],
+      RGB: [0xa2, 0x60],
+    }
+
+    for (let i = 0; i < packet.length; i++) {
+      if (i === 6 || i === 7) packet[i] = portAddress[port][i - 6]
+      else if (i < header[mode].length) packet[i] = header[mode][i]
+      else packet[i] = 0
+    }
+
+    return packet
+  }
+
+  private sendPacket(packet: number[]): number[] {
+    // calculate checksum here. Checksum is optional though...
+    // anybody got an idea what kind of checksum EKWB is using?
+
+    // workaround for first byte going MIA :shrug:
+    packet.unshift(0x00)
+    packet.pop()
+
+    this.device.write(packet)
+    const recv = this.device.readTimeout(readTimeout)
+    if (recv.length === 0) throw 'Unable to read response!'
+
+    // check response here
+    // since checksums are optional, I doubt checking the response is worth it
+
+    return recv
+  }
 }
 
 export function sleep(ms: number): Promise<unknown> {

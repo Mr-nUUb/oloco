@@ -1,19 +1,10 @@
 import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
-import {
-  fanportIterable,
-  getFan,
-  getSensors,
-  setFan,
-  setRgb,
-  sleep,
-  tempportIterable,
-} from '@ek-loop-connect/ek-lib'
-import { FanProfileCurves, FanProfilePoint, openController } from '../common'
+import { EkLoopConnect, fanportIterable, tempportIterable, sleep } from '@ek-loop-connect/ek-lib'
+import { FanProfileCurves, FanProfilePoint } from '../common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
-import { HID } from 'node-hid'
 
 Logger.useDefaults()
 
@@ -23,19 +14,19 @@ export const describe = 'Run this tool in daemon mode using custom user Configur
 export const handler = async (): Promise<void> => {
   Logger.setLevel(Logger[LogLevel[Config.get('logger').level]])
 
-  const device = openController()
+  const controller = new EkLoopConnect()
   Logger.info('Successfully connected to controller!')
 
-  setRgb(device, Config.get('rgb'))
+  controller.setRgb(Config.get('rgb'))
 
-  await loop(device)
+  await loop(controller)
 
-  device.close()
+  controller.close()
 }
 
-async function loop(device: HID) {
-  while (device) {
-    const current = getSensors(device)
+async function loop(controller: EkLoopConnect) {
+  while (controller) {
+    const current = controller.getSensors()
 
     tempportIterable.forEach((port) => {
       const tempConfig = Config.get('temps').find((cfg) => cfg.port === port) as TempConfig
@@ -80,7 +71,7 @@ async function loop(device: HID) {
       if (fanConfig.enabled) {
         const name = fanConfig.name
         const warn = fanConfig.warning
-        const currentSpeed = getFan(device, port).rpm
+        const currentSpeed = controller.getFan(port).rpm
         if (currentSpeed < warn) {
           Logger.warn(`Fan ${name} is below warning speed: ${currentSpeed} < ${warn} RPM!`)
         }
@@ -107,7 +98,7 @@ async function loop(device: HID) {
         const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
         Logger.info(`Fan ${name}: Current ${currentSpeed} RPM; New ${speed}%`)
-        setFan(device, port, speed)
+        controller.setFan(port, speed)
       }
     })
 
