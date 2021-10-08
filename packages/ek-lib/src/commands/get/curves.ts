@@ -1,7 +1,7 @@
-import { CurveData, getResponseCurve, getResponseCurves } from '@ek-loop-connect/ek-lib'
+import { EkLoopConnect, CurveData } from '@ek-loop-connect/ek-lib'
 import { Arguments, Argv } from 'yargs'
 import util from 'util'
-import { fanPortChoices, FanPorts, openController } from '../../common'
+import { fanPortChoices, FanPorts } from '../../common'
 import { Config } from '../../config'
 
 export const command = 'curves [port]'
@@ -26,15 +26,15 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   const save = yargs.save as boolean
   const port = yargs.port as FanPorts
 
-  const controller = openController()
+  const controller = new EkLoopConnect()
   if (port === 'all') {
-    const data = await getResponseCurves(controller)
+    const data = await controller.getResponseCurves()
     logData = data
     if (save) {
       data.forEach((curve) => setCurve(curve))
     }
   } else {
-    const data = await getResponseCurve(controller, port)
+    const data = await controller.getResponseCurve(port)
     logData = data
     if (save) {
       setCurve(data)

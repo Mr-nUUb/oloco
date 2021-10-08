@@ -1,13 +1,11 @@
 import { Arguments, Argv } from 'yargs'
-import { openController } from '../../common'
 import {
-  getRgb,
+  EkLoopConnect,
   RgbColor,
   RgbMode,
   rgbmodeIterable,
   RgbSpeed,
   rgbspeedIterable,
-  setRgb,
 } from '@ek-loop-connect/ek-lib'
 import { exit } from 'process'
 
@@ -42,10 +40,10 @@ export const handler = (yargs: Arguments): void => {
     green: parseInt(userColor.slice(3, 5), 16),
     blue: parseInt(userColor.slice(5, 7), 16),
   }
-  const controller = openController()
+  const controller = new EkLoopConnect()
 
-  setRgb(controller, { mode, speed, color })
-  const recv = getRgb(controller)
+  controller.setRgb({ mode, speed, color })
+  const recv = controller.getRgb()
 
   controller.close()
   console.log(recv)
