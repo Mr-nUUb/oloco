@@ -123,8 +123,6 @@ export const rgbspeedIterable: ReadonlyArray<RgbSpeed> = [
 ]
 
 export class EkLoopConnect {
-  private _device: HID
-
   constructor(device?: HID) {
     if (device) this._device = device
     else {
@@ -143,60 +141,43 @@ export class EkLoopConnect {
     }
   }
 
-  public close(): void {
-    this._device.close()
-  }
+  private _device: HID
 
-  public getFan(port: FanPort): FanData {
-    const packet = this.createPacket('Read', port)
-    const recv = this.sendPacket(packet)
+  private _getFan(port: FanPort): FanData {
+    const recv = this.sendPacket(createPacket('Read', port))
 
     return {
       port,
-      rpm: parseInt(`0x${recv[12].toString(16)}${this.padLeadingZeros(recv[13].toString(16), 2)}`),
+      rpm: parseInt(`0x${recv[12].toString(16)}${padLeadingZeros(recv[13].toString(16), 2)}`),
       pwm: recv[21],
     }
   }
 
-  public getFans(): FanData[] {
-    return fanportIterable.map((port) => this.getFan(port))
+  public getFan(port?: FanPort): FanData[] {
+    return port ? [this._getFan(port)] : fanportIterable.map((p) => this._getFan(p))
   }
 
-  public async getResponseCurve(port: FanPort): Promise<CurveData> {
-    const curve: CurveData = { port, curve: [] }
-    const backup = this.getFan(port)
+  public async getResponseCurve(port?: FanPort): Promise<CurveData[]> {
+    const curves: CurveData[] = port
+      ? [{ port, curve: [] }]
+      : fanportIterable.map((p) => ({ port: p, curve: [] }))
+    const backups = this.getFan(port)
 
     for (let i = 0; i <= 100; i += 10) {
-      this.setFan(port, i)
+      this.setFan(i, port)
       await sleep(pwmCurveInterval)
-      const current = this.getFan(port)
-      curve.curve.push({ pwm: current.pwm, rpm: current.rpm })
-    }
-    this.setFan(port, backup.pwm)
-
-    return curve
-  }
-
-  public async getResponseCurves(): Promise<CurveData[]> {
-    const curves = fanportIterable.map((port) => ({ port, curve: [] } as CurveData))
-    const backups = this.getFans()
-
-    for (let i = 0; i <= 100; i += 10) {
-      curves.forEach((curve) => this.setFan(curve.port, i))
-      await sleep(pwmCurveInterval)
-      curves.forEach((curve) => {
-        const current = this.getFan(curve.port)
-        curve.curve.push({ pwm: current.pwm, rpm: current.rpm })
+      curves.forEach((c) => {
+        const current = this._getFan(c.port)
+        c.curve.push({ pwm: current.pwm, rpm: current.rpm })
       })
     }
-    backups.forEach((backup) => this.setFan(backup.port, backup.pwm))
 
+    backups.forEach((b) => this._setFan(b.pwm, b.port))
     return curves
   }
 
   public getRgb(): RgbData {
-    const packet = this.createPacket('Read', 'RGB')
-    const recv = this.sendPacket(packet)
+    const recv = this.sendPacket(createPacket('Read', 'RGB'))
 
     return {
       port: 'Lx',
@@ -206,8 +187,8 @@ export class EkLoopConnect {
     }
   }
 
-  public getSensors(): SensorData {
-    const packet = this.createPacket('Read', 'Sensors')
+  public getSensor(): SensorData {
+    const packet = createPacket('Read', 'Sensors')
     let offset = 7
 
     packet[9] = 0x20 // offset for checksum? length of answer?
@@ -226,14 +207,14 @@ export class EkLoopConnect {
 
   public getInformation(): DeviceInformation {
     return {
-      fans: this.getFans(),
+      fans: this.getFan(),
       rgb: this.getRgb(),
-      sensors: this.getSensors(),
+      sensors: this.getSensor(),
     }
   }
 
-  public setFan(port: FanPort, speed: number): number[] {
-    const packet = this.createPacket('Write', port)
+  private _setFan(speed: number, port: FanPort): number[] {
+    const packet = createPacket('Write', port)
 
     // original packet contains RPM on bytes 15 and 16 - why?
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
@@ -244,12 +225,12 @@ export class EkLoopConnect {
     return recv
   }
 
-  public setFans(speed: number): void {
-    fanportIterable.forEach((port) => this.setFan(port, speed))
+  public setFan(speed: number, port?: FanPort): void {
+    port ? this._setFan(speed, port) : fanportIterable.forEach((p) => this._setFan(speed, p))
   }
 
   public setRgb(rgb: RgbData): number[] {
-    const packet = this.createPacket('Write', 'RGB')
+    const packet = createPacket('Write', 'RGB')
 
     packet[12] = RgbModeEnum[rgb.mode]
     packet[13] = rgb.mode === 'CoveringMarquee' ? 0xff : 0x00 // this is just dumb
@@ -261,39 +242,6 @@ export class EkLoopConnect {
     const recv = this.sendPacket(packet) // I don'w know what to expect here
 
     return recv
-  }
-
-  private padLeadingZeros(s: string, n: number): string {
-    let p = s
-    while (p.length < n) p = `0${p}`
-    return p
-  }
-
-  private createPacket(mode: CommMode, port: DevicePort): number[] {
-    const packet = new Array<number>(63)
-
-    const header = {
-      Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
-      Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
-    }
-    const portAddress = {
-      F1: [0xa0, 0xa0],
-      F2: [0xa0, 0xc0],
-      F3: [0xa0, 0xe0],
-      F4: [0xa1, 0x00],
-      F5: [0xa1, 0x20],
-      F6: [0xa1, 0xe0],
-      Sensors: [0xa2, 0x20],
-      RGB: [0xa2, 0x60],
-    }
-
-    for (let i = 0; i < packet.length; i++) {
-      if (i === 6 || i === 7) packet[i] = portAddress[port][i - 6]
-      else if (i < header[mode].length) packet[i] = header[mode][i]
-      else packet[i] = 0
-    }
-
-    return packet
   }
 
   private sendPacket(packet: number[]): number[] {
@@ -313,8 +261,45 @@ export class EkLoopConnect {
 
     return recv
   }
+
+  public close(): void {
+    this._device.close()
+  }
 }
 
 export function sleep(ms: number): Promise<unknown> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function padLeadingZeros(s: string, n: number): string {
+  let p = s
+  while (p.length < n) p = `0${p}`
+  return p
+}
+
+function createPacket(mode: CommMode, port: DevicePort): number[] {
+  const packet = new Array<number>(63)
+
+  const header = {
+    Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
+    Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
+  }
+  const portAddress = {
+    F1: [0xa0, 0xa0],
+    F2: [0xa0, 0xc0],
+    F3: [0xa0, 0xe0],
+    F4: [0xa1, 0x00],
+    F5: [0xa1, 0x20],
+    F6: [0xa1, 0xe0],
+    Sensors: [0xa2, 0x20],
+    RGB: [0xa2, 0x60],
+  }
+
+  for (let i = 0; i < packet.length; i++) {
+    if (i === 6 || i === 7) packet[i] = portAddress[port][i - 6]
+    else if (i < header[mode].length) packet[i] = header[mode][i]
+    else packet[i] = 0
+  }
+
+  return packet
 }
