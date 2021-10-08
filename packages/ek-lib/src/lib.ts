@@ -123,10 +123,10 @@ export const rgbspeedIterable: ReadonlyArray<RgbSpeed> = [
 ]
 
 export class EkLoopConnect {
-  private device: HID
+  private _device: HID
 
   constructor(device?: HID) {
-    if (device) this.device = device
+    if (device) this._device = device
     else {
       const devs = devices(0x0483, 0x5750).filter((dev) => dev.interface === 0)
       if (devs.length === 0) {
@@ -139,12 +139,12 @@ export class EkLoopConnect {
       if (!dev.path) {
         throw new Error("Couldn't connect to controller: no path available!")
       }
-      this.device = new HID(dev.path)
+      this._device = new HID(dev.path)
     }
   }
 
   public close(): void {
-    this.device.close()
+    this._device.close()
   }
 
   public getFan(port: FanPort): FanData {
@@ -304,8 +304,8 @@ export class EkLoopConnect {
     packet.unshift(0x00)
     packet.pop()
 
-    this.device.write(packet)
-    const recv = this.device.readTimeout(readTimeout)
+    this._device.write(packet)
+    const recv = this._device.readTimeout(readTimeout)
     if (recv.length === 0) throw 'Unable to read response!'
 
     // check response here
