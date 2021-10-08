@@ -1,4 +1,5 @@
 import { HID, devices } from 'node-hid'
+import os from 'os'
 
 export interface CurvePoint {
   rpm: number
@@ -248,9 +249,8 @@ export class EkLoopConnect {
     // calculate checksum here. Checksum is optional though...
     // anybody got an idea what kind of checksum EKWB is using?
 
-    // workaround for first byte going MIA :shrug:
-    packet.unshift(0x00)
-    packet.pop()
+    // prepend report number for windows
+    if (os.platform() === 'win32') packet.unshift(0x00)
 
     this._device.write(packet)
     const recv = this._device.readTimeout(readTimeout)
