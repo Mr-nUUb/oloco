@@ -24,14 +24,14 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   const save = yargs.save as boolean
 
   const controller = new EkLoopConnect()
-  const data = await controller.getResponseCurve(port)
+  const curves = await controller.getResponseCurve(port)
   if (save) {
-    data.forEach((curve) => {
+    curves.forEach((curve) => {
       const index = Config.get('fans').findIndex((fan) => fan.port === curve.port)
       Config.set(`fans.${index}.responseCurve`, curve.curve)
     })
   }
 
-  console.log(util.inspect(data, { depth: null, colors: true }))
+  console.log(util.inspect(curves, { depth: null, colors: true }))
   controller.close()
 }

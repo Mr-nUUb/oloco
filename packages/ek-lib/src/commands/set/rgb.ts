@@ -40,11 +40,11 @@ export const handler = (yargs: Arguments): void => {
     green: parseInt(userColor.slice(3, 5), 16),
     blue: parseInt(userColor.slice(5, 7), 16),
   }
-  const controller = new EkLoopConnect()
 
+  const controller = new EkLoopConnect()
   controller.setRgb({ mode, speed, color })
   const recv = controller.getRgb()
-
   controller.close()
+
   console.log(recv)
 }

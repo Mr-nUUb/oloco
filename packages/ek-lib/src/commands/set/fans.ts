@@ -18,11 +18,11 @@ export const builder = (yargs: Argv): Argv =>
 export const handler = (yargs: Arguments): void => {
   const port = yargs.port ? (yargs.port as FanPort) : undefined
   const speed = yargs.speed as number
-  const controller = new EkLoopConnect()
 
+  const controller = new EkLoopConnect()
   controller.setFan(speed, port)
   const data = controller.getFan(port)
-
   controller.close()
+
   console.log(data)
 }
