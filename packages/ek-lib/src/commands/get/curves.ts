@@ -1,18 +1,16 @@
-import { EkLoopConnect, CurveData } from '@ek-loop-connect/ek-lib'
+import { EkLoopConnect, FanPort, fanportIterable } from '@ek-loop-connect/ek-lib'
 import { Arguments, Argv } from 'yargs'
 import util from 'util'
-import { fanPortChoices, FanPorts } from '../../common'
 import { Config } from '../../config'
 
 export const command = 'curves [port]'
-export const describe = 'Get PWM response curves for a specific fan port.'
+export const describe = 'Get PWM response curves for a specific fan port or all ports.'
 
 export const builder = (yargs: Argv): Argv =>
   yargs
     .positional('port', {
-      choices: fanPortChoices,
+      choices: fanportIterable,
       describe: 'The fan(s) to read.',
-      default: 'all',
     })
     .option('s', {
       alias: 'save',
@@ -22,30 +20,18 @@ export const builder = (yargs: Argv): Argv =>
     })
 
 export const handler = async (yargs: Arguments): Promise<void> => {
-  let logData: CurveData | CurveData[]
+  const port = yargs.port ? (yargs.port as FanPort) : undefined
   const save = yargs.save as boolean
-  const port = yargs.port as FanPorts
 
   const controller = new EkLoopConnect()
-  if (port === 'all') {
-    const data = await controller.getResponseCurves()
-    logData = data
-    if (save) {
-      data.forEach((curve) => setCurve(curve))
-    }
-  } else {
-    const data = await controller.getResponseCurve(port)
-    logData = data
-    if (save) {
-      setCurve(data)
-    }
+  const data = await controller.getResponseCurve(port)
+  if (save) {
+    data.forEach((curve) => {
+      const index = Config.get('fans').findIndex((fan) => fan.port === curve.port)
+      Config.set(`fans.${index}.responseCurve`, curve.curve)
+    })
   }
 
-  console.log(util.inspect(logData, { depth: null, colors: true }))
+  console.log(util.inspect(data, { depth: null, colors: true }))
   controller.close()
-}
-
-function setCurve(curve: CurveData): void {
-  const index = Config.get('fans').findIndex((f) => f.port === curve.port)
-  Config.set(`fans.${index}.responseCurve`, curve.curve)
 }

@@ -5,7 +5,7 @@ export const describe = 'Read temperature, flow and level sensors.'
 
 export const handler = (): void => {
   const controller = new EkLoopConnect()
-  const data = controller.getSensors()
+  const data = controller.getSensor()
   controller.close()
   console.log(data)
 }
