@@ -1,7 +1,7 @@
 import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
-import { convertConfigEntry } from '../../common'
+import { convertConfigEntry } from '../../cli.common'
 
 export const command = 'set [entry] [value]'
 export const describe = 'Change the current configuration.'

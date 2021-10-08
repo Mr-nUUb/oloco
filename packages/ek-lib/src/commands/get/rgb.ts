@@ -7,5 +7,6 @@ export const handler = (): void => {
   const controller = new EkLoopConnect()
   const data = controller.getRgb()
   controller.close()
+
   console.log(data)
 }

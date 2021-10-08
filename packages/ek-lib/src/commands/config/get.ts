@@ -2,7 +2,7 @@ import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
 import util from 'util'
 import { Config } from '../../config'
-import { convertConfigEntry } from '../../common'
+import { convertConfigEntry } from '../../cli.common'
 
 const overview = Object.keys(Config.store).join(', ')
 

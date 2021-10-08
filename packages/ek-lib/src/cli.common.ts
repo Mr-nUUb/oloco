@@ -1,12 +1,10 @@
-import { FanPort, fanportIterable, TempPort } from '@ek-loop-connect/ek-lib'
+import { FanPort, TempPort } from '@ek-loop-connect/ek-lib'
 import { Config } from './config'
 
-export type FanPorts = FanPort | 'all'
 export type FanProfileName = 'silent' | 'balanced' | 'max' | 'custom'
 export type LogTarget = 'terminal'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
-export const fanPortChoices: ReadonlyArray<FanPorts> = [...fanportIterable, 'all']
 export const fanProfileChoices: ReadonlyArray<FanProfileName> = [
   'silent',
   'balanced',

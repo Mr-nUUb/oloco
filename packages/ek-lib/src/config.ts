@@ -8,7 +8,13 @@ import {
   TempPort,
   tempportIterable,
 } from '@ek-loop-connect/ek-lib'
-import { fanProfileChoices, FanProfileName, FanProfilePoint, LogLevel, LogTarget } from './common'
+import {
+  fanProfileChoices,
+  FanProfileName,
+  FanProfilePoint,
+  LogLevel,
+  LogTarget,
+} from './cli.common'
 import balanced from './res/balanced.json'
 import Conf from 'conf'
 

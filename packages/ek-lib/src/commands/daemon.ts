@@ -2,7 +2,7 @@ import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
 import { EkLoopConnect, fanportIterable, tempportIterable, sleep } from '@ek-loop-connect/ek-lib'
-import { FanProfileCurves, FanProfilePoint } from '../common'
+import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
 
@@ -17,8 +17,6 @@ export const handler = async (): Promise<void> => {
   const controller = new EkLoopConnect()
   Logger.info('Successfully connected to controller!')
 
-  controller.setRgb(Config.get('rgb'))
-
   await loop(controller)
 
   controller.close()
@@ -26,7 +24,9 @@ export const handler = async (): Promise<void> => {
 
 async function loop(controller: EkLoopConnect) {
   while (controller) {
-    const current = controller.getSensors()
+    controller.setRgb(Config.get('rgb'))
+
+    const current = controller.getSensor()
 
     tempportIterable.forEach((port) => {
       const tempConfig = Config.get('temps').find((cfg) => cfg.port === port) as TempConfig
@@ -71,7 +71,7 @@ async function loop(controller: EkLoopConnect) {
       if (fanConfig.enabled) {
         const name = fanConfig.name
         const warn = fanConfig.warning
-        const currentSpeed = controller.getFan(port).rpm
+        const currentSpeed = controller.getFan(port)[0].rpm
         if (currentSpeed < warn) {
           Logger.warn(`Fan ${name} is below warning speed: ${currentSpeed} < ${warn} RPM!`)
         }
@@ -98,7 +98,7 @@ async function loop(controller: EkLoopConnect) {
         const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
         Logger.info(`Fan ${name}: Current ${currentSpeed} RPM; New ${speed}%`)
-        controller.setFan(port, speed)
+        controller.setFan(speed, port)
       }
     })
 

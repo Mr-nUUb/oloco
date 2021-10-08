@@ -8,5 +8,6 @@ export const handler = (): void => {
   const controller = new EkLoopConnect()
   const data = controller.getInformation()
   controller.close()
+
   console.log(util.inspect(data, { depth: null, colors: true }))
 }
