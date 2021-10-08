@@ -145,13 +145,42 @@ export class EkLoopConnect {
   private _device: HID
 
   private _getFan(port: FanPort): FanData {
-    const recv = this.write(createPacket('Read', port))
+    const recv = this._write(createPacket('Read', port))
 
     return {
       port,
       rpm: parseInt(`0x${recv[12].toString(16)}${padLeadingZeros(recv[13].toString(16), 2)}`),
       pwm: recv[21],
     }
+  }
+
+  private _setFan(speed: number, port: FanPort): number[] {
+    const packet = createPacket('Write', port)
+
+    // original packet contains RPM on bytes 15 and 16 - why?
+    // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
+    packet[24] = speed
+
+    const recv = this._write(packet) // I don'w know what to expect here
+
+    return recv
+  }
+
+  private _write(packet: number[]): number[] {
+    // calculate checksum here. Checksum is optional though...
+    // anybody got an idea what kind of checksum EKWB is using?
+
+    // prepend report number for windows
+    if (os.platform() === 'win32') packet.unshift(0x00)
+
+    this._device._write(packet)
+    const recv = this._device.readTimeout(readTimeout)
+    if (recv.length === 0) throw 'Unable to read response!'
+
+    // check response here
+    // since checksums are optional, I doubt checking the response is worth it
+
+    return recv
   }
 
   public getFan(port?: FanPort): FanData[] {
@@ -178,7 +207,7 @@ export class EkLoopConnect {
   }
 
   public getRgb(): RgbData {
-    const recv = this.write(createPacket('Read', 'RGB'))
+    const recv = this._write(createPacket('Read', 'RGB'))
 
     return {
       port: 'Lx',
@@ -194,7 +223,7 @@ export class EkLoopConnect {
 
     packet[9] = 0x20 // offset for checksum? length of answer?
 
-    const recv = this.write(packet)
+    const recv = this._write(packet)
 
     return {
       temps: tempportIterable.map((port) => {
@@ -214,18 +243,6 @@ export class EkLoopConnect {
     }
   }
 
-  private _setFan(speed: number, port: FanPort): number[] {
-    const packet = createPacket('Write', port)
-
-    // original packet contains RPM on bytes 15 and 16 - why?
-    // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
-    packet[24] = speed
-
-    const recv = this.write(packet) // I don'w know what to expect here
-
-    return recv
-  }
-
   public setFan(speed: number, port?: FanPort): void {
     port ? this._setFan(speed, port) : fanportIterable.forEach((p) => this._setFan(speed, p))
   }
@@ -240,24 +257,7 @@ export class EkLoopConnect {
     packet[17] = rgb.color.green
     packet[18] = rgb.color.blue
 
-    const recv = this.write(packet) // I don'w know what to expect here
-
-    return recv
-  }
-
-  private write(packet: number[]): number[] {
-    // calculate checksum here. Checksum is optional though...
-    // anybody got an idea what kind of checksum EKWB is using?
-
-    // prepend report number for windows
-    if (os.platform() === 'win32') packet.unshift(0x00)
-
-    this._device.write(packet)
-    const recv = this._device.readTimeout(readTimeout)
-    if (recv.length === 0) throw 'Unable to read response!'
-
-    // check response here
-    // since checksums are optional, I doubt checking the response is worth it
+    const recv = this._write(packet) // I don'w know what to expect here
 
     return recv
   }
