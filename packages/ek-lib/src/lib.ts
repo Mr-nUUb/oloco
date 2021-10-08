@@ -46,7 +46,7 @@ export interface DeviceInformation {
 export type LevelData = 'warning' | 'good'
 export type FanPort = 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'F6'
 export type TempPort = 'T1' | 'T2' | 'T3'
-export type DevicePort = FanPort | 'RGB' | 'Sensors'
+export type DevicePort = FanPort | 'RGB' | 'Sensor'
 export type RgbMode =
   | 'Off'
   | 'Static'
@@ -188,7 +188,7 @@ export class EkLoopConnect {
   }
 
   public getSensor(): SensorData {
-    const packet = createPacket('Read', 'Sensors')
+    const packet = createPacket('Read', 'Sensor')
     let offset = 7
 
     packet[9] = 0x20 // offset for checksum? length of answer?
@@ -291,7 +291,7 @@ function createPacket(mode: CommMode, port: DevicePort): number[] {
     F4: [0xa1, 0x00],
     F5: [0xa1, 0x20],
     F6: [0xa1, 0xe0],
-    Sensors: [0xa2, 0x20],
+    Sensor: [0xa2, 0x20],
     RGB: [0xa2, 0x60],
   }
 
