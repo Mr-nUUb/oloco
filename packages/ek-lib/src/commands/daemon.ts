@@ -1,12 +1,23 @@
 import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
-import { EkLoopConnect, fanportIterable, tempportIterable, RgbData } from '@ek-loop-connect/ek-lib'
+import {
+  EkLoopConnect,
+  fanportIterable,
+  tempportIterable,
+  RgbData,
+  SensorData,
+  FanData,
+} from '@ek-loop-connect/ek-lib'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
 
 Logger.useDefaults()
+
+let controller: EkLoopConnect
+let oldFan: FanData[]
+let oldRgb: RgbData
 
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
@@ -14,102 +25,21 @@ export const describe = 'Run this tool in daemon mode using custom user Configur
 export const handler = async (): Promise<void> => {
   Logger.setLevel(Logger[LogLevel[Config.get('logger').level]])
 
-  const controller = new EkLoopConnect()
+  controller = new EkLoopConnect()
   Logger.info('Successfully connected to controller!')
 
-  loop(controller)
+  loop()
 }
 
-function loop(controller: EkLoopConnect) {
-  let oldRgb = controller.getRgb()
-  const oldFan = controller.getFan()
+function loop() {
+  oldRgb = controller.getRgb()
+  oldFan = controller.getFan()
 
   setInterval(() => {
-    const newRgb = Config.get('rgb')
-    if (!equalRgb(newRgb, oldRgb)) {
-      controller.setRgb(newRgb)
-      oldRgb = newRgb
-    }
-
     const current = controller.getSensor()
-
-    tempportIterable.forEach((port) => {
-      const tempConfig = Config.get('temps').find((cfg) => cfg.port === port) as TempConfig
-      if (tempConfig.enabled) {
-        const name = tempConfig.name
-        const warn = tempConfig.warning
-        let temp = current.temps.find((t) => t.port === port)?.temp
-        if (!temp) {
-          Logger.warn("Couldn't read current temperature!")
-          return
-        }
-        temp += tempConfig.offset
-        if (temp > warn) {
-          Logger.warn(`Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
-        } else {
-          Logger.info(`Temp ${name}: ${temp} °C`)
-        }
-      }
-    })
-
-    const flowConfig = Config.get('flow')
-    if (flowConfig.enabled) {
-      const name = flowConfig.name
-      const warn = flowConfig.warning
-      const flow = (current.flow.flow * flowConfig.signalsPerLiter) / 100
-      if (flow < warn) {
-        Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
-      } else {
-        Logger.info(`Sensor ${name}: ${flow} l/h`)
-      }
-    }
-
-    const levelConfig = Config.get('level')
-    if (levelConfig.enabled) {
-      if (levelConfig.warning && current.level.level === 'warning') {
-        Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
-      }
-    }
-
-    fanportIterable.forEach((port) => {
-      const fanConfig = Config.get('fans').find((cfg) => cfg.port === port) as FanConfig
-      if (fanConfig.enabled) {
-        const name = fanConfig.name
-        const warn = fanConfig.warning
-        const currentSpeed = controller.getFan(port)[0].rpm
-        if (currentSpeed < warn) {
-          Logger.warn(`Fan ${name} is below warning speed: ${currentSpeed} < ${warn} RPM!`)
-        }
-        const fanProfiles: FanProfileCurves = {
-          profiles: {
-            silent: fanSilent,
-            balanced: fanBalanced,
-            max: fanMax,
-            custom: fanConfig.customProfile,
-          },
-        }
-        let currentTemp = current.temps.find((t) => t.port === fanConfig.tempSource)?.temp
-        if (!currentTemp) {
-          Logger.error("Couldn't read current temperature!")
-          return
-        }
-        currentTemp += (
-          Config.get('temps').find((cfg) => cfg.port === fanConfig.tempSource) as TempConfig
-        ).offset
-        const curve = fanProfiles.profiles[fanConfig.activeProfile]
-        const index = nextLowerFanProfilePoint(curve, currentTemp)
-        const lower = curve[index]
-        const higher = curve[index + 1]
-        const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
-
-        const fanIndex = oldFan.findIndex((f) => f.port === port)
-        if (oldFan[fanIndex].pwm !== speed) {
-          Logger.info(`Fan ${name}: Current ${currentSpeed} RPM; New ${speed}%`)
-          controller.setFan(speed, port)
-          oldFan[fanIndex].pwm = speed
-        }
-      }
-    })
+    handleRgb()
+    handleSensor(current)
+    handleFan(current)
   }, 1000)
 }
 
@@ -133,6 +63,96 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
     rgb1.color.green === rgb2.color.green &&
     rgb1.color.blue === rgb2.color.blue
   )
+}
+
+function handleSensor(sensor: SensorData) {
+  tempportIterable.forEach((port) => {
+    const tempConfig = Config.get('temps').find((cfg) => cfg.port === port) as TempConfig
+    if (tempConfig.enabled) {
+      const name = tempConfig.name
+      const warn = tempConfig.warning
+      let temp = sensor.temps.find((t) => t.port === port)?.temp
+      if (!temp) {
+        Logger.warn("Couldn't read current temperature!")
+        return
+      }
+      temp += tempConfig.offset
+      if (temp > warn) {
+        Logger.warn(`Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
+      } else {
+        Logger.info(`Temp ${name}: ${temp} °C`)
+      }
+    }
+  })
+
+  const flowConfig = Config.get('flow')
+  if (flowConfig.enabled) {
+    const name = flowConfig.name
+    const warn = flowConfig.warning
+    const flow = (sensor.flow.flow * flowConfig.signalsPerLiter) / 100
+    if (flow < warn) {
+      Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
+    } else {
+      Logger.info(`Sensor ${name}: ${flow} l/h`)
+    }
+  }
+
+  const levelConfig = Config.get('level')
+  if (levelConfig.enabled) {
+    if (levelConfig.warning && sensor.level.level === 'warning') {
+      Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
+    }
+  }
+}
+
+function handleRgb() {
+  const newRgb = Config.get('rgb')
+  if (!equalRgb(newRgb, oldRgb)) {
+    controller.setRgb(newRgb)
+    oldRgb = newRgb
+  }
+}
+
+function handleFan(sensor: SensorData) {
+  fanportIterable.forEach((port) => {
+    const fanConfig = Config.get('fans').find((cfg) => cfg.port === port) as FanConfig
+    if (fanConfig.enabled) {
+      const name = fanConfig.name
+      const warn = fanConfig.warning
+      const currentSpeed = controller.getFan(port)[0].rpm
+      if (currentSpeed < warn) {
+        Logger.warn(`Fan ${name} is below warning speed: ${currentSpeed} < ${warn} RPM!`)
+      }
+      const fanProfiles: FanProfileCurves = {
+        profiles: {
+          silent: fanSilent,
+          balanced: fanBalanced,
+          max: fanMax,
+          custom: fanConfig.customProfile,
+        },
+      }
+      let currentTemp = sensor.temps.find((t) => t.port === fanConfig.tempSource)?.temp
+      if (!currentTemp) {
+        Logger.error("Couldn't read current temperature!")
+        return
+      }
+      currentTemp += (
+        Config.get('temps').find((cfg) => cfg.port === fanConfig.tempSource) as TempConfig
+      ).offset
+      const curve = fanProfiles.profiles[fanConfig.activeProfile]
+      const index = nextLowerFanProfilePoint(curve, currentTemp)
+      const lower = curve[index]
+      const higher = curve[index + 1]
+      const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
+
+      const fanIndex = oldFan.findIndex((f) => f.port === port)
+      if (oldFan[fanIndex].pwm !== speed) {
+        Logger.info(`Fan ${name}: Current ${currentSpeed} RPM; New ${speed}%`)
+        controller.setFan(speed, port)
+        oldFan[fanIndex].pwm = speed
+      }
+    }
+  })
 }
 
 enum LogLevel {
