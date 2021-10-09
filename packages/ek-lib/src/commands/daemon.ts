@@ -1,13 +1,7 @@
 import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
-import {
-  EkLoopConnect,
-  fanportIterable,
-  tempportIterable,
-  sleep,
-  RgbData,
-} from '@ek-loop-connect/ek-lib'
+import { EkLoopConnect, fanportIterable, tempportIterable, RgbData } from '@ek-loop-connect/ek-lib'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
@@ -23,16 +17,14 @@ export const handler = async (): Promise<void> => {
   const controller = new EkLoopConnect()
   Logger.info('Successfully connected to controller!')
 
-  await loop(controller)
-
-  controller.close()
+  loop(controller)
 }
 
-async function loop(controller: EkLoopConnect) {
+function loop(controller: EkLoopConnect) {
   let oldRgb = controller.getRgb()
   const oldFan = controller.getFan()
 
-  while (controller) {
+  setInterval(() => {
     const newRgb = Config.get('rgb')
     if (!equalRgb(newRgb, oldRgb)) {
       controller.setRgb(newRgb)
@@ -118,9 +110,7 @@ async function loop(controller: EkLoopConnect) {
         }
       }
     })
-
-    await sleep(1000)
-  }
+  }, 1000)
 }
 
 function nextLowerFanProfilePoint(curve: FanProfilePoint[], find: number) {
