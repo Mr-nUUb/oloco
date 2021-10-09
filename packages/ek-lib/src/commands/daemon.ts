@@ -34,7 +34,7 @@ async function loop(controller: EkLoopConnect) {
 
   while (controller) {
     const newRgb = Config.get('rgb')
-    if (!compareRgb(newRgb, oldRgb)) {
+    if (!equalRgb(newRgb, oldRgb)) {
       controller.setRgb(newRgb)
       oldRgb = newRgb
     }
@@ -135,7 +135,7 @@ function interpolate(x: number, x1: number, x2: number, y1: number, y2: number) 
   return Math.round(y1 + ((y2 - y1) * (x - x1)) / (x2 - x1))
 }
 
-function compareRgb(rgb1: RgbData, rgb2: RgbData): boolean {
+function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
   return (
     rgb1.mode === rgb2.mode &&
     rgb1.speed === rgb2.speed &&
