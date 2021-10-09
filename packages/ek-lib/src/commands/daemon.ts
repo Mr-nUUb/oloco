@@ -1,7 +1,13 @@
 import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
-import { EkLoopConnect, fanportIterable, tempportIterable, sleep } from '@ek-loop-connect/ek-lib'
+import {
+  EkLoopConnect,
+  fanportIterable,
+  tempportIterable,
+  sleep,
+  RgbData,
+} from '@ek-loop-connect/ek-lib'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
@@ -23,8 +29,15 @@ export const handler = async (): Promise<void> => {
 }
 
 async function loop(controller: EkLoopConnect) {
+  let oldRgb = controller.getRgb()
+  const oldFan = controller.getFan()
+
   while (controller) {
-    controller.setRgb(Config.get('rgb'))
+    const newRgb = Config.get('rgb')
+    if (!compareRgb(newRgb, oldRgb)) {
+      controller.setRgb(newRgb)
+      oldRgb = newRgb
+    }
 
     const current = controller.getSensor()
 
@@ -97,8 +110,12 @@ async function loop(controller: EkLoopConnect) {
         const higher = curve[index + 1]
         const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
-        Logger.info(`Fan ${name}: Current ${currentSpeed} RPM; New ${speed}%`)
-        controller.setFan(speed, port)
+        const fanIndex = oldFan.findIndex((f) => f.port === port)
+        if (oldFan[fanIndex].pwm !== speed) {
+          Logger.info(`Fan ${name}: Current ${currentSpeed} RPM; New ${speed}%`)
+          controller.setFan(speed, port)
+          oldFan[fanIndex].pwm = speed
+        }
       }
     })
 
@@ -116,6 +133,16 @@ function nextLowerFanProfilePoint(curve: FanProfilePoint[], find: number) {
 
 function interpolate(x: number, x1: number, x2: number, y1: number, y2: number) {
   return Math.round(y1 + ((y2 - y1) * (x - x1)) / (x2 - x1))
+}
+
+function compareRgb(rgb1: RgbData, rgb2: RgbData): boolean {
+  return (
+    rgb1.mode === rgb2.mode &&
+    rgb1.speed === rgb2.speed &&
+    rgb1.color.red === rgb2.color.red &&
+    rgb1.color.green === rgb2.color.green &&
+    rgb1.color.blue === rgb2.color.blue
+  )
 }
 
 enum LogLevel {
