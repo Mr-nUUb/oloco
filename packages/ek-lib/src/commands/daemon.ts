@@ -12,6 +12,7 @@ import {
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
+import { Arguments, Argv } from 'yargs'
 
 Logger.useDefaults()
 
@@ -22,16 +23,26 @@ let oldRgb: RgbData
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
 
-export const handler = async (): Promise<void> => {
+export const builder = (yargs: Argv): Argv =>
+  yargs.option('i', {
+    alias: 'interval',
+    default: 1000,
+    describe: 'The interval in milliseconds to perform actions.',
+    type: 'number',
+  })
+
+export const handler = async (yargs: Arguments): Promise<void> => {
+  const interval = yargs.interval as number
+
   Logger.setLevel(Logger[LogLevel[Config.get('logger').level]])
 
   controller = new EkLoopConnect()
   Logger.info('Successfully connected to controller!')
 
-  loop()
+  loop(interval)
 }
 
-function loop() {
+function loop(interval: number) {
   oldRgb = controller.getRgb()
   oldFan = controller.getFan()
 
@@ -40,7 +51,7 @@ function loop() {
     handleRgb()
     handleSensor(current)
     handleFan(current)
-  }, 1000)
+  }, interval)
 }
 
 function nextLowerFanProfilePoint(curve: FanProfilePoint[], find: number) {
