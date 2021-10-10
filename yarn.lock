@@ -178,16 +178,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@oloco/oloco-react@workspace:packages/ek-gui":
+"@oloco/oloco-react@workspace:packages/oloco-react":
   version: 0.0.0-use.local
-  resolution: "@oloco/oloco-react@workspace:packages/ek-gui"
+  resolution: "@oloco/oloco-react@workspace:packages/oloco-react"
   languageName: unknown
   linkType: soft
 
-"@oloco/oloco@workspace:packages/ek-lib":
+"@oloco/oloco@workspace:packages/oloco":
   version: 0.0.0-use.local
-  resolution: "@oloco/oloco@workspace:packages/ek-lib"
+  resolution: "@oloco/oloco@workspace:packages/oloco"
   dependencies:
+    "@types/node": ^14
     "@types/node-hid": ^1
     "@types/yargs": ^17
     conf: ^10.0.3
