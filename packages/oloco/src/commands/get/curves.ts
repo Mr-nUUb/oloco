@@ -1,4 +1,4 @@
-import { EkLoopConnect, FanPort, fanportIterable } from '@ek-loop-connect/ek-lib'
+import { OLoCo, FanPort, fanportIterable } from '@oloco/oloco'
 import { Arguments, Argv } from 'yargs'
 import util from 'util'
 import { Config } from '../../config'
@@ -23,7 +23,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   const port = (yargs.port as FanPort) || undefined
   const save = yargs.save as boolean
 
-  const controller = new EkLoopConnect()
+  const controller = new OLoCo()
   const curves = await controller.getResponseCurve(port)
   if (save) {
     curves.forEach((curve) => {

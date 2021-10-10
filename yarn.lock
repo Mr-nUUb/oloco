@@ -48,50 +48,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ek-loop-connect/ek-gui@workspace:packages/ek-gui":
-  version: 0.0.0-use.local
-  resolution: "@ek-loop-connect/ek-gui@workspace:packages/ek-gui"
-  languageName: unknown
-  linkType: soft
-
-"@ek-loop-connect/ek-lib@workspace:packages/ek-lib":
-  version: 0.0.0-use.local
-  resolution: "@ek-loop-connect/ek-lib@workspace:packages/ek-lib"
-  dependencies:
-    "@types/node-hid": ^1
-    "@types/yargs": ^17
-    conf: ^10.0.3
-    js-logger: ^1.6.1
-    node-hid: ^2.1.1
-    rimraf: ^3.0.2
-    ts-node: ^10.2.1
-    typescript: ^4.4
-    yargs: ^17.2.1
-  languageName: unknown
-  linkType: soft
-
-"@ek-loop-connect/monorepo@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@ek-loop-connect/monorepo@workspace:."
-  dependencies:
-    "@types/eslint": ^7
-    "@types/eslint-plugin-prettier": ^3
-    "@types/node": ^14
-    "@types/prettier": ^2
-    "@typescript-eslint/eslint-plugin": latest
-    "@typescript-eslint/parser": latest
-    eslint: ^7.32.0
-    eslint-config-prettier: ^8.3.0
-    eslint-import-resolver-node: ^0.3.6
-    eslint-plugin-import: ^2.24.2
-    eslint-plugin-prettier: 4.0.0
-    eslint-plugin-react: latest
-    eslint-plugin-tsdoc: ^0.2.14
-    prettier: ^2.4.1
-    typescript: ^4.4
-  languageName: unknown
-  linkType: soft
-
 "@eslint/eslintrc@npm:^0.4.3":
   version: 0.4.3
   resolution: "@eslint/eslintrc@npm:0.4.3"
@@ -199,6 +155,51 @@ __metadata:
   checksum: c96381d4a37448ea280951e46233f7e541058cf57a57d4094dd4bdcaae43fa5872b5f2eb6bfb004591a68e29c5877abe3cdc210cb3588cbf20ab2877f31a7de7
   languageName: node
   linkType: hard
+
+"@oloco/monorepo@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@oloco/monorepo@workspace:."
+  dependencies:
+    "@types/eslint": ^7
+    "@types/eslint-plugin-prettier": ^3
+    "@types/node": ^14
+    "@types/prettier": ^2
+    "@typescript-eslint/eslint-plugin": latest
+    "@typescript-eslint/parser": latest
+    eslint: ^7.32.0
+    eslint-config-prettier: ^8.3.0
+    eslint-import-resolver-node: ^0.3.6
+    eslint-plugin-import: ^2.24.2
+    eslint-plugin-prettier: 4.0.0
+    eslint-plugin-react: latest
+    eslint-plugin-tsdoc: ^0.2.14
+    prettier: ^2.4.1
+    typescript: ^4.4
+  languageName: unknown
+  linkType: soft
+
+"@oloco/oloco-react@workspace:packages/oloco-react":
+  version: 0.0.0-use.local
+  resolution: "@oloco/oloco-react@workspace:packages/oloco-react"
+  languageName: unknown
+  linkType: soft
+
+"@oloco/oloco@workspace:packages/oloco":
+  version: 0.0.0-use.local
+  resolution: "@oloco/oloco@workspace:packages/oloco"
+  dependencies:
+    "@types/node": ^14
+    "@types/node-hid": ^1
+    "@types/yargs": ^17
+    conf: ^10.0.3
+    js-logger: ^1.6.1
+    node-hid: ^2.1.1
+    rimraf: ^3.0.2
+    ts-node: ^10.2.1
+    typescript: ^4.4
+    yargs: ^17.2.1
+  languageName: unknown
+  linkType: soft
 
 "@tootallnate/once@npm:1":
   version: 1.1.2

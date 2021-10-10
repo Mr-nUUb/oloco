@@ -121,7 +121,7 @@ export const rgbspeedIterable: ReadonlyArray<RgbSpeed> = [
   'Fastest',
 ]
 
-export class EkLoopConnect {
+export class OLoCo {
   constructor(device?: HID) {
     if (device) this._device = device
     else {

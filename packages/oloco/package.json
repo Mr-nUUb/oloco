@@ -1,5 +1,5 @@
 {
-  "name": "@ek-loop-connect/ek-lib",
+  "name": "@oloco/oloco",
   "packageManager": "yarn@3.0.0",
   "licence": "MIT",
   "version": "0.0.1",
@@ -17,8 +17,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@github.com/Mr-nUUb/ek-loop-connect.git",
-    "directory": "packages/ek-lib"
+    "url": "ssh://git@github.com/Mr-nUUb/oloco.git",
+    "directory": "packages/oloco"
   },
   "scripts": {
     "build": "run clean && run compile",
@@ -34,6 +34,7 @@
     "yargs": "^17.2.1"
   },
   "devDependencies": {
+    "@types/node": "^14",
     "@types/node-hid": "^1",
     "@types/yargs": "^17",
     "rimraf": "^3.0.2",

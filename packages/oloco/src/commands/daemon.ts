@@ -2,13 +2,13 @@ import fanSilent from '../res/silent.json'
 import fanBalanced from '../res/balanced.json'
 import fanMax from '../res/max.json'
 import {
-  EkLoopConnect,
+  OLoCo,
   fanportIterable,
   tempportIterable,
   RgbData,
   SensorData,
   FanData,
-} from '@ek-loop-connect/ek-lib'
+} from '@oloco/oloco'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
@@ -16,7 +16,7 @@ import { Arguments, Argv } from 'yargs'
 
 Logger.useDefaults()
 
-let controller: EkLoopConnect
+let controller: OLoCo
 let oldFan: FanData[]
 let oldRgb: RgbData
 
@@ -36,7 +36,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
 
   Logger.setLevel(Logger[LogLevel[Config.get('logger').level]])
 
-  controller = new EkLoopConnect()
+  controller = new OLoCo()
   Logger.info('Successfully connected to controller!')
 
   loop(interval)
