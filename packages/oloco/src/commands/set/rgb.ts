@@ -1,12 +1,5 @@
 import { Arguments, Argv } from 'yargs'
-import {
-  EkLoopConnect,
-  RgbColor,
-  RgbMode,
-  rgbmodeIterable,
-  RgbSpeed,
-  rgbspeedIterable,
-} from '@oloco/oloco'
+import { OLoCo, RgbColor, RgbMode, rgbmodeIterable, RgbSpeed, rgbspeedIterable } from '@oloco/oloco'
 import { exit } from 'process'
 
 export const command = 'rgb <mode> <speed> <color>'
@@ -41,7 +34,7 @@ export const handler = (yargs: Arguments): void => {
     blue: parseInt(userColor.slice(5, 7), 16),
   }
 
-  const controller = new EkLoopConnect()
+  const controller = new OLoCo()
   controller.setRgb({ mode, speed, color })
   const recv = controller.getRgb()
   controller.close()

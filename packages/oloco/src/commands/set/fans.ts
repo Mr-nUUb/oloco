@@ -1,5 +1,5 @@
 import { Arguments, Argv } from 'yargs'
-import { EkLoopConnect, FanPort, fanportIterable } from '@oloco/oloco'
+import { OLoCo, FanPort, fanportIterable } from '@oloco/oloco'
 
 export const command = 'fans <speed> [port]'
 export const describe = 'Set a speed of a fan or all fans.'
@@ -19,7 +19,7 @@ export const handler = (yargs: Arguments): void => {
   const port = (yargs.port as FanPort) || undefined
   const speed = yargs.speed as number
 
-  const controller = new EkLoopConnect()
+  const controller = new OLoCo()
   controller.setFan(speed, port)
   const data = controller.getFan(port)
   controller.close()
