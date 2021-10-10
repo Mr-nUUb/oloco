@@ -1,5 +1,5 @@
 import { Arguments, Argv } from 'yargs'
-import { EkLoopConnect, FanPort, fanportIterable } from '@ek-loop-connect/ek-lib'
+import { EkLoopConnect, FanPort, fanportIterable } from '@oloco/oloco'
 
 export const command = 'fans [port]'
 export const describe = 'Get actual fan speed and setting of a specific port.'

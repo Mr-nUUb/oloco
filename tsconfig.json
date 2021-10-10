@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./packages",
     "paths": {
-      "@ek-loop-connect/*": ["*/src"]
+      "@oloco/*": ["*/src"]
     },
     "types": ["node"]
   }

@@ -7,7 +7,7 @@ import {
   rgbspeedIterable,
   TempPort,
   tempportIterable,
-} from '@ek-loop-connect/ek-lib'
+} from '@oloco/oloco'
 import {
   fanProfileChoices,
   FanProfileName,

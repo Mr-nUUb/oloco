@@ -1,4 +1,4 @@
-import { EkLoopConnect } from '@ek-loop-connect/ek-lib'
+import { EkLoopConnect } from '@oloco/oloco'
 
 export const command = 'sensors'
 export const describe = 'Read temperature, flow and level sensors.'

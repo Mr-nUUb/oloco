@@ -1,4 +1,4 @@
-import { EkLoopConnect } from '@ek-loop-connect/ek-lib'
+import { EkLoopConnect } from '@oloco/oloco'
 import util from 'util'
 
 export const command = 'infos'

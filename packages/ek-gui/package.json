@@ -1,5 +1,5 @@
 {
-  "name": "@ek-loop-connect/ek-gui",
+  "name": "@oloco/oloco-react",
   "packageManager": "yarn@3.0.0",
   "licence": "MIT",
   "version": "0.0.1",
@@ -12,7 +12,7 @@
     "main": "./dist/main.js",
     "typings": "./dist/main.d.ts",
     "bin": {
-      "ek-loop-gui": "./dist/main.js"
+      "oloco-react": "./dist/main.js"
     }
   },
   "engines": {
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@github.com/Mr-nUUb/ek-loop-connect.git",
+    "url": "ssh://git@github.com/Mr-nUUb/oloco.git",
     "directory": "packages/ek-gui"
   }
 }

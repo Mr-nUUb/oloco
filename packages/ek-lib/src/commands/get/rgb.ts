@@ -1,4 +1,4 @@
-import { EkLoopConnect } from '@ek-loop-connect/ek-lib'
+import { EkLoopConnect } from '@oloco/oloco'
 
 export const command = 'rgb'
 export const describe = 'Get the current RGB mode, speed and color.'

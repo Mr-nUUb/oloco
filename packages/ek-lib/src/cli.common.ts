@@ -1,4 +1,4 @@
-import { FanPort, TempPort } from '@ek-loop-connect/ek-lib'
+import { FanPort, TempPort } from '@oloco/oloco'
 import { Config } from './config'
 
 export type FanProfileName = 'silent' | 'balanced' | 'max' | 'custom'

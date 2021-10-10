@@ -8,7 +8,7 @@ import {
   RgbData,
   SensorData,
   FanData,
-} from '@ek-loop-connect/ek-lib'
+} from '@oloco/oloco'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'

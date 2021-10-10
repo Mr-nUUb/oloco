@@ -6,7 +6,7 @@ import {
   rgbmodeIterable,
   RgbSpeed,
   rgbspeedIterable,
-} from '@ek-loop-connect/ek-lib'
+} from '@oloco/oloco'
 import { exit } from 'process'
 
 export const command = 'rgb <mode> <speed> <color>'

@@ -1,4 +1,4 @@
-import { EkLoopConnect, FanPort, fanportIterable } from '@ek-loop-connect/ek-lib'
+import { EkLoopConnect, FanPort, fanportIterable } from '@oloco/oloco'
 import { Arguments, Argv } from 'yargs'
 import util from 'util'
 import { Config } from '../../config'
