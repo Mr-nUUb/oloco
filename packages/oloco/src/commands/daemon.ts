@@ -36,7 +36,7 @@ export const handler = async (): Promise<void> => {
     Logger.info('Successfully connected to controller!')
     loop()
   } catch (err) {
-    Logger.error((err as Error).message)
+    if (err instanceof Error) Logger.error(err.message)
     exit(1)
   }
 }
