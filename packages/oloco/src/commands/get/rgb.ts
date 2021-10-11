@@ -1,5 +1,5 @@
 import { OLoCo } from '@oloco/oloco'
-import { logObject } from 'oloco/src/cli.common'
+import { logObject } from '../../cli.common'
 
 export const command = 'rgb'
 export const describe = 'Get the current RGB mode, speed and color.'

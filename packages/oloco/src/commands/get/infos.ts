@@ -1,5 +1,5 @@
 import { OLoCo } from '@oloco/oloco'
-import { logObject } from 'oloco/src/cli.common'
+import { logObject } from '../../cli.common'
 
 export const command = 'infos'
 export const describe = 'Get all available information.'

@@ -1,6 +1,6 @@
 import { Arguments, Argv } from 'yargs'
 import { OLoCo, FanPort, fanportIterable } from '@oloco/oloco'
-import { logObject } from 'oloco/src/cli.common'
+import { logObject } from '../../cli.common'
 
 export const command = 'fans <speed> [port]'
 export const describe = 'Set a speed of a fan or all fans.'

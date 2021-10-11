@@ -1,7 +1,7 @@
 import { OLoCo, FanPort, fanportIterable } from '@oloco/oloco'
 import { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
-import { logObject } from 'oloco/src/cli.common'
+import { logObject } from '../../cli.common'
 
 export const command = 'curves [port]'
 export const describe = 'Get PWM response curves for a specific fan port or all ports.'

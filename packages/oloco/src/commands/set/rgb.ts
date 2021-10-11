@@ -1,7 +1,7 @@
 import { Arguments, Argv } from 'yargs'
 import { OLoCo, RgbColor, RgbMode, rgbmodeIterable, RgbSpeed, rgbspeedIterable } from '@oloco/oloco'
 import { exit } from 'process'
-import { logObject } from 'oloco/src/cli.common'
+import { logObject } from '../../cli.common'
 
 export const command = 'rgb <mode> <speed> <color>'
 export const describe = 'Configure RGB RGB mode, speed and color.'
