@@ -33,3 +33,7 @@ export function convertConfigEntry(entry: string): string {
   }
   return key
 }
+
+export function logObject(data: unknown): void {
+  console.log(data, { depth: null, colors: true })
+}

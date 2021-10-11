@@ -1,8 +1,7 @@
 import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
-import util from 'util'
 import { Config } from '../../config'
-import { convertConfigEntry } from '../../cli.common'
+import { convertConfigEntry, logObject } from '../../cli.common'
 
 const overview = Object.keys(Config.store).join(', ')
 
@@ -25,5 +24,5 @@ export const handler = (yargs: Arguments): void => {
     exit(2)
   }
 
-  console.log(`${entry}: ${util.inspect(value, { depth: null, colors: true })}`)
+  logObject(value)
 }
