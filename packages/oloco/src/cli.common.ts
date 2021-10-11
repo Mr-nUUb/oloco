@@ -1,5 +1,6 @@
 import { FanPort, TempPort } from '@oloco/oloco'
 import { Config } from './config'
+import util from 'util'
 
 export type FanProfileName = 'silent' | 'balanced' | 'max' | 'custom'
 export type LogTarget = 'terminal'
@@ -35,5 +36,5 @@ export function convertConfigEntry(entry: string): string {
 }
 
 export function logObject(data: unknown): void {
-  console.log(data, { depth: null, colors: true })
+  console.log(util.inspect(data, { depth: null, colors: true }))
 }
