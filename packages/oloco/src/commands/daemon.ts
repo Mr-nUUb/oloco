@@ -34,7 +34,7 @@ export const builder = (yargs: Argv): Argv =>
 export const handler = async (yargs: Arguments): Promise<void> => {
   const interval = yargs.interval as number
 
-  Logger.setLevel(Logger[LogLevel[Config.get('logger').level]])
+  Logger.setLevel(Logger[LogLevel[Config.get('daemon').logLevel]])
 
   controller = new OLoCo()
   Logger.info('Successfully connected to controller!')
