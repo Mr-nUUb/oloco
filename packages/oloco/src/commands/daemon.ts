@@ -33,10 +33,10 @@ export const handler = async (): Promise<void> => {
   controller = new OLoCo()
   Logger.info('Successfully connected to controller!')
 
-  loop(daemonConfig.interval)
+  loop()
 }
 
-function loop(interval: number) {
+function loop() {
   oldRgb = controller.getRgb()
   oldFan = controller.getFan()
 
@@ -46,7 +46,7 @@ function loop(interval: number) {
     handleSensor(current)
     handleFan(current)
     logCounter++
-  }, interval)
+  }, daemonConfig.interval)
 }
 
 function nextLowerFanProfilePoint(curve: FanProfilePoint[], find: number) {
