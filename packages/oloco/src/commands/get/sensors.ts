@@ -1,4 +1,5 @@
 import { OLoCo } from '@oloco/oloco'
+import { logObject } from '../../cli.common'
 
 export const command = 'sensors'
 export const describe = 'Read temperature, flow and level sensors.'
@@ -8,5 +9,5 @@ export const handler = (): void => {
   const data = controller.getSensor()
   controller.close()
 
-  console.log(data)
+  logObject(data)
 }

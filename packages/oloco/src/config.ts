@@ -39,9 +39,11 @@ export type LevelConfig = {
   enabled: boolean
   warning: boolean
 }
-export type LogConfig = {
-  target: LogTarget
-  level: LogLevel
+export type DaemonConfig = {
+  logTarget: LogTarget
+  logLevel: LogLevel
+  logThreshold: number
+  interval: number
 }
 export type TempConfig = {
   port: TempPort
@@ -55,7 +57,7 @@ export type AppConfig = {
   flow: FlowConfig
   level: LevelConfig
   rgb: RgbData
-  logger: LogConfig
+  daemon: DaemonConfig
   temps: TempConfig[]
 }
 
@@ -204,19 +206,25 @@ export const Config = new Conf<AppConfig>({
       required: ['color', 'mode', 'speed'],
       type: 'object',
     },
-    logger: {
+    daemon: {
       additionalProperties: false,
       properties: {
-        level: {
+        interval: {
+          type: 'number',
+        },
+        logLevel: {
           enum: ['debug', 'info', 'warn', 'error'],
           type: 'string',
         },
-        target: {
+        logTarget: {
           const: 'terminal',
           type: 'string',
         },
+        logThreshold: {
+          type: 'number',
+        },
       },
-      required: ['target', 'level'],
+      required: ['interval', 'logLevel', 'logTarget', 'logThreshold'],
       type: 'object',
     },
     temps: {
@@ -333,9 +341,11 @@ export const Config = new Conf<AppConfig>({
         blue: 0,
       },
     },
-    logger: {
-      target: 'terminal',
-      level: 'info',
+    daemon: {
+      interval: 1000,
+      logLevel: 'info',
+      logTarget: 'terminal',
+      logThreshold: 5,
     },
     temps: [
       {

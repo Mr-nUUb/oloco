@@ -10,39 +10,38 @@ import {
   FanData,
 } from '@oloco/oloco'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
-import { Config, FanConfig, TempConfig } from '../config'
+import { Config, DaemonConfig, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
-import { Arguments, Argv } from 'yargs'
+import util from 'util'
+import { exit } from 'process'
 
 Logger.useDefaults()
 
 let controller: OLoCo
 let oldFan: FanData[]
 let oldRgb: RgbData
+let daemonConfig: DaemonConfig
+let logCounter = 0
 
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
 
-export const builder = (yargs: Argv): Argv =>
-  yargs.option('i', {
-    alias: 'interval',
-    default: 1000,
-    describe: 'The interval in milliseconds to perform actions.',
-    type: 'number',
-  })
+export const handler = async (): Promise<void> => {
+  daemonConfig = Config.get('daemon')
 
-export const handler = async (yargs: Arguments): Promise<void> => {
-  const interval = yargs.interval as number
+  Logger.setLevel(Logger[LogLevel[daemonConfig.logLevel]])
 
-  Logger.setLevel(Logger[LogLevel[Config.get('logger').level]])
-
-  controller = new OLoCo()
-  Logger.info('Successfully connected to controller!')
-
-  loop(interval)
+  try {
+    controller = new OLoCo()
+    Logger.info('Successfully connected to controller!')
+    loop()
+  } catch (err) {
+    if (err instanceof Error) Logger.error(err.message)
+    exit(1)
+  }
 }
 
-function loop(interval: number) {
+function loop() {
   oldRgb = controller.getRgb()
   oldFan = controller.getFan()
 
@@ -51,7 +50,8 @@ function loop(interval: number) {
     handleRgb()
     handleSensor(current)
     handleFan(current)
-  }, interval)
+    logCounter++
+  }, daemonConfig.interval)
 }
 
 function nextLowerFanProfilePoint(curve: FanProfilePoint[], find: number) {
@@ -91,7 +91,7 @@ function handleSensor(sensor: SensorData) {
       if (temp > warn) {
         Logger.warn(`Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
       } else {
-        Logger.info(`Temp ${name}: ${temp} °C`)
+        logThreshold(`Temp ${name}: ${temp} °C`)
       }
     }
   })
@@ -104,7 +104,7 @@ function handleSensor(sensor: SensorData) {
     if (flow < warn) {
       Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
     } else {
-      Logger.info(`Sensor ${name}: ${flow} l/h`)
+      logThreshold(`Sensor ${name}: ${flow} l/h`)
     }
   }
 
@@ -119,6 +119,9 @@ function handleSensor(sensor: SensorData) {
 function handleRgb() {
   const newRgb = Config.get('rgb')
   if (!equalRgb(newRgb, oldRgb)) {
+    Logger.info(
+      `Update RGB setting: ${util.inspect(newRgb, { depth: null, colors: false, compact: true })}`,
+    )
     controller.setRgb(newRgb)
     oldRgb = newRgb
   }
@@ -130,9 +133,10 @@ function handleFan(sensor: SensorData) {
     if (fanConfig.enabled) {
       const name = fanConfig.name
       const warn = fanConfig.warning
-      const currentSpeed = controller.getFan(port)[0].rpm
-      if (currentSpeed < warn) {
-        Logger.warn(`Fan ${name} is below warning speed: ${currentSpeed} < ${warn} RPM!`)
+      const currentFan = controller.getFan(port)[0]
+      const currentRpm = currentFan.rpm
+      if (currentRpm < warn) {
+        Logger.warn(`Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`)
       }
       const fanProfiles: FanProfileCurves = {
         profiles: {
@@ -157,13 +161,18 @@ function handleFan(sensor: SensorData) {
       const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
+      logThreshold(`Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
       if (oldFan[fanIndex].pwm !== speed) {
-        Logger.info(`Fan ${name}: Current ${currentSpeed} RPM; New ${speed}%`)
+        Logger.info(`Update Fan ${name}: ${speed}%`)
         controller.setFan(speed, port)
         oldFan[fanIndex].pwm = speed
       }
     }
   })
+}
+
+function logThreshold(message: string) {
+  if (logCounter === 0 || logCounter % daemonConfig.logThreshold === 0) Logger.info(message)
 }
 
 enum LogLevel {

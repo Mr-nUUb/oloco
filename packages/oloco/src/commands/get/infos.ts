@@ -1,5 +1,5 @@
 import { OLoCo } from '@oloco/oloco'
-import util from 'util'
+import { logObject } from '../../cli.common'
 
 export const command = 'infos'
 export const describe = 'Get all available information.'
@@ -9,5 +9,5 @@ export const handler = (): void => {
   const data = controller.getInformation()
   controller.close()
 
-  console.log(util.inspect(data, { depth: null, colors: true }))
+  logObject(data)
 }

@@ -1,7 +1,7 @@
 import { OLoCo, FanPort, fanportIterable } from '@oloco/oloco'
 import { Arguments, Argv } from 'yargs'
-import util from 'util'
 import { Config } from '../../config'
+import { logObject } from '../../cli.common'
 
 export const command = 'curves [port]'
 export const describe = 'Get PWM response curves for a specific fan port or all ports.'
@@ -32,6 +32,6 @@ export const handler = async (yargs: Arguments): Promise<void> => {
     })
   }
 
-  console.log(util.inspect(curves, { depth: null, colors: true }))
+  logObject(curves)
   controller.close()
 }
