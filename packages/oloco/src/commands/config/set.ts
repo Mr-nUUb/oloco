@@ -33,7 +33,7 @@ export const handler = (yargs: Arguments): void => {
 
     console.log(`Successfully set "${entry}"!`)
   } catch (error) {
-    console.error(`Couldn't set entry "${entry}": Unknown key or wrong type!`)
+    console.error(`Couldn't set entry "${entry}": Unknown key, wrong type or unknown value!`)
     exit(1)
   }
 }

@@ -13,6 +13,7 @@ import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, DaemonConfig, FanConfig, TempConfig } from '../config'
 import Logger from 'js-logger'
 import util from 'util'
+import { exit } from 'process'
 
 Logger.useDefaults()
 
@@ -30,10 +31,14 @@ export const handler = async (): Promise<void> => {
 
   Logger.setLevel(Logger[LogLevel[daemonConfig.logLevel]])
 
-  controller = new OLoCo()
-  Logger.info('Successfully connected to controller!')
-
-  loop()
+  try {
+    controller = new OLoCo()
+    Logger.info('Successfully connected to controller!')
+    loop()
+  } catch (err) {
+    Logger.error((err as Error).message)
+    exit(1)
+  }
 }
 
 function loop() {
