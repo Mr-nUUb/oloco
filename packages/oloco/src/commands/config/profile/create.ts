@@ -20,10 +20,10 @@ export const handler = (yargs: Arguments): void => {
     exit(1)
   }
 
-  const length = profiles.length
+  const next = profiles.length
   const profile: CustomProfile = { name, profile: [] }
   try {
-    Config.set(`profiles.${length}`, profile)
+    Config.set(`profiles.${next}`, profile)
   } catch (error) {
     if (error instanceof Error) console.error(error.message)
   }
