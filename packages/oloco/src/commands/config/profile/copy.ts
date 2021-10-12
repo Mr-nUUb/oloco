@@ -1,6 +1,6 @@
 import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
-import { Config, CustomProfile } from '../../../config'
+import { Config } from '../../../config'
 
 export const command = 'copy [name] [newName]'
 export const describe = 'Copy a custom fan profile.'
