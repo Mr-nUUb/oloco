@@ -35,8 +35,8 @@ export const handler = async (): Promise<void> => {
     controller = new OLoCo()
     Logger.info('Successfully connected to controller!')
     loop()
-  } catch (err) {
-    if (err instanceof Error) Logger.error(err.message)
+  } catch (error) {
+    if (error instanceof Error) Logger.error(error.message)
     exit(1)
   }
 }
