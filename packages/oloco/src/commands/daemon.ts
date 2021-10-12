@@ -138,12 +138,22 @@ function handleFan(sensor: SensorData) {
       if (currentRpm < warn) {
         Logger.warn(`Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`)
       }
+      const customProfile = Config.get('profiles').filter((p) => p.name === fanConfig.customProfile)
+      if (fanConfig.activeProfile === 'custom') {
+        if (customProfile.length > 1) {
+          Logger.warn(
+            `Found several profiles named "${fanConfig.customProfile}"! Choosing first one!`,
+          )
+        } else if (customProfile.length === 0) {
+          Logger.warn(`Profile "${fanConfig.customProfile}" not found!`)
+        }
+      }
       const fanProfiles: FanProfileCurves = {
         profiles: {
           silent: fanSilent,
           balanced: fanBalanced,
           max: fanMax,
-          custom: fanConfig.customProfile,
+          custom: customProfile.length > 0 ? customProfile[0].profile : [],
         },
       }
       let currentTemp = sensor.temps.find((t) => t.port === fanConfig.tempSource)?.temp

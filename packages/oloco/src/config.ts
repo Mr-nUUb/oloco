@@ -15,9 +15,12 @@ import {
   LogLevel,
   LogTarget,
 } from './cli.common'
-import balanced from './res/balanced.json'
 import Conf from 'conf'
 
+export type CustomProfile = {
+  name: string
+  profile: FanProfilePoint[]
+}
 export type FanConfig = {
   port: FanPort
   name: string
@@ -25,7 +28,7 @@ export type FanConfig = {
   warning: number
   tempSource: TempPort
   activeProfile: FanProfileName
-  customProfile: FanProfilePoint[]
+  customProfile: string
   responseCurve: CurvePoint[]
 }
 export type FlowConfig = {
@@ -59,6 +62,7 @@ export type AppConfig = {
   rgb: RgbData
   daemon: DaemonConfig
   temps: TempConfig[]
+  profiles: CustomProfile[]
 }
 
 export const Config = new Conf<AppConfig>({
@@ -73,20 +77,7 @@ export const Config = new Conf<AppConfig>({
             type: 'string',
           },
           customProfile: {
-            items: {
-              additionalProperties: false,
-              properties: {
-                temp: {
-                  type: 'number',
-                },
-                pwm: {
-                  type: 'number',
-                },
-              },
-              required: ['temp', 'pwm'],
-              type: 'object',
-            },
-            type: 'array',
+            type: 'string',
           },
           enabled: {
             type: 'boolean',
@@ -257,6 +248,37 @@ export const Config = new Conf<AppConfig>({
       type: 'array',
       uniqueItems: true,
     },
+    profiles: {
+      items: {
+        additionalProperties: false,
+        properties: {
+          name: {
+            type: 'string',
+          },
+          profile: {
+            items: {
+              additionalProperties: false,
+              properties: {
+                temp: {
+                  type: 'number',
+                },
+                pwm: {
+                  type: 'number',
+                },
+              },
+              required: ['temp', 'pwm'],
+              type: 'object',
+            },
+            type: 'array',
+          },
+        },
+        required: ['name', 'profile'],
+        type: 'object',
+      },
+      type: 'array',
+      minItems: 0,
+      maxItems: 10,
+    },
   },
   defaults: {
     fans: [
@@ -267,7 +289,7 @@ export const Config = new Conf<AppConfig>({
         warning: 500,
         tempSource: 'T1',
         activeProfile: 'balanced',
-        customProfile: balanced,
+        customProfile: '',
         responseCurve: [],
       },
       {
@@ -277,7 +299,7 @@ export const Config = new Conf<AppConfig>({
         warning: 500,
         tempSource: 'T1',
         activeProfile: 'balanced',
-        customProfile: balanced,
+        customProfile: '',
         responseCurve: [],
       },
       {
@@ -287,7 +309,7 @@ export const Config = new Conf<AppConfig>({
         warning: 500,
         tempSource: 'T1',
         activeProfile: 'balanced',
-        customProfile: balanced,
+        customProfile: '',
         responseCurve: [],
       },
       {
@@ -297,7 +319,7 @@ export const Config = new Conf<AppConfig>({
         warning: 500,
         tempSource: 'T1',
         activeProfile: 'balanced',
-        customProfile: balanced,
+        customProfile: '',
         responseCurve: [],
       },
       {
@@ -307,7 +329,7 @@ export const Config = new Conf<AppConfig>({
         warning: 500,
         tempSource: 'T1',
         activeProfile: 'balanced',
-        customProfile: balanced,
+        customProfile: '',
         responseCurve: [],
       },
       {
@@ -316,8 +338,8 @@ export const Config = new Conf<AppConfig>({
         enabled: true,
         warning: 500,
         tempSource: 'T1',
-        activeProfile: 'balanced',
-        customProfile: balanced,
+        activeProfile: 'custom',
+        customProfile: 'Pump',
         responseCurve: [],
       },
     ],
@@ -368,6 +390,33 @@ export const Config = new Conf<AppConfig>({
         enabled: true,
         warning: 50,
         offset: 0,
+      },
+    ],
+    profiles: [
+      {
+        name: 'Pump',
+        profile: [
+          {
+            temp: 0,
+            pwm: 80,
+          },
+          {
+            temp: 60,
+            pwm: 80,
+          },
+          {
+            temp: 70,
+            pwm: 90,
+          },
+          {
+            temp: 80,
+            pwm: 100,
+          },
+          {
+            temp: 100,
+            pwm: 100,
+          },
+        ],
       },
     ],
   },
