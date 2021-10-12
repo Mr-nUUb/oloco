@@ -30,6 +30,9 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   profile.profile = []
   let breakpoint = 0
 
+  console.log('Please enter temperature breakpoints and their PWM duty cycle.')
+  console.log('Start with temperature `0` and end with temperature `100`.')
+  console.log('Do not enter duplicate values!')
   while (breakpoint < 100) {
     const point = await prompt.get([
       {
