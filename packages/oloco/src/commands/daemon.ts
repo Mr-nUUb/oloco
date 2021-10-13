@@ -54,12 +54,20 @@ function loop() {
   }, daemonConfig.interval)
 }
 
-function nextLowerFanProfilePoint(curve: FanProfilePoint[], find: number) {
+function nextLower(curve: FanProfilePoint[], find: number) {
   let max = 0
   curve.forEach((value) => {
     if (value.temp < find && value.temp - find > max - find) max = value.temp
   })
   return curve.findIndex((val) => val.temp === max)
+}
+
+function nextHigher(curve: FanProfilePoint[], find: number) {
+  let min = 100
+  curve.forEach((value) => {
+    if (value.temp > find && value.temp + find < min + find) min = value.temp
+  })
+  return curve.findIndex((val) => val.temp === min)
 }
 
 function interpolate(x: number, x1: number, x2: number, y1: number, y2: number) {
@@ -163,9 +171,8 @@ function handleFan(sensor: SensorData) {
       }
       currentTemp += Config.get('temps')[fanConfig.tempSource].offset
       const curve = fanProfiles.profiles[fanConfig.activeProfile]
-      const index = nextLowerFanProfilePoint(curve, currentTemp)
-      const lower = curve[index]
-      const higher = curve[index + 1]
+      const lower = curve[nextLower(curve, currentTemp)]
+      const higher = curve[nextHigher(curve, currentTemp)]
       const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
