@@ -10,7 +10,7 @@ import {
   FanData,
 } from '@oloco/oloco'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
-import { Config, DaemonConfig, FanConfig, TempConfig } from '../config'
+import { Config, DaemonConfig } from '../config'
 import Logger from 'js-logger'
 import util from 'util'
 import { exit } from 'process'
@@ -78,7 +78,7 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
 
 function handleSensor(sensor: SensorData) {
   tempportIterable.forEach((port) => {
-    const tempConfig = Config.get('temps').find((cfg) => cfg.port === port) as TempConfig
+    const tempConfig = Config.get('temps')[port]
     if (tempConfig.enabled) {
       const name = tempConfig.name
       const warn = tempConfig.warning
@@ -129,7 +129,7 @@ function handleRgb() {
 
 function handleFan(sensor: SensorData) {
   fanportIterable.forEach((port) => {
-    const fanConfig = Config.get('fans').find((cfg) => cfg.port === port) as FanConfig
+    const fanConfig = Config.get('fans')[port]
     if (fanConfig.enabled) {
       const name = fanConfig.name
       const warn = fanConfig.warning
@@ -161,9 +161,7 @@ function handleFan(sensor: SensorData) {
         Logger.error("Couldn't read current temperature!")
         return
       }
-      currentTemp += (
-        Config.get('temps').find((cfg) => cfg.port === fanConfig.tempSource) as TempConfig
-      ).offset
+      currentTemp += Config.get('temps')[fanConfig.tempSource].offset
       const curve = fanProfiles.profiles[fanConfig.activeProfile]
       const index = nextLowerFanProfilePoint(curve, currentTemp)
       const lower = curve[index]

@@ -27,8 +27,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   const curves = await controller.getResponseCurve(port)
   if (save) {
     curves.forEach((curve) => {
-      const index = Config.get('fans').findIndex((fan) => fan.port === curve.port)
-      Config.set(`fans.${index}.responseCurve`, curve.curve)
+      Config.set(`fans.${curve.port}.responseCurve`, curve.curve)
     })
   }
 

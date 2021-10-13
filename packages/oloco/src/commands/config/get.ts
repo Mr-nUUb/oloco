@@ -1,7 +1,7 @@
 import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
-import { convertConfigEntry, logObject } from '../../cli.common'
+import { logObject } from '../../cli.common'
 
 const overview = Object.keys(Config.store).join(', ')
 
@@ -16,10 +16,9 @@ export const builder = (yargs: Argv): Argv =>
 
 export const handler = (yargs: Arguments): void => {
   const entry = yargs.entry as string
-  const key = convertConfigEntry(entry)
 
-  const value = Config.get(key)
-  if (!value || !key) {
+  const value = Config.get(entry)
+  if (!value || !entry) {
     console.error(`Entry "${entry}" does not exist!`)
     exit(2)
   }

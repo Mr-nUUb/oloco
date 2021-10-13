@@ -17,12 +17,7 @@ import {
 } from './cli.common'
 import Conf from 'conf'
 
-export type CustomProfile = {
-  name: string
-  profile: FanProfilePoint[]
-}
-export type FanConfig = {
-  port: FanPort
+type FanConfig = {
   name: string
   enabled: boolean
   warning: number
@@ -31,105 +26,112 @@ export type FanConfig = {
   customProfile: string
   responseCurve: CurvePoint[]
 }
-export type FlowConfig = {
+
+type FlowConfig = {
   name: string
   enabled: boolean
   warning: number
   signalsPerLiter: number
 }
-export type LevelConfig = {
+
+type LevelConfig = {
   name: string
   enabled: boolean
   warning: boolean
 }
+
+type TempConfig = {
+  name: string
+  enabled: boolean
+  warning: number
+  offset: number
+}
+
+type AppConfig = {
+  fans: FanConfigByPort
+  flow: FlowConfig
+  level: LevelConfig
+  rgb: RgbData
+  daemon: DaemonConfig
+  temps: TempConfigByPort
+  profiles: CustomProfile[]
+}
+
+type FanConfigByPort = { [key in FanPort as string]: FanConfig }
+type TempConfigByPort = { [key in TempPort as string]: TempConfig }
+
+export type CustomProfile = {
+  name: string
+  profile: FanProfilePoint[]
+}
+
 export type DaemonConfig = {
   logTarget: LogTarget
   logLevel: LogLevel
   logThreshold: number
   interval: number
 }
-export type TempConfig = {
-  port: TempPort
-  name: string
-  enabled: boolean
-  warning: number
-  offset: number
-}
-export type AppConfig = {
-  fans: FanConfig[]
-  flow: FlowConfig
-  level: LevelConfig
-  rgb: RgbData
-  daemon: DaemonConfig
-  temps: TempConfig[]
-  profiles: CustomProfile[]
-}
 
 export const Config = new Conf<AppConfig>({
   accessPropertiesByDotNotation: true,
   schema: {
     fans: {
-      items: {
-        additionalProperties: false,
-        properties: {
-          activeProfile: {
-            enum: fanProfileChoices as string[],
-            type: 'string',
-          },
-          customProfile: {
-            type: 'string',
-          },
-          enabled: {
-            type: 'boolean',
-          },
-          name: {
-            type: 'string',
-          },
-          port: {
-            enum: fanportIterable as string[],
-            readOnly: true,
-            type: 'string',
-          },
-          responseCurve: {
-            items: {
-              additionalProperties: false,
-              properties: {
-                rpm: {
-                  type: 'number',
-                },
-                pwm: {
-                  type: 'number',
-                },
-              },
-              required: ['pwm', 'rpm'],
-              type: 'object',
+      additionalProperties: false,
+      patternProperties: {
+        '^F[1-6]$': {
+          additionalProperties: false,
+          properties: {
+            activeProfile: {
+              enum: fanProfileChoices as string[],
+              type: 'string',
             },
-            type: 'array',
+            customProfile: {
+              type: 'string',
+            },
+            enabled: {
+              type: 'boolean',
+            },
+            name: {
+              type: 'string',
+            },
+            responseCurve: {
+              items: {
+                additionalProperties: false,
+                properties: {
+                  rpm: {
+                    type: 'number',
+                  },
+                  pwm: {
+                    type: 'number',
+                  },
+                },
+                required: ['pwm', 'rpm'],
+                type: 'object',
+              },
+              type: 'array',
+            },
+            tempSource: {
+              enum: tempportIterable as string[],
+              type: 'string',
+            },
+            warning: {
+              type: 'number',
+            },
           },
-          tempSource: {
-            enum: tempportIterable as string[],
-            type: 'string',
-          },
-          warning: {
-            type: 'number',
-          },
+          required: [
+            'name',
+            'enabled',
+            'warning',
+            'tempSource',
+            'activeProfile',
+            'customProfile',
+            'responseCurve',
+          ],
+          type: 'object',
         },
-        required: [
-          'name',
-          'enabled',
-          'port',
-          'warning',
-          'tempSource',
-          'activeProfile',
-          'customProfile',
-          'responseCurve',
-        ],
-        type: 'object',
       },
-      minItems: 6,
-      maxItems: 6,
-      type: 'array',
-      uniqueItems: true,
+      required: fanportIterable as string[],
+      type: 'object',
     },
     flow: {
       additionalProperties: false,
@@ -219,34 +221,30 @@ export const Config = new Conf<AppConfig>({
       type: 'object',
     },
     temps: {
-      items: {
-        additionalProperties: false,
-        properties: {
-          enabled: {
-            type: 'boolean',
+      additionalProperties: false,
+      patternProperties: {
+        '^T[1-3]$': {
+          additionalProperties: false,
+          properties: {
+            enabled: {
+              type: 'boolean',
+            },
+            name: {
+              type: 'string',
+            },
+            offset: {
+              type: 'number',
+            },
+            warning: {
+              type: 'number',
+            },
           },
-          name: {
-            type: 'string',
-          },
-          offset: {
-            type: 'number',
-          },
-          port: {
-            enum: tempportIterable as string[],
-            readOnly: true,
-            type: 'string',
-          },
-          warning: {
-            type: 'number',
-          },
+          required: ['name', 'enabled', 'warning', 'offset'],
+          type: 'object',
         },
-        required: ['port', 'name', 'enabled', 'warning', 'offset'],
-        type: 'object',
       },
-      minItems: 3,
-      maxItems: 3,
-      type: 'array',
-      uniqueItems: true,
+      required: tempportIterable as string[],
+      type: 'object',
     },
     profiles: {
       items: {
@@ -281,68 +279,20 @@ export const Config = new Conf<AppConfig>({
     },
   },
   defaults: {
-    fans: [
-      {
-        port: 'F1',
-        name: 'F1',
-        enabled: true,
-        warning: 500,
-        tempSource: 'T1',
-        activeProfile: 'balanced',
-        customProfile: '',
-        responseCurve: [],
-      },
-      {
-        port: 'F2',
-        name: 'F2',
-        enabled: true,
-        warning: 500,
-        tempSource: 'T1',
-        activeProfile: 'balanced',
-        customProfile: '',
-        responseCurve: [],
-      },
-      {
-        port: 'F3',
-        name: 'F3',
-        enabled: true,
-        warning: 500,
-        tempSource: 'T1',
-        activeProfile: 'balanced',
-        customProfile: '',
-        responseCurve: [],
-      },
-      {
-        port: 'F4',
-        name: 'F4',
-        enabled: true,
-        warning: 500,
-        tempSource: 'T1',
-        activeProfile: 'balanced',
-        customProfile: '',
-        responseCurve: [],
-      },
-      {
-        port: 'F5',
-        name: 'F5',
-        enabled: true,
-        warning: 500,
-        tempSource: 'T1',
-        activeProfile: 'balanced',
-        customProfile: '',
-        responseCurve: [],
-      },
-      {
-        port: 'F6',
-        name: 'F6',
-        enabled: true,
-        warning: 500,
-        tempSource: 'T1',
-        activeProfile: 'custom',
-        customProfile: 'Pump',
-        responseCurve: [],
-      },
-    ],
+    fans: Object.fromEntries(
+      fanportIterable.map((port) => [
+        port,
+        {
+          name: port,
+          enabled: true,
+          warning: 500,
+          tempSource: 'T1',
+          activeProfile: port === 'F6' ? 'custom' : 'balanced',
+          customProfile: port === 'F6' ? 'Pump' : '',
+          responseCurve: [],
+        },
+      ]),
+    ),
     flow: {
       name: 'FLO',
       enabled: true,
@@ -369,29 +319,17 @@ export const Config = new Conf<AppConfig>({
       logTarget: 'terminal',
       logThreshold: 5,
     },
-    temps: [
-      {
-        port: 'T1',
-        name: 'T1',
-        enabled: true,
-        warning: 50,
-        offset: 0,
-      },
-      {
-        port: 'T2',
-        name: 'T2',
-        enabled: true,
-        warning: 50,
-        offset: 0,
-      },
-      {
-        port: 'T3',
-        name: 'T3',
-        enabled: true,
-        warning: 50,
-        offset: 0,
-      },
-    ],
+    temps: Object.fromEntries(
+      tempportIterable.map((port) => [
+        port,
+        {
+          name: port,
+          enabled: true,
+          warning: 50,
+          offset: 0,
+        },
+      ]),
+    ),
     profiles: [
       {
         name: 'Pump',
