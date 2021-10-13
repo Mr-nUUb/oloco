@@ -30,10 +30,8 @@ export const handler = (yargs: Arguments): void => {
 
   try {
     Config.set(key, val)
-
-    console.log(`Successfully set "${entry}"!`)
   } catch (error) {
-    console.error(`Couldn't set entry "${entry}": Unknown key, wrong type or unknown value!`)
+    if (error instanceof Error) console.error(error.message)
     exit(1)
   }
 }
