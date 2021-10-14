@@ -1,6 +1,7 @@
 import { Arguments, Argv } from 'yargs'
 import { OLoCo, FanPort, fanportIterable } from '@oloco/oloco'
 import { logObject } from '../../cli.common'
+import { Config } from '../../config'
 
 export const command = 'fans <speed> [port]'
 export const describe = 'Set a speed of a fan or all fans.'
@@ -21,6 +22,7 @@ export const handler = (yargs: Arguments): void => {
   const speed = yargs.speed as number
 
   const controller = new OLoCo()
+  controller.setReadTimeout(Config.get('readTimeout'))
   controller.setFan(speed, port)
   const data = controller.getFan(port)
   controller.close()

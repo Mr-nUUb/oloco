@@ -2,6 +2,7 @@ import { Arguments, Argv } from 'yargs'
 import { OLoCo, RgbColor, RgbMode, rgbmodeIterable, RgbSpeed, rgbspeedIterable } from '@oloco/oloco'
 import { exit } from 'process'
 import { logObject } from '../../cli.common'
+import { Config } from '../../config'
 
 export const command = 'rgb <mode> <speed> <color>'
 export const describe = 'Configure RGB RGB mode, speed and color.'
@@ -36,6 +37,7 @@ export const handler = (yargs: Arguments): void => {
   }
 
   const controller = new OLoCo()
+  controller.setReadTimeout(Config.get('readTimeout'))
   controller.setRgb({ mode, speed, color })
   const recv = controller.getRgb()
   controller.close()

@@ -24,6 +24,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   const save = yargs.save as boolean
 
   const controller = new OLoCo()
+  controller.setReadTimeout(Config.get('readTimeout'))
   const curves = await controller.getResponseCurve(port)
   if (save) {
     curves.forEach((curve) => {

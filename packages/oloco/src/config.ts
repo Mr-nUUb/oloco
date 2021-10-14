@@ -55,6 +55,7 @@ type AppConfig = {
   daemon: DaemonConfig
   temps: TempConfigByPort
   profiles: { [key: string]: FanProfilePoint[] }
+  readTimeout: number
 }
 
 type FanConfigByPort = { [key in FanPort as string]: FanConfig }
@@ -65,7 +66,6 @@ export type DaemonConfig = {
   logLevel: LogLevel
   logThreshold: number
   interval: number
-  readTimeout: number
 }
 
 export const Config = new Conf<AppConfig>({
@@ -214,9 +214,6 @@ export const Config = new Conf<AppConfig>({
         logThreshold: {
           type: 'number',
         },
-        readTimeout: {
-          type: 'number',
-        },
       },
       required: ['interval', 'logLevel', 'logTarget', 'logThreshold', 'readTimeout'],
       type: 'object',
@@ -273,6 +270,9 @@ export const Config = new Conf<AppConfig>({
       minProperties: 0,
       maxProperties: 10,
     },
+    readTimeout: {
+      type: 'number',
+    },
   },
   defaults: {
     fans: Object.fromEntries(
@@ -314,7 +314,6 @@ export const Config = new Conf<AppConfig>({
       logLevel: 'info',
       logTarget: 'terminal',
       logThreshold: 5,
-      readTimeout: 100,
     },
     temps: Object.fromEntries(
       tempportIterable.map((port) => [
@@ -351,5 +350,6 @@ export const Config = new Conf<AppConfig>({
         },
       ],
     },
+    readTimeout: 100,
   },
 })
