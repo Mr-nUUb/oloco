@@ -22,5 +22,8 @@
     "type": "git",
     "url": "ssh://git@github.com/Mr-nUUb/oloco.git",
     "directory": "packages/oloco-react"
+  },
+  "dependencies": {
+    "@oloco/oloco": "workspace:packages/oloco"
   }
 }
