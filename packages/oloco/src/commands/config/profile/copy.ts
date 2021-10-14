@@ -30,7 +30,6 @@ export const handler = (yargs: Arguments): void => {
     exit(1)
   }
 
-  //const profile: CustomProfile = { name: newName, profile: [] }
   let profile: FanProfilePoint[]
 
   if (!profiles[name]) {
