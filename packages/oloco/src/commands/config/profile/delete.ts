@@ -13,10 +13,8 @@ export const builder = (yargs: Argv): Argv =>
 export const handler = (yargs: Arguments): void => {
   const name = yargs.name as string
   const profiles = Config.get('profiles')
-  if (profiles.findIndex((p) => p.name === name) !== -1) {
-    Config.set(
-      'profiles',
-      profiles.filter((p) => p.name !== name),
-    )
+  if (profiles[name]) {
+    delete profiles[name]
+    Config.set('profiles', profiles)
   }
 }

@@ -10,7 +10,7 @@ import {
   FanData,
 } from '@oloco/oloco'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
-import { Config, DaemonConfig, FanConfig, TempConfig } from '../config'
+import { Config, DaemonConfig } from '../config'
 import Logger from 'js-logger'
 import util from 'util'
 import { exit } from 'process'
@@ -33,6 +33,7 @@ export const handler = async (): Promise<void> => {
 
   try {
     controller = new OLoCo()
+    controller.setReadTimeout(daemonConfig.readTimeout)
     Logger.info('Successfully connected to controller!')
     loop()
   } catch (error) {
@@ -54,12 +55,22 @@ function loop() {
   }, daemonConfig.interval)
 }
 
-function nextLowerFanProfilePoint(curve: FanProfilePoint[], find: number) {
+function findLowerOrEqual(curve: FanProfilePoint[], find: number) {
   let max = 0
+  const match = curve.find((c) => c.temp === find)
+  if (match) return match
   curve.forEach((value) => {
     if (value.temp < find && value.temp - find > max - find) max = value.temp
   })
-  return curve.findIndex((val) => val.temp === max)
+  return curve.find((val) => val.temp === max) as FanProfilePoint
+}
+
+function findGreater(curve: FanProfilePoint[], find: number) {
+  let min = 100
+  curve.forEach((value) => {
+    if (value.temp > find && value.temp + find < min + find) min = value.temp
+  })
+  return curve.find((val) => val.temp === min) as FanProfilePoint
 }
 
 function interpolate(x: number, x1: number, x2: number, y1: number, y2: number) {
@@ -78,7 +89,7 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
 
 function handleSensor(sensor: SensorData) {
   tempportIterable.forEach((port) => {
-    const tempConfig = Config.get('temps').find((cfg) => cfg.port === port) as TempConfig
+    const tempConfig = Config.get('temps')[port]
     if (tempConfig.enabled) {
       const name = tempConfig.name
       const warn = tempConfig.warning
@@ -129,7 +140,7 @@ function handleRgb() {
 
 function handleFan(sensor: SensorData) {
   fanportIterable.forEach((port) => {
-    const fanConfig = Config.get('fans').find((cfg) => cfg.port === port) as FanConfig
+    const fanConfig = Config.get('fans')[port]
     if (fanConfig.enabled) {
       const name = fanConfig.name
       const warn = fanConfig.warning
@@ -138,22 +149,18 @@ function handleFan(sensor: SensorData) {
       if (currentRpm < warn) {
         Logger.warn(`Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`)
       }
-      const customProfile = Config.get('profiles').filter((p) => p.name === fanConfig.customProfile)
-      if (fanConfig.activeProfile === 'custom') {
-        if (customProfile.length > 1) {
-          Logger.warn(
-            `Found several profiles named "${fanConfig.customProfile}"! Choosing first one!`,
-          )
-        } else if (customProfile.length === 0) {
-          Logger.warn(`Profile "${fanConfig.customProfile}" not found!`)
-        }
+      const customProfile = Config.get('profiles')[fanConfig.customProfile]
+      if (fanConfig.activeProfile === 'custom' && !customProfile) {
+        console.warn(
+          `Custom profile "${fanConfig.customProfile}" not found, falling back to "balanced".`,
+        )
       }
       const fanProfiles: FanProfileCurves = {
         profiles: {
           silent: fanSilent,
           balanced: fanBalanced,
           max: fanMax,
-          custom: customProfile.length > 0 ? customProfile[0].profile : [],
+          custom: customProfile || fanBalanced,
         },
       }
       let currentTemp = sensor.temps.find((t) => t.port === fanConfig.tempSource)?.temp
@@ -161,13 +168,10 @@ function handleFan(sensor: SensorData) {
         Logger.error("Couldn't read current temperature!")
         return
       }
-      currentTemp += (
-        Config.get('temps').find((cfg) => cfg.port === fanConfig.tempSource) as TempConfig
-      ).offset
+      currentTemp += Config.get('temps')[fanConfig.tempSource].offset
       const curve = fanProfiles.profiles[fanConfig.activeProfile]
-      const index = nextLowerFanProfilePoint(curve, currentTemp)
-      const lower = curve[index]
-      const higher = curve[index + 1]
+      const lower = findLowerOrEqual(curve, currentTemp)
+      const higher = findGreater(curve, currentTemp)
       const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)

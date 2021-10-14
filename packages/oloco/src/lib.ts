@@ -182,7 +182,7 @@ export class OLoCo {
     return recv
   }
 
-  public setTimeout(timeout: number): void {
+  public setReadTimeout(timeout: number): void {
     this._readTimeout = timeout
   }
 

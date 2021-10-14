@@ -1,6 +1,7 @@
 import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
-import { Config, CustomProfile } from '../../../config'
+import { Config } from '../../../config'
+import { FanProfilePoint } from '../../../cli.common'
 
 export const command = 'create [name]'
 export const describe = 'Create a custom fan profile.'
@@ -15,15 +16,14 @@ export const handler = (yargs: Arguments): void => {
   const name = yargs.name as string
   const profiles = Config.get('profiles')
 
-  if (profiles.filter((p) => p.name === name).length) {
+  if (profiles[name]) {
     console.log(`A profile named "${name}" already exists!`)
     exit(1)
   }
 
-  const next = profiles.length
-  const profile: CustomProfile = { name, profile: [] }
+  const profile: FanProfilePoint[] = []
   try {
-    Config.set(`profiles.${next}`, profile)
+    Config.set(`profiles.${name}`, profile)
   } catch (error) {
     if (error instanceof Error) console.error(error.message)
   }
