@@ -54,16 +54,11 @@ type AppConfig = {
   rgb: RgbData
   daemon: DaemonConfig
   temps: TempConfigByPort
-  profiles: CustomProfile[]
+  profiles: { [key: string]: FanProfilePoint[] }
 }
 
 type FanConfigByPort = { [key in FanPort as string]: FanConfig }
 type TempConfigByPort = { [key in TempPort as string]: TempConfig }
-
-export type CustomProfile = {
-  name: string
-  profile: FanProfilePoint[]
-}
 
 export type DaemonConfig = {
   logTarget: LogTarget
@@ -247,35 +242,28 @@ export const Config = new Conf<AppConfig>({
       type: 'object',
     },
     profiles: {
-      items: {
-        additionalProperties: false,
-        properties: {
-          name: {
-            type: 'string',
-          },
-          profile: {
-            items: {
-              additionalProperties: false,
-              properties: {
-                temp: {
-                  type: 'number',
-                },
-                pwm: {
-                  type: 'number',
-                },
+      additionalProperties: false,
+      patternProperties: {
+        '...': {
+          items: {
+            additionalProperties: false,
+            properties: {
+              temp: {
+                type: 'number',
               },
-              required: ['temp', 'pwm'],
-              type: 'object',
+              pwm: {
+                type: 'number',
+              },
             },
-            type: 'array',
+            required: ['temp', 'pwm'],
+            type: 'object',
           },
+          type: 'array',
         },
-        required: ['name', 'profile'],
-        type: 'object',
       },
-      type: 'array',
-      minItems: 0,
-      maxItems: 10,
+      type: 'object',
+      minProperties: 0,
+      maxProperties: 10,
     },
   },
   defaults: {
@@ -330,32 +318,29 @@ export const Config = new Conf<AppConfig>({
         },
       ]),
     ),
-    profiles: [
-      {
-        name: 'Pump',
-        profile: [
-          {
-            temp: 0,
-            pwm: 80,
-          },
-          {
-            temp: 60,
-            pwm: 80,
-          },
-          {
-            temp: 70,
-            pwm: 90,
-          },
-          {
-            temp: 80,
-            pwm: 100,
-          },
-          {
-            temp: 100,
-            pwm: 100,
-          },
-        ],
-      },
-    ],
+    profiles: {
+      Pump: [
+        {
+          temp: 0,
+          pwm: 80,
+        },
+        {
+          temp: 60,
+          pwm: 80,
+        },
+        {
+          temp: 70,
+          pwm: 90,
+        },
+        {
+          temp: 80,
+          pwm: 100,
+        },
+        {
+          temp: 100,
+          pwm: 100,
+        },
+      ],
+    },
   },
 })
