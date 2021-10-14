@@ -126,6 +126,8 @@ export const Config = new Conf<AppConfig>({
         },
       },
       required: fanportIterable as string[],
+      minProperties: 6,
+      maxProperties: 6,
       type: 'object',
     },
     flow: {
@@ -239,6 +241,8 @@ export const Config = new Conf<AppConfig>({
         },
       },
       required: tempportIterable as string[],
+      minProperties: 3,
+      maxProperties: 3,
       type: 'object',
     },
     profiles: {
