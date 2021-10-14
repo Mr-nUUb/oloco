@@ -214,11 +214,11 @@ export const Config = new Conf<AppConfig>({
         logThreshold: {
           type: 'number',
         },
-        readtimeout: {
+        readTimeout: {
           type: 'number',
         },
       },
-      required: ['interval', 'logLevel', 'logTarget', 'logThreshold'],
+      required: ['interval', 'logLevel', 'logTarget', 'logThreshold', 'readTimeout'],
       type: 'object',
     },
     temps: {
