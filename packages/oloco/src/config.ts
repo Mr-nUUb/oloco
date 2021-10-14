@@ -65,6 +65,7 @@ export type DaemonConfig = {
   logLevel: LogLevel
   logThreshold: number
   interval: number
+  readTimeout: number
 }
 
 export const Config = new Conf<AppConfig>({
@@ -213,6 +214,9 @@ export const Config = new Conf<AppConfig>({
         logThreshold: {
           type: 'number',
         },
+        readtimeout: {
+          type: 'number',
+        },
       },
       required: ['interval', 'logLevel', 'logTarget', 'logThreshold'],
       type: 'object',
@@ -310,6 +314,7 @@ export const Config = new Conf<AppConfig>({
       logLevel: 'info',
       logTarget: 'terminal',
       logThreshold: 5,
+      readTimeout: 100,
     },
     temps: Object.fromEntries(
       tempportIterable.map((port) => [

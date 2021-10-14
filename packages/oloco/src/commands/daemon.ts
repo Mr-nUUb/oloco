@@ -33,6 +33,7 @@ export const handler = async (): Promise<void> => {
 
   try {
     controller = new OLoCo()
+    controller.setReadTimeout(daemonConfig.readTimeout)
     Logger.info('Successfully connected to controller!')
     loop()
   } catch (error) {
