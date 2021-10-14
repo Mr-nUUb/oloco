@@ -146,7 +146,13 @@ function handleFan(sensor: SensorData) {
       if (currentRpm < warn) {
         Logger.warn(`Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`)
       }
-      const customProfile = Config.get('profiles')[fanConfig.customProfile]
+      let customProfile = Config.get('profiles')[fanConfig.customProfile]
+      if (fanConfig.activeProfile === 'custom' && !customProfile) {
+        customProfile = fanBalanced
+        console.warn(
+          `Custom profile "${fanConfig.customProfile}" not found, falling back to "balanced".`,
+        )
+      }
       const fanProfiles: FanProfileCurves = {
         profiles: {
           silent: fanSilent,
