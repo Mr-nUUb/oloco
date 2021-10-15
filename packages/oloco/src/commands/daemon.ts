@@ -33,7 +33,7 @@ export const handler = async (): Promise<void> => {
 
   try {
     controller = new OLoCo()
-    controller.setReadTimeout(daemonConfig.readTimeout)
+    controller.setReadTimeout(Config.get('readTimeout'))
     Logger.info('Successfully connected to controller!')
     loop()
   } catch (error) {
@@ -55,7 +55,7 @@ function loop() {
   }, daemonConfig.interval)
 }
 
-function findLowerOrEqual(curve: FanProfilePoint[], find: number) {
+function findLessOrEqual(curve: FanProfilePoint[], find: number) {
   let max = 0
   const match = curve.find((c) => c.temp === find)
   if (match) return match
@@ -170,7 +170,7 @@ function handleFan(sensor: SensorData) {
       }
       currentTemp += Config.get('temps')[fanConfig.tempSource].offset
       const curve = fanProfiles.profiles[fanConfig.activeProfile]
-      const lower = findLowerOrEqual(curve, currentTemp)
+      const lower = findLessOrEqual(curve, currentTemp)
       const higher = findGreater(curve, currentTemp)
       const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
