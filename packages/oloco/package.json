@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "conf": "^10.0.3",
+    "detect-ts-node": "^1.0.5",
     "js-logger": "^1.6.1",
     "node-hid": "^2.1.1",
     "yargs": "^17.2.1"

@@ -194,14 +194,13 @@ __metadata:
     "@types/node-hid": ^1
     "@types/yargs": ^17
     conf: ^10.0.3
+    detect-ts-node: ^1.0.5
     js-logger: ^1.6.1
     node-hid: ^2.1.1
     rimraf: ^3.0.2
     ts-node: ^10.2.1
     typescript: ^4.4
     yargs: ^17.2.1
-  bin:
-    oloco: ./dist/cli.js
   languageName: unknown
   linkType: soft
 
@@ -1016,6 +1015,13 @@ __metadata:
   bin:
     detect-libc: ./bin/detect-libc.js
   checksum: daaaed925ffa7889bd91d56e9624e6c8033911bb60f3a50a74a87500680652969dbaab9526d1e200a4c94acf80fc862a22131841145a0a8482d60a99c24f4a3e
+  languageName: node
+  linkType: hard
+
+"detect-ts-node@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "detect-ts-node@npm:1.0.5"
+  checksum: a3fae76b6c52ef23112c4d3b47b11b19e4c907e6aef9cb5f9b816cf43d9521e64ada41fc9d79034fa49866db339aa7e46bca82195ef60ab042412784f3186ef7
   languageName: node
   linkType: hard
 
