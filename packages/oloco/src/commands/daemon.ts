@@ -100,9 +100,12 @@ function handleSensor(sensor: SensorData) {
       }
       temp += tempConfig.offset
       if (temp > warn) {
-        Logger.warn(`Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
+        logThreshold(
+          LogLevel.warn,
+          `Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`,
+        )
       } else {
-        logThreshold(`Temp ${name}: ${temp} °C`)
+        logThreshold(LogLevel.info, `Temp ${name}: ${temp} °C`)
       }
     }
   })
@@ -113,16 +116,16 @@ function handleSensor(sensor: SensorData) {
     const warn = flowConfig.warning
     const flow = (sensor.flow.flow * flowConfig.signalsPerLiter) / 100
     if (flow < warn) {
-      Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
+      logThreshold(LogLevel.warn, `Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
     } else {
-      logThreshold(`Sensor ${name}: ${flow} l/h`)
+      logThreshold(LogLevel.info, `Sensor ${name}: ${flow} l/h`)
     }
   }
 
   const levelConfig = Config.get('level')
   if (levelConfig.enabled) {
     if (levelConfig.warning && sensor.level.level === 'warning') {
-      Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
+      logThreshold(LogLevel.warn, `Sensor ${levelConfig.name} is below warning level!`)
     }
   }
 }
@@ -147,7 +150,10 @@ function handleFan(sensor: SensorData) {
       const currentFan = controller.getFan(port)[0]
       const currentRpm = currentFan.rpm
       if (currentRpm < warn) {
-        Logger.warn(`Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`)
+        logThreshold(
+          LogLevel.warn,
+          `Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`,
+        )
       }
       const customProfile = Config.get('profiles')[fanConfig.customProfile]
       if (fanConfig.activeProfile === 'custom' && !customProfile) {
@@ -175,7 +181,7 @@ function handleFan(sensor: SensorData) {
       const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
-      logThreshold(`Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
+      logThreshold(LogLevel.info, `Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
       if (oldFan[fanIndex].pwm !== speed) {
         Logger.info(`Update Fan ${name}: ${speed}%`)
         controller.setFan(speed, port)
@@ -185,8 +191,13 @@ function handleFan(sensor: SensorData) {
   })
 }
 
-function logThreshold(message: string) {
-  if (logCounter === 0 || logCounter % daemonConfig.logThreshold === 0) Logger.info(message)
+function logThreshold(level: LogLevel, message: string) {
+  if (logCounter === 0 || logCounter % daemonConfig.logThreshold === 0) {
+    if (level === LogLevel.debug) Logger.debug(message)
+    if (level === LogLevel.info) Logger.info(message)
+    if (level === LogLevel.warn) Logger.warn(message)
+    if (level === LogLevel.error) Logger.error(message)
+  }
 }
 
 enum LogLevel {
