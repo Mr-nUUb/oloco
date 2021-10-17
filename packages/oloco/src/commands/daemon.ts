@@ -50,7 +50,6 @@ function loop() {
 
   setInterval(() => {
     const current = controller.getSensor()
-    ipc.server.broadcast('message', current)
     handleRgb()
     handleSensor(current)
     handleFan(current)
@@ -91,6 +90,8 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
 }
 
 function handleSensor(sensor: SensorData) {
+  ipc.server.broadcast('message', sensor)
+
   tempportIterable.forEach((port) => {
     const tempConfig = Config.get('temps')[port]
     if (tempConfig.enabled) {
@@ -142,6 +143,7 @@ function handleRgb() {
     controller.setRgb(newRgb)
     oldRgb = newRgb
   }
+  ipc.server.broadcast('message', oldRgb)
 }
 
 function handleFan(sensor: SensorData) {
@@ -185,6 +187,7 @@ function handleFan(sensor: SensorData) {
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
       logThreshold(LogLevel.info, `Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
+      oldFan[fanIndex].rpm = currentFan.rpm
       if (oldFan[fanIndex].pwm !== speed) {
         Logger.info(`Update Fan ${name}: ${speed}%`)
         controller.setFan(speed, port)
@@ -192,6 +195,8 @@ function handleFan(sensor: SensorData) {
       }
     }
   })
+
+  ipc.server.broadcast('message', oldFan)
 }
 
 function logThreshold(level: LogLevel, message: string) {
@@ -202,10 +207,12 @@ function logThreshold(level: LogLevel, message: string) {
     if (level === LogLevel.error) Logger.error(message)
   }
 }
+
 function startIpc() {
   ipc.config.appspace = 'oloco.'
   ipc.config.id = 'oloco'
   ipc.config.logger = Logger.info
+  ipc.config.silent = true
   ipc.serve(() => {
     ipc.server.on('message', (data) => {
       ipc.log(`NYI - got a message: ${data}`)
