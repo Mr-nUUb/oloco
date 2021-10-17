@@ -212,8 +212,7 @@ function logThreshold(level: LogLevel, message: string) {
 function startIpc() {
   ipc.config.appspace = 'oloco.'
   ipc.config.id = 'oloco'
-  ipc.config.logger = Logger.info
-  ipc.config.silent = true
+  ipc.config.logger = Logger.debug
   ipc.serve(() => {
     ipc.server.on('message', (data) => {
       ipc.log(`NYI - got a message: ${data}`)
