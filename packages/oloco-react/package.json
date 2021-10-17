@@ -22,5 +22,16 @@
     "type": "git",
     "url": "ssh://git@github.com/Mr-nUUb/oloco.git",
     "directory": "packages/oloco-react"
+  },
+  "scripts": {
+    "start": "ts-node src/main.ts"
+  },
+  "dependencies": {
+    "@oloco/oloco": "workspace:packages/oloco",
+    "node-ipc": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/node-ipc": "^9.1.6",
+    "ts-node": "^10.3.0"
   }
 }

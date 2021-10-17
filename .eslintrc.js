@@ -5,6 +5,9 @@ module.exports = {
     es2020: true,
     node: true,
   },
+  globals: {
+    NodeJS: true,
+  },
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',

@@ -8,12 +8,14 @@ import {
   RgbData,
   SensorData,
   FanData,
+  DeviceInformation,
 } from '@oloco/oloco'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
-import { Config, DaemonConfig } from '../config'
+import { Config, DaemonConfig, IpcGetConfig, IpcSetConfig, IpcGetCurve } from '../config'
 import Logger from 'js-logger'
 import util from 'util'
 import { exit } from 'process'
+import ipc from 'node-ipc'
 
 Logger.useDefaults()
 
@@ -22,6 +24,7 @@ let oldFan: FanData[]
 let oldRgb: RgbData
 let daemonConfig: DaemonConfig
 let logCounter = 0
+let loopStore: NodeJS.Timeout
 
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
@@ -35,6 +38,7 @@ export const handler = async (): Promise<void> => {
     controller = new OLoCo()
     controller.setReadTimeout(Config.get('readTimeout'))
     Logger.info('Successfully connected to controller!')
+    startIpc()
     loop()
   } catch (error) {
     if (error instanceof Error) Logger.error(error.message)
@@ -46,11 +50,16 @@ function loop() {
   oldRgb = controller.getRgb()
   oldFan = controller.getFan()
 
-  setInterval(() => {
+  loopStore = setInterval(() => {
     const current = controller.getSensor()
     handleRgb()
     handleSensor(current)
     handleFan(current)
+    ipc.server.broadcast('app.infos', {
+      fans: oldFan,
+      rgb: oldRgb,
+      sensors: current,
+    } as DeviceInformation)
     logCounter++
   }, daemonConfig.interval)
 }
@@ -182,6 +191,7 @@ function handleFan(sensor: SensorData) {
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
       logThreshold(LogLevel.info, `Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
+      oldFan[fanIndex].rpm = currentFan.rpm
       if (oldFan[fanIndex].pwm !== speed) {
         Logger.info(`Update Fan ${name}: ${speed}%`)
         controller.setFan(speed, port)
@@ -198,6 +208,32 @@ function logThreshold(level: LogLevel, message: string) {
     if (level === LogLevel.warn) Logger.warn(message)
     if (level === LogLevel.error) Logger.error(message)
   }
+}
+
+function startIpc() {
+  ipc.config.appspace = 'oloco.'
+  ipc.config.id = 'oloco'
+  ipc.config.logger = Logger.debug
+  ipc.serve(() => {
+    ipc.server.on('app.get.config', (data: IpcGetConfig, socket) => {
+      ipc.server.emit(socket, 'app.get.config', Config.get(data.key))
+    })
+    ipc.server.on('app.set.config', (data: IpcSetConfig, socket) => {
+      ipc.server.emit(socket, 'app.set.config', Config.set(data.key, data.value))
+    })
+    ipc.server.on('app.get.curve', async (data: IpcGetCurve, socket) => {
+      const port = data.port
+      Logger.info(`Pausing regular operation to generate response curvefor fan: ${port}`)
+      // Pause/unpause is NOT enough!
+      // The controller needs like 30ms to answer a command and node-hid is not thread safe...
+      clearInterval(loopStore)
+      const curves = await controller.getResponseCurve(port)
+      Logger.info('Resuming regular operation!')
+      loop()
+      ipc.server.emit(socket, 'app.get.curve', curves)
+    })
+  })
+  ipc.server.start()
 }
 
 enum LogLevel {
