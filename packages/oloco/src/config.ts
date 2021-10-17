@@ -47,6 +47,7 @@ type TempConfig = {
   offset: number
 }
 
+type CustomProfile = { [key: string]: FanProfilePoint[] }
 type AppConfig = {
   fans: FanConfigByPort
   flow: FlowConfig
@@ -54,12 +55,30 @@ type AppConfig = {
   rgb: RgbData
   daemon: DaemonConfig
   temps: TempConfigByPort
-  profiles: { [key: string]: FanProfilePoint[] }
+  profiles: CustomProfile
   readTimeout: number
 }
 
 type FanConfigByPort = { [key in FanPort as string]: FanConfig }
 type TempConfigByPort = { [key in TempPort as string]: TempConfig }
+
+export type IpcConfig =
+  | FanConfigByPort
+  | FlowConfig
+  | LevelConfig
+  | RgbData
+  | DaemonConfig
+  | TempConfigByPort
+  | CustomProfile
+  | number
+  | undefined
+export interface IpcGetConfig {
+  key: keyof AppConfig
+}
+export interface IpcSetConfig extends IpcGetConfig {
+  value: IpcConfig
+}
+export type IpcGetCurve = { port?: FanPort }
 
 export type DaemonConfig = {
   logTarget: LogTarget

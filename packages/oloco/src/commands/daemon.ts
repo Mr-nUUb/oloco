@@ -11,7 +11,7 @@ import {
   DeviceInformation,
 } from '@oloco/oloco'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
-import { Config, DaemonConfig } from '../config'
+import { Config, DaemonConfig, IpcGetConfig, IpcSetConfig, IpcGetCurve } from '../config'
 import Logger from 'js-logger'
 import util from 'util'
 import { exit } from 'process'
@@ -24,6 +24,7 @@ let oldFan: FanData[]
 let oldRgb: RgbData
 let daemonConfig: DaemonConfig
 let logCounter = 0
+let loopStore: NodeJS.Timeout
 
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
@@ -49,7 +50,7 @@ function loop() {
   oldRgb = controller.getRgb()
   oldFan = controller.getFan()
 
-  setInterval(() => {
+  loopStore = setInterval(() => {
     const current = controller.getSensor()
     handleRgb()
     handleSensor(current)
@@ -214,8 +215,22 @@ function startIpc() {
   ipc.config.id = 'oloco'
   ipc.config.logger = Logger.debug
   ipc.serve(() => {
-    ipc.server.on('message', (data) => {
-      ipc.log(`NYI - got a message: ${data}`)
+    ipc.server.on('app.get.config', (data: IpcGetConfig, socket) => {
+      ipc.server.emit(socket, 'app.get.config', Config.get(data.key))
+    })
+    ipc.server.on('app.set.config', (data: IpcSetConfig, socket) => {
+      ipc.server.emit(socket, 'app.set.config', Config.set(data.key, data.value))
+    })
+    ipc.server.on('app.get.curve', async (data: IpcGetCurve, socket) => {
+      const port = data.port
+      Logger.info(`Pausing regular operation to generate response curvefor fan: ${port}`)
+      // Pause/unpause is NOT enough!
+      // The controller needs like 30ms to answer a command and node-hid is not thread safe...
+      clearInterval(loopStore)
+      const curves = await controller.getResponseCurve(port)
+      Logger.info('Resuming regular operation!')
+      loop()
+      ipc.server.emit(socket, 'app.get.curve', curves)
     })
   })
   ipc.server.start()
