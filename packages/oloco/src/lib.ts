@@ -69,6 +69,7 @@ export type RgbSpeed =
   | 'Fast'
   | 'Faster'
   | 'Fastest'
+
 type CommMode = 'Read' | 'Write'
 
 enum RgbModeEnum {

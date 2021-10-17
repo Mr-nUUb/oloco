@@ -14,6 +14,7 @@ import { Config, DaemonConfig } from '../config'
 import Logger from 'js-logger'
 import util from 'util'
 import { exit } from 'process'
+import ipc from 'node-ipc'
 
 Logger.useDefaults()
 
@@ -35,6 +36,7 @@ export const handler = async (): Promise<void> => {
     controller = new OLoCo()
     controller.setReadTimeout(Config.get('readTimeout'))
     Logger.info('Successfully connected to controller!')
+    startIpc()
     loop()
   } catch (error) {
     if (error instanceof Error) Logger.error(error.message)
@@ -48,6 +50,7 @@ function loop() {
 
   setInterval(() => {
     const current = controller.getSensor()
+    ipc.server.broadcast('message', current)
     handleRgb()
     handleSensor(current)
     handleFan(current)
@@ -198,6 +201,17 @@ function logThreshold(level: LogLevel, message: string) {
     if (level === LogLevel.warn) Logger.warn(message)
     if (level === LogLevel.error) Logger.error(message)
   }
+}
+function startIpc() {
+  ipc.config.appspace = 'oloco.'
+  ipc.config.id = 'oloco'
+  ipc.config.logger = Logger.info
+  ipc.serve(() => {
+    ipc.server.on('message', (data) => {
+      ipc.log(`NYI - got a message: ${data}`)
+    })
+  })
+  ipc.server.start()
 }
 
 enum LogLevel {
