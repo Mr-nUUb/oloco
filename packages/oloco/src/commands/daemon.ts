@@ -8,6 +8,7 @@ import {
   RgbData,
   SensorData,
   FanData,
+  DeviceInformation,
 } from '@oloco/oloco'
 import { FanProfileCurves, FanProfilePoint } from '../cli.common'
 import { Config, DaemonConfig } from '../config'
@@ -53,6 +54,11 @@ function loop() {
     handleRgb()
     handleSensor(current)
     handleFan(current)
+    ipc.server.broadcast('app.infos', {
+      fans: oldFan,
+      rgb: oldRgb,
+      sensors: current,
+    } as DeviceInformation)
     logCounter++
   }, daemonConfig.interval)
 }
@@ -90,8 +96,6 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
 }
 
 function handleSensor(sensor: SensorData) {
-  ipc.server.broadcast('message', sensor)
-
   tempportIterable.forEach((port) => {
     const tempConfig = Config.get('temps')[port]
     if (tempConfig.enabled) {
@@ -143,7 +147,6 @@ function handleRgb() {
     controller.setRgb(newRgb)
     oldRgb = newRgb
   }
-  ipc.server.broadcast('message', oldRgb)
 }
 
 function handleFan(sensor: SensorData) {
@@ -195,8 +198,6 @@ function handleFan(sensor: SensorData) {
       }
     }
   })
-
-  ipc.server.broadcast('message', oldFan)
 }
 
 function logThreshold(level: LogLevel, message: string) {
