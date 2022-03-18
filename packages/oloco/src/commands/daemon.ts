@@ -1,5 +1,7 @@
-import fanSilent from '../res/silent.json'
-import fanBalanced from '../res/balanced.json'
+import fanSilentAir from '../res/silent_air.json'
+import fanBalancedAir from '../res/balanced_air.json'
+//import fanSilentLiquid from '../res/silent_liquid.json'
+//import fanBalancedLiquid from '../res/balanced_liquid.json'
 import fanMax from '../res/max.json'
 import {
   OLoCo,
@@ -35,24 +37,35 @@ export const handler = async (): Promise<void> => {
     controller = new OLoCo()
     controller.setReadTimeout(Config.get('readTimeout'))
     Logger.info('Successfully connected to controller!')
-    loop()
+
+    oldRgb = controller.getRgb()
+    oldFan = controller.getFan()
+
+    const interval = setInterval(() => {
+      const current = controller.getSensor()
+      handleRgb()
+      handleSensor(current)
+      handleFan(current)
+      logCounter++
+    }, daemonConfig.interval)
+
+    process
+      .on('SIGTERM', () => {
+        Logger.info('SIGTERM signal received, setting all fans to 100%.')
+        clearInterval(interval)
+        controller.setFan(100)
+        process.exit(0)
+      })
+      .on('SIGINT', () => {
+        Logger.info('SIGINT signal received, setting all fans to 100%.')
+        clearInterval(interval)
+        controller.setFan(100)
+        process.exit(0)
+      })
   } catch (error) {
     if (error instanceof Error) Logger.error(error.message)
     exit(1)
   }
-}
-
-function loop() {
-  oldRgb = controller.getRgb()
-  oldFan = controller.getFan()
-
-  setInterval(() => {
-    const current = controller.getSensor()
-    handleRgb()
-    handleSensor(current)
-    handleFan(current)
-    logCounter++
-  }, daemonConfig.interval)
 }
 
 function findLessOrEqual(curve: FanProfilePoint[], find: number) {
@@ -90,10 +103,12 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
 function handleSensor(sensor: SensorData) {
   tempportIterable.forEach((port) => {
     const tempConfig = Config.get('temps')[port]
+
     if (tempConfig.enabled) {
       const name = tempConfig.name
-      const warn = tempConfig.warning
+
       let temp = sensor.temps.find((t) => t.port === port)?.temp
+
       if (!temp) {
         Logger.warn(`Couldn't read temperature ${name}: unknown error!`)
         return
@@ -101,7 +116,10 @@ function handleSensor(sensor: SensorData) {
         Logger.warn(`Couldn't read temperature ${name}: not connected!`)
         return
       }
+
+      const warn = tempConfig.warning
       temp += tempConfig.offset
+
       if (temp > warn) {
         logThreshold(
           LogLevel.warn,
@@ -135,6 +153,7 @@ function handleSensor(sensor: SensorData) {
 
 function handleRgb() {
   const newRgb = Config.get('rgb')
+
   if (!equalRgb(newRgb, oldRgb)) {
     Logger.info(
       `Update RGB setting: ${util.inspect(newRgb, { depth: null, colors: false, compact: true })}`,
@@ -147,44 +166,57 @@ function handleRgb() {
 function handleFan(sensor: SensorData) {
   fanportIterable.forEach((port) => {
     const fanConfig = Config.get('fans')[port]
+
     if (fanConfig.enabled) {
       const name = fanConfig.name
       const warn = fanConfig.warning
       const currentFan = controller.getFan(port)[0]
       const currentRpm = currentFan.rpm
+
       if (currentRpm < warn) {
         logThreshold(
           LogLevel.warn,
           `Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`,
         )
       }
+
       const customProfile = Config.get('profiles')[fanConfig.customProfile]
+
       if (fanConfig.activeProfile === 'custom' && !customProfile) {
         console.warn(
-          `Custom profile "${fanConfig.customProfile}" not found, falling back to "balanced".`,
+          `Custom profile "${fanConfig.customProfile}" not found, falling back to "balanced_air".`,
         )
       }
+
       const fanProfiles: FanProfileCurves = {
         profiles: {
-          silent: fanSilent,
-          balanced: fanBalanced,
+          silent_air: fanSilentAir,
+          balanced_air: fanBalancedAir,
+          //'silent_liquid': fanSilentLiquid,
+          //'balanced_liquid': fanBalancedLiquid,
           max: fanMax,
-          custom: customProfile || fanBalanced,
+          custom: customProfile || fanBalancedAir,
         },
       }
+
       let currentTemp = sensor.temps.find((t) => t.port === fanConfig.tempSource)?.temp
+
       if (!currentTemp) {
         Logger.error("Couldn't read current temperature!")
         return
       }
+
       currentTemp += Config.get('temps')[fanConfig.tempSource].offset
+
       const curve = fanProfiles.profiles[fanConfig.activeProfile]
       const lower = findLessOrEqual(curve, currentTemp)
       const higher = findGreater(curve, currentTemp)
       const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
+
       logThreshold(LogLevel.info, `Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
+
       if (oldFan[fanIndex].pwm !== speed) {
         Logger.info(`Update Fan ${name}: ${speed}%`)
         controller.setFan(speed, port)

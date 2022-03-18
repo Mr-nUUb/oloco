@@ -2,8 +2,10 @@ import { fanProfileChoices, FanProfileName, FanProfilePoint } from '../../../cli
 import { exit } from 'process'
 import { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
-import fanSilent from '../../../res/silent.json'
-import fanBalanced from '../../../res/balanced.json'
+import fanSilentAir from '../../../res/silent_air.json'
+import fanBalancedAir from '../../../res/balanced_air.json'
+//import fanSilentLiquid from '../../../res/silent_liquid.json'
+//import fanBalancedLiquid from '../../../res/balanced_liquid.json'
 import fanMax from '../../../res/max.json'
 
 export const command = 'copy [name] [newName]'
@@ -35,8 +37,10 @@ export const handler = (yargs: Arguments): void => {
   if (!profiles[name]) {
     if (fanProfileChoices.some((f) => f === name)) {
       const predefined = {
-        balanced: fanBalanced as FanProfilePoint[],
-        silent: fanSilent as FanProfilePoint[],
+        balanced_air: fanBalancedAir as FanProfilePoint[],
+        silent_air: fanSilentAir as FanProfilePoint[],
+        //'balanced_liquid': fanBalancedLiquid as FanProfilePoint[],
+        //'silent_liquid': fanSilentLiquid as FanProfilePoint[],
         max: fanMax as FanProfilePoint[],
         custom: [] as FanProfilePoint[],
       }
