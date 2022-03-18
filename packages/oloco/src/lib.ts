@@ -125,7 +125,7 @@ export class OLoCo {
   constructor(device?: HID) {
     if (device) this._device = device
     else {
-      const devs = devices(0x0483, 0x5750).filter((dev) => dev.interface === 0)
+      const devs = devices(0x0483, 0x5750).filter((dev) => dev.interface === 0 && dev.usage === 1)
       if (devs.length === 0) {
         throw new Error("Couldn't find controller: not connected!")
       }
