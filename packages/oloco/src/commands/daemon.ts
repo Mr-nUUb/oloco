@@ -95,7 +95,10 @@ function handleSensor(sensor: SensorData) {
       const warn = tempConfig.warning
       let temp = sensor.temps.find((t) => t.port === port)?.temp
       if (!temp) {
-        Logger.warn("Couldn't read current temperature!")
+        Logger.warn(`Couldn't read temperature ${name}: unknown error!`)
+        return
+      } else if (temp == 231) {
+        Logger.warn(`Couldn't read temperature ${name}: not connected!`)
         return
       }
       temp += tempConfig.offset

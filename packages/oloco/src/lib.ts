@@ -15,7 +15,7 @@ export interface FanData extends CurvePoint {
 }
 export interface TempData {
   port: TempPort
-  temp: number | undefined
+  temp: number
 }
 export interface CurveData {
   port: FanPort
@@ -122,6 +122,9 @@ export const rgbspeedIterable: ReadonlyArray<RgbSpeed> = [
 ]
 
 export class OLoCo {
+  private _device
+  private _readTimeout = 1000
+
   constructor(device?: HID) {
     if (device) this._device = device
     else {
@@ -139,9 +142,6 @@ export class OLoCo {
       this._device = new HID(dev.path)
     }
   }
-
-  private _device
-  private _readTimeout = 1000
 
   private _getFan(port: FanPort): FanData {
     const recv = this._write(createPacket('Read', port))
@@ -231,7 +231,7 @@ export class OLoCo {
     return {
       temps: tempportIterable.map((port) => {
         const temp = recv[(offset += 4)]
-        return { port, temp: temp !== 231 ? temp : undefined }
+        return { port, temp }
       }),
       flow: { port: 'FLO', flow: recv[23] },
       level: { port: 'LVL', level: recv[27] === 100 ? 'good' : 'warning' },
