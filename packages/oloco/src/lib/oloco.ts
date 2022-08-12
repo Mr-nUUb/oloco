@@ -28,7 +28,7 @@ export class OLoCo {
     }
   }
 
-  static createPacket(mode: CommMode, port: DevicePort): number[] {
+  private static _createPacket(mode: CommMode, port: DevicePort): number[] {
     const packet = new Array<number>(63)
 
     const header: { [k in CommMode]: number[] } = {
@@ -57,7 +57,7 @@ export class OLoCo {
   }
 
   private _getFan(port: FanPort): FanData {
-    const recv = this._write(OLoCo.createPacket('Read', port))
+    const recv = this._write(OLoCo._createPacket('Read', port))
 
     return {
       port,
@@ -67,7 +67,7 @@ export class OLoCo {
   }
 
   private _setFan(speed: number, port: FanPort): number[] {
-    const packet = OLoCo.createPacket('Write', port)
+    const packet = OLoCo._createPacket('Write', port)
 
     // original packet contains RPM on bytes 15 and 16 - why?
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
@@ -123,7 +123,7 @@ export class OLoCo {
   }
 
   public getRgb(): RgbData {
-    const recv = this._write(OLoCo.createPacket('Read', 'RGB'))
+    const recv = this._write(OLoCo._createPacket('Read', 'RGB'))
 
     return {
       port: 'Lx',
@@ -134,7 +134,7 @@ export class OLoCo {
   }
 
   public getSensor(): SensorData {
-    const packet = OLoCo.createPacket('Read', 'Sensor')
+    const packet = OLoCo._createPacket('Read', 'Sensor')
     let offset = 7
 
     packet[9] = 0x20 // offset for checksum? length of answer?
@@ -164,7 +164,7 @@ export class OLoCo {
   }
 
   public setRgb(rgb: RgbData): number[] {
-    const packet = OLoCo.createPacket('Write', 'RGB')
+    const packet = OLoCo._createPacket('Write', 'RGB')
 
     packet[12] = RgbModeEnum[rgb.mode]
     packet[13] = rgb.mode === 'CoveringMarquee' ? 0xff : 0x00 // this is just dumb
