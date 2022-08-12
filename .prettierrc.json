@@ -9,7 +9,7 @@
   "tabWidth": 2,
   "arrowParens": "always",
   "bracketSpacing": true,
-  "jsxBracketSameLine": false,
+  "bracketSameLine": false,
   "endOfLine": "lf",
   "htmlWhitespaceSensitivity": "css"
 }
