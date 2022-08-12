@@ -58,7 +58,7 @@ export const LiquidSilent: FanProfilePoint[] = [
   { temp: 100, pwm: 100 },
 ]
 
-export const Max: FanProfilePoint[] = [
+export const Maximum: FanProfilePoint[] = [
   { temp: 0, pwm: 100 },
   { temp: 100, pwm: 100 },
 ]

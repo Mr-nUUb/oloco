@@ -1,11 +1,5 @@
 import { OLoCo } from '../lib/oloco'
-import type {
-  FanProfileCurves,
-  FanProfilePoint,
-  RgbData,
-  SensorData,
-  FanData,
-} from '../lib/interfaces'
+import type { FanProfilePoint, RgbData, SensorData, FanData } from '../lib/interfaces'
 import { Config, DaemonConfig } from '../config'
 import Logger from 'js-logger'
 import { inspect } from 'util'
@@ -16,9 +10,10 @@ import {
   LiquidBalanced,
   LiquidPerformance,
   LiquidSilent,
-  Max,
+  Maximum,
 } from '../lib/profiles'
 import { FanPorts, TempPorts } from '../lib/iterables'
+import type { FanProfileCurves } from '../lib/types'
 
 Logger.useDefaults()
 
@@ -182,22 +177,20 @@ function handleFan(sensor: SensorData) {
 
       const customProfile = Config.get('profiles')[fanConfig.customProfile]
 
-      if (fanConfig.activeProfile === 'custom' && !customProfile) {
+      if (fanConfig.activeProfile === 'Custom' && !customProfile) {
         console.warn(
-          `Custom profile "${fanConfig.customProfile}" not found, falling back to "air_balanced".`,
+          `Custom profile "${fanConfig.customProfile}" not found, falling back to "AirBalanced".`,
         )
       }
 
       const fanProfiles: FanProfileCurves = {
-        profiles: {
-          air_silent: AirSilent,
-          air_balanced: AirBalanced,
-          liquid_silent: LiquidSilent,
-          liquid_balanced: LiquidBalanced,
-          liquid_performance: LiquidPerformance,
-          max: Max,
-          custom: customProfile || AirBalanced,
-        },
+        AirSilent,
+        AirBalanced,
+        LiquidSilent,
+        LiquidBalanced,
+        LiquidPerformance,
+        Maximum,
+        Custom: customProfile || AirBalanced,
       }
 
       let currentTemp = sensor.temps.find((t) => t.port === fanConfig.tempSource)?.temp
@@ -209,7 +202,7 @@ function handleFan(sensor: SensorData) {
 
       currentTemp += Config.get('temps')[fanConfig.tempSource].offset
 
-      const curve = fanProfiles.profiles[fanConfig.activeProfile]
+      const curve = fanProfiles[fanConfig.activeProfile]
       const lower = findLessOrEqual(curve, currentTemp)
       const higher = findGreater(curve, currentTemp)
       const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)

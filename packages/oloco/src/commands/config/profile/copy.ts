@@ -1,6 +1,6 @@
 import type { FanProfilePoint } from '../../../lib/interfaces'
 import { FanProfiles } from '../../../lib/iterables'
-import type { FanProfileName } from '../../../lib/types'
+import type { FanProfileCurves, FanProfileName } from '../../../lib/types'
 import { exit } from 'process'
 import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
@@ -10,7 +10,7 @@ import {
   LiquidBalanced,
   LiquidPerformance,
   LiquidSilent,
-  Max,
+  Maximum,
 } from '../../../lib/profiles'
 
 export const command = 'copy [name] [newName]'
@@ -41,14 +41,14 @@ export const handler = (yargs: Arguments): void => {
 
   if (!profiles[name]) {
     if (FanProfiles.some((f) => f === name)) {
-      const predefined = {
-        air_silent: AirSilent,
-        air_balanced: AirBalanced,
-        liquid_silent: LiquidSilent,
-        liquid_balanced: LiquidBalanced,
-        liquid_performance: LiquidPerformance,
-        max: Max,
-        custom: [],
+      const predefined: FanProfileCurves = {
+        AirSilent,
+        AirBalanced,
+        LiquidSilent,
+        LiquidBalanced,
+        LiquidPerformance,
+        Maximum,
+        Custom: [],
       }
       profile = predefined[name as FanProfileName]
     } else {

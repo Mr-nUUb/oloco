@@ -1,13 +1,14 @@
 import type { RgbModeEnum, RgbSpeedEnum } from './enums'
+import type { FanProfilePoint } from './interfaces'
 
 export type FanProfileName =
-  | 'air_silent'
-  | 'air_balanced'
-  | 'liquid_silent'
-  | 'liquid_balanced'
-  | 'liquid_performance'
-  | 'max'
-  | 'custom'
+  | 'AirSilent'
+  | 'AirBalanced'
+  | 'LiquidSilent'
+  | 'LiquidBalanced'
+  | 'LiquidPerformance'
+  | 'Maximum'
+  | 'Custom'
 
 export type LogTarget = 'terminal'
 
@@ -26,3 +27,5 @@ export type CommMode = 'Read' | 'Write'
 export type RgbMode = keyof typeof RgbModeEnum
 
 export type RgbSpeed = keyof typeof RgbSpeedEnum
+
+export type FanProfileCurves = { [key in FanProfileName]: FanProfilePoint[] }

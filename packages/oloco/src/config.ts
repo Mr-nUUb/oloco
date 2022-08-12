@@ -1,4 +1,4 @@
-import { CurvePoint, FanProfilePoint, RgbData } from './lib/interfaces'
+import type { CurvePoint, FanProfilePoint, RgbData } from './lib/interfaces'
 import { FanPorts, FanProfiles, LogLevels, RgbModes, RgbSpeeds, TempPorts } from './lib/iterables'
 import type { FanPort, FanProfileName, LogLevel, LogTarget, TempPort } from './lib/types'
 import Conf from 'conf'
@@ -270,7 +270,7 @@ export const Config = new Conf<AppConfig>({
           enabled: true,
           warning: 500,
           tempSource: 'T1',
-          activeProfile: port === 'F6' ? 'custom' : 'air_balanced',
+          activeProfile: port === 'F6' ? 'custom' : 'AirBalanced',
           customProfile: port === 'F6' ? 'Pump' : '',
           responseCurve: [],
         },

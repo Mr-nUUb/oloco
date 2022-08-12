@@ -1,12 +1,8 @@
-import type { FanPort, FanProfileName, LevelData, RgbMode, RgbSpeed, TempPort } from './types'
+import type { FanPort, LevelData, RgbMode, RgbSpeed, TempPort } from './types'
 
 export interface FanProfilePoint {
   temp: number
   pwm: number
-}
-
-export interface FanProfileCurves {
-  profiles: { [key in FanProfileName]: FanProfilePoint[] }
 }
 
 export interface CurvePoint {

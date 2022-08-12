@@ -30,13 +30,13 @@ export const RgbSpeeds: ReadonlyArray<RgbSpeed> = [
 ]
 
 export const FanProfiles: ReadonlyArray<FanProfileName> = [
-  'air_silent',
-  'air_balanced',
-  'liquid_silent',
-  'liquid_balanced',
-  'liquid_performance',
-  'max',
-  'custom',
+  'AirSilent',
+  'AirBalanced',
+  'LiquidSilent',
+  'LiquidBalanced',
+  'LiquidPerformance',
+  'Maximum',
+  'Custom',
 ]
 
 export const LogLevels: ReadonlyArray<LogLevel> = ['debug', 'info', 'warn', 'error']
