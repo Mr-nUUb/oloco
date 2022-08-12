@@ -1,5 +1,5 @@
 import { CurvePoint, FanProfilePoint, RgbData } from './lib/interfaces'
-import { FanPorts, FanProfiles, RgbModes, RgbSpeeds, TempPorts } from './lib/iterables'
+import { FanPorts, FanProfiles, LogLevels, RgbModes, RgbSpeeds, TempPorts } from './lib/iterables'
 import type { FanPort, FanProfileName, LogLevel, LogTarget, TempPort } from './lib/types'
 import Conf from 'conf'
 
@@ -44,9 +44,9 @@ type AppConfig = {
   readTimeout: number
 }
 
-type FanConfigByPort = { [key in FanPort as string]: FanConfig }
+type FanConfigByPort = { [key in FanPort]: FanConfig }
 
-type TempConfigByPort = { [key in TempPort as string]: TempConfig }
+type TempConfigByPort = { [key in TempPort]: TempConfig }
 
 export type DaemonConfig = {
   logTarget: LogTarget
@@ -65,7 +65,7 @@ export const Config = new Conf<AppConfig>({
           additionalProperties: false,
           properties: {
             activeProfile: {
-              enum: FanProfiles as string[],
+              enum: FanProfiles.slice(),
               type: 'string',
             },
             customProfile: {
@@ -94,7 +94,7 @@ export const Config = new Conf<AppConfig>({
               type: 'array',
             },
             tempSource: {
-              enum: TempPorts as string[],
+              enum: TempPorts.slice(),
               type: 'string',
             },
             warning: {
@@ -113,7 +113,7 @@ export const Config = new Conf<AppConfig>({
           type: 'object',
         },
       },
-      required: FanPorts as string[],
+      required: FanPorts.slice(),
       minProperties: 6,
       maxProperties: 6,
       type: 'object',
@@ -173,11 +173,11 @@ export const Config = new Conf<AppConfig>({
           type: 'object',
         },
         mode: {
-          enum: RgbModes as string[],
+          enum: RgbModes.slice(),
           type: 'string',
         },
         speed: {
-          enum: RgbSpeeds as string[],
+          enum: RgbSpeeds.slice(),
           type: 'string',
         },
       },
@@ -191,7 +191,7 @@ export const Config = new Conf<AppConfig>({
           type: 'number',
         },
         logLevel: {
-          enum: ['debug', 'info', 'warn', 'error'],
+          enum: LogLevels.slice(),
           type: 'string',
         },
         logTarget: {
@@ -228,7 +228,7 @@ export const Config = new Conf<AppConfig>({
           type: 'object',
         },
       },
-      required: TempPorts as string[],
+      required: TempPorts.slice(),
       minProperties: 3,
       maxProperties: 3,
       type: 'object',
@@ -262,10 +262,10 @@ export const Config = new Conf<AppConfig>({
     },
   },
   defaults: {
-    fans: Object.fromEntries(
-      FanPorts.map((port) => [
-        port,
-        {
+    fans: FanPorts.reduce(
+      (conf, port) => ({
+        ...conf,
+        [port]: {
           name: port,
           enabled: true,
           warning: 500,
@@ -274,7 +274,8 @@ export const Config = new Conf<AppConfig>({
           customProfile: port === 'F6' ? 'Pump' : '',
           responseCurve: [],
         },
-      ]),
+      }),
+      {} as FanConfigByPort,
     ),
     flow: {
       name: 'FLO',
@@ -302,16 +303,17 @@ export const Config = new Conf<AppConfig>({
       logTarget: 'terminal',
       logThreshold: 5,
     },
-    temps: Object.fromEntries(
-      TempPorts.map((port) => [
-        port,
-        {
+    temps: TempPorts.reduce(
+      (conf, port) => ({
+        ...conf,
+        [port]: {
           name: port,
           enabled: true,
           warning: 50,
           offset: 0,
         },
-      ]),
+      }),
+      {} as TempConfigByPort,
     ),
     profiles: {
       Pump: [
