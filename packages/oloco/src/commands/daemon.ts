@@ -1,9 +1,3 @@
-import fanAirSilent from '../res/air_silent.json'
-import fanAirBalanced from '../res/air_balanced.json'
-import fanLiquidSilent from '../res/liquid_silent.json'
-import fanLiquidBalanced from '../res/liquid_balanced.json'
-import fanLiquidPerformance from '../res/liquid_performance.json'
-import fanMax from '../res/max.json'
 import {
   OLoCo,
   fanportIterable,
@@ -17,6 +11,14 @@ import { Config, DaemonConfig } from '../config'
 import Logger from 'js-logger'
 import util from 'util'
 import { exit } from 'process'
+import {
+  AirBalanced,
+  AirSilent,
+  LiquidBalanced,
+  LiquidPerformance,
+  LiquidSilent,
+  Max,
+} from '../profiles'
 
 Logger.useDefaults()
 
@@ -191,13 +193,13 @@ function handleFan(sensor: SensorData) {
 
       const fanProfiles: FanProfileCurves = {
         profiles: {
-          air_silent: fanAirSilent,
-          air_balanced: fanAirBalanced,
-          liquid_silent: fanLiquidSilent,
-          liquid_balanced: fanLiquidBalanced,
-          liquid_performance: fanLiquidPerformance,
-          max: fanMax,
-          custom: customProfile || fanAirBalanced,
+          air_silent: AirSilent,
+          air_balanced: AirBalanced,
+          liquid_silent: LiquidSilent,
+          liquid_balanced: LiquidBalanced,
+          liquid_performance: LiquidPerformance,
+          max: Max,
+          custom: customProfile || AirBalanced,
         },
       }
 
