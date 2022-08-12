@@ -4,7 +4,6 @@
     "baseUrl": "./packages",
     "paths": {
       "@oloco/*": ["*/src"]
-    },
-    "types": ["node"]
+    }
   }
 }

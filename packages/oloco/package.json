@@ -3,13 +3,13 @@
   "packageManager": "yarn@3.0.0",
   "licence": "MIT",
   "version": "0.0.1",
-  "main": "./src/lib.ts",
+  "main": "./src/lib/oloco.ts",
   "files": [
     "/dist/**/*"
   ],
   "publishConfig": {
-    "main": "./dist/lib.js",
-    "typings": "./dist/lib.d.ts",
+    "main": "./dist/lib/oloco.js",
+    "typings": "./dist/lib/oloco.d.ts",
     "bin": "./dist/cli.js"
   },
   "engines": {
