@@ -1,4 +1,4 @@
-import { Argv } from 'yargs'
+import type { Argv } from 'yargs'
 
 export const command = 'profile <action>'
 export const describe = 'Work with custom fan profiles.'

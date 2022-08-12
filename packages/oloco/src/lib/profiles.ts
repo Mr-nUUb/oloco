@@ -1,4 +1,4 @@
-import type { FanProfilePoint } from './cli.common'
+import type { FanProfilePoint } from './interfaces'
 
 export const AirBalanced: FanProfilePoint[] = [
   { temp: 0, pwm: 25 },

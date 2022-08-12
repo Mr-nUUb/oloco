@@ -1,7 +1,7 @@
 import { exit } from 'process'
-import { Arguments, Argv } from 'yargs'
+import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
-import { logObject } from '../../cli.common'
+import { logObject } from '../../util'
 
 const overview = Object.keys(Config.store).join(', ')
 

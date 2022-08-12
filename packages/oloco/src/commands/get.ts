@@ -1,4 +1,4 @@
-import { Argv } from 'yargs'
+import type { Argv } from 'yargs'
 
 export const command = 'get <port>'
 export const describe = 'Query a specific port or feature.'

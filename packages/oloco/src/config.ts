@@ -1,20 +1,6 @@
-import {
-  CurvePoint,
-  FanPort,
-  fanportIterable,
-  RgbData,
-  rgbmodeIterable,
-  rgbspeedIterable,
-  TempPort,
-  tempportIterable,
-} from '@oloco/oloco'
-import {
-  fanProfileChoices,
-  FanProfileName,
-  FanProfilePoint,
-  LogLevel,
-  LogTarget,
-} from './cli.common'
+import { CurvePoint, FanProfilePoint, RgbData } from './lib/interfaces'
+import { FanPorts, FanProfiles, RgbModes, RgbSpeeds, TempPorts } from './lib/iterables'
+import type { FanPort, FanProfileName, LogLevel, LogTarget, TempPort } from './lib/types'
 import Conf from 'conf'
 
 type FanConfig = {
@@ -59,6 +45,7 @@ type AppConfig = {
 }
 
 type FanConfigByPort = { [key in FanPort as string]: FanConfig }
+
 type TempConfigByPort = { [key in TempPort as string]: TempConfig }
 
 export type DaemonConfig = {
@@ -78,7 +65,7 @@ export const Config = new Conf<AppConfig>({
           additionalProperties: false,
           properties: {
             activeProfile: {
-              enum: fanProfileChoices as string[],
+              enum: FanProfiles as string[],
               type: 'string',
             },
             customProfile: {
@@ -107,7 +94,7 @@ export const Config = new Conf<AppConfig>({
               type: 'array',
             },
             tempSource: {
-              enum: tempportIterable as string[],
+              enum: TempPorts as string[],
               type: 'string',
             },
             warning: {
@@ -126,7 +113,7 @@ export const Config = new Conf<AppConfig>({
           type: 'object',
         },
       },
-      required: fanportIterable as string[],
+      required: FanPorts as string[],
       minProperties: 6,
       maxProperties: 6,
       type: 'object',
@@ -186,11 +173,11 @@ export const Config = new Conf<AppConfig>({
           type: 'object',
         },
         mode: {
-          enum: rgbmodeIterable as string[],
+          enum: RgbModes as string[],
           type: 'string',
         },
         speed: {
-          enum: rgbspeedIterable as string[],
+          enum: RgbSpeeds as string[],
           type: 'string',
         },
       },
@@ -241,7 +228,7 @@ export const Config = new Conf<AppConfig>({
           type: 'object',
         },
       },
-      required: tempportIterable as string[],
+      required: TempPorts as string[],
       minProperties: 3,
       maxProperties: 3,
       type: 'object',
@@ -276,7 +263,7 @@ export const Config = new Conf<AppConfig>({
   },
   defaults: {
     fans: Object.fromEntries(
-      fanportIterable.map((port) => [
+      FanPorts.map((port) => [
         port,
         {
           name: port,
@@ -316,7 +303,7 @@ export const Config = new Conf<AppConfig>({
       logThreshold: 5,
     },
     temps: Object.fromEntries(
-      tempportIterable.map((port) => [
+      TempPorts.map((port) => [
         port,
         {
           name: port,

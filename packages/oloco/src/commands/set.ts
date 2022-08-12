@@ -1,4 +1,4 @@
-import { Argv } from 'yargs'
+import type { Argv } from 'yargs'
 
 export const command = 'set <port>'
 export const describe = 'Configure a specific port or feature.'

@@ -1,74 +1,10 @@
 import { HID, devices } from 'node-hid'
-import os from 'os'
+import { platform } from 'os'
+import type { CurveData, DeviceInformation, FanData, RgbData, SensorData } from './interfaces'
+import { FanPorts, TempPorts } from './iterables'
+import type { DevicePort, FanPort, RgbMode, RgbSpeed } from './types'
+import { sleep } from '../util'
 
-export interface CurvePoint {
-  rpm: number
-  pwm: number
-}
-export interface RgbColor {
-  red: number
-  green: number
-  blue: number
-}
-export interface FanData extends CurvePoint {
-  port: FanPort
-}
-export interface TempData {
-  port: TempPort
-  temp: number | undefined
-}
-export interface CurveData {
-  port: FanPort
-  curve: CurvePoint[]
-}
-export interface SensorData {
-  temps: TempData[]
-  flow: {
-    port: 'FLO'
-    flow: number
-  }
-  level: {
-    port: 'LVL'
-    level: LevelData
-  }
-}
-export interface RgbData {
-  port?: 'Lx'
-  color: RgbColor
-  mode: RgbMode
-  speed: RgbSpeed
-}
-export interface DeviceInformation {
-  fans: FanData[]
-  sensors: SensorData
-  rgb: RgbData
-}
-
-export type LevelData = 'warning' | 'good'
-export type FanPort = 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'F6'
-export type TempPort = 'T1' | 'T2' | 'T3'
-export type DevicePort = FanPort | 'RGB' | 'Sensor'
-export type RgbMode =
-  | 'Off'
-  | 'Static'
-  | 'Breathing'
-  | 'Fading'
-  | 'Marquee'
-  | 'CoveringMarquee'
-  | 'Pulse'
-  | 'SpectrumWave'
-  | 'Alternating'
-  | 'Candle'
-export type RgbSpeed =
-  | 'Slowest'
-  | 'Slower'
-  | 'Slow'
-  | 'Slowish'
-  | 'Normal'
-  | 'Fastish'
-  | 'Fast'
-  | 'Faster'
-  | 'Fastest'
 type CommMode = 'Read' | 'Write'
 
 enum RgbModeEnum {
@@ -83,6 +19,7 @@ enum RgbModeEnum {
   Alternating,
   Candle,
 }
+
 enum RgbSpeedEnum {
   Slowest = 0x00,
   Slower = 0x0c,
@@ -94,32 +31,6 @@ enum RgbSpeedEnum {
   Faster = 0x57,
   Fastest = 0x64,
 }
-
-export const fanportIterable: ReadonlyArray<FanPort> = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6']
-export const tempportIterable: ReadonlyArray<TempPort> = ['T1', 'T2', 'T3']
-export const rgbmodeIterable: ReadonlyArray<RgbMode> = [
-  'Off',
-  'Static',
-  'Breathing',
-  'Fading',
-  'Marquee',
-  'CoveringMarquee',
-  'Pulse',
-  'SpectrumWave',
-  'Alternating',
-  'Candle',
-]
-export const rgbspeedIterable: ReadonlyArray<RgbSpeed> = [
-  'Slowest',
-  'Slower',
-  'Slow',
-  'Slowish',
-  'Normal',
-  'Fastish',
-  'Fast',
-  'Faster',
-  'Fastest',
-]
 
 export class OLoCo {
   private _device
@@ -143,8 +54,36 @@ export class OLoCo {
     }
   }
 
+  static createPacket(mode: CommMode, port: DevicePort): number[] {
+    const packet = new Array<number>(63)
+
+    const header: { [k in CommMode]: number[] } = {
+      Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
+      Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
+    }
+
+    const portAddress: { [k in DevicePort]: number[] } = {
+      F1: [0xa0, 0xa0],
+      F2: [0xa0, 0xc0],
+      F3: [0xa0, 0xe0],
+      F4: [0xa1, 0x00],
+      F5: [0xa1, 0x20],
+      F6: [0xa1, 0xe0],
+      Sensor: [0xa2, 0x20],
+      RGB: [0xa2, 0x60],
+    }
+
+    for (let i = 0; i < packet.length; i++) {
+      if (i === 6 || i === 7) packet[i] = portAddress[port][i - 6]
+      else if (i < header[mode].length) packet[i] = header[mode][i]
+      else packet[i] = 0
+    }
+
+    return packet
+  }
+
   private _getFan(port: FanPort): FanData {
-    const recv = this._write(createPacket('Read', port))
+    const recv = this._write(OLoCo.createPacket('Read', port))
 
     return {
       port,
@@ -154,7 +93,7 @@ export class OLoCo {
   }
 
   private _setFan(speed: number, port: FanPort): number[] {
-    const packet = createPacket('Write', port)
+    const packet = OLoCo.createPacket('Write', port)
 
     // original packet contains RPM on bytes 15 and 16 - why?
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
@@ -170,7 +109,7 @@ export class OLoCo {
     // anybody got an idea what kind of checksum EKWB is using?
 
     // prepend report number for windows
-    if (os.platform() === 'win32') packet.unshift(0x00)
+    if (platform() === 'win32') packet.unshift(0x00)
 
     this._device.write(packet)
     const recv = this._device.readTimeout(this._readTimeout)
@@ -187,13 +126,13 @@ export class OLoCo {
   }
 
   public getFan(port?: FanPort): FanData[] {
-    return port ? [this._getFan(port)] : fanportIterable.map((p) => this._getFan(p))
+    return port ? [this._getFan(port)] : FanPorts.map((p) => this._getFan(p))
   }
 
   public async getResponseCurve(port?: FanPort, interval = 10000): Promise<CurveData[]> {
     const curves: CurveData[] = port
       ? [{ port, curve: [] }]
-      : fanportIterable.map((p) => ({ port: p, curve: [] }))
+      : FanPorts.map((p) => ({ port: p, curve: [] }))
     const backups = this.getFan(port)
 
     for (let i = 0; i <= 100; i += 10) {
@@ -210,7 +149,7 @@ export class OLoCo {
   }
 
   public getRgb(): RgbData {
-    const recv = this._write(createPacket('Read', 'RGB'))
+    const recv = this._write(OLoCo.createPacket('Read', 'RGB'))
 
     return {
       port: 'Lx',
@@ -221,7 +160,7 @@ export class OLoCo {
   }
 
   public getSensor(): SensorData {
-    const packet = createPacket('Read', 'Sensor')
+    const packet = OLoCo.createPacket('Read', 'Sensor')
     let offset = 7
 
     packet[9] = 0x20 // offset for checksum? length of answer?
@@ -229,7 +168,7 @@ export class OLoCo {
     const recv = this._write(packet)
 
     return {
-      temps: tempportIterable.map((port) => {
+      temps: TempPorts.map((port) => {
         const temp = recv[(offset += 4)]
         return { port, temp: temp !== 231 ? temp : undefined }
       }),
@@ -247,11 +186,11 @@ export class OLoCo {
   }
 
   public setFan(speed: number, port?: FanPort): void {
-    port ? this._setFan(speed, port) : fanportIterable.forEach((p) => this._setFan(speed, p))
+    port ? this._setFan(speed, port) : FanPorts.forEach((p) => this._setFan(speed, p))
   }
 
   public setRgb(rgb: RgbData): number[] {
-    const packet = createPacket('Write', 'RGB')
+    const packet = OLoCo.createPacket('Write', 'RGB')
 
     packet[12] = RgbModeEnum[rgb.mode]
     packet[13] = rgb.mode === 'CoveringMarquee' ? 0xff : 0x00 // this is just dumb
@@ -268,35 +207,4 @@ export class OLoCo {
   public close(): void {
     this._device.close()
   }
-}
-
-export function sleep(ms: number): Promise<unknown> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function createPacket(mode: CommMode, port: DevicePort): number[] {
-  const packet = new Array<number>(63)
-
-  const header = {
-    Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
-    Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
-  }
-  const portAddress = {
-    F1: [0xa0, 0xa0],
-    F2: [0xa0, 0xc0],
-    F3: [0xa0, 0xe0],
-    F4: [0xa1, 0x00],
-    F5: [0xa1, 0x20],
-    F6: [0xa1, 0xe0],
-    Sensor: [0xa2, 0x20],
-    RGB: [0xa2, 0x60],
-  }
-
-  for (let i = 0; i < packet.length; i++) {
-    if (i === 6 || i === 7) packet[i] = portAddress[port][i - 6]
-    else if (i < header[mode].length) packet[i] = header[mode][i]
-    else packet[i] = 0
-  }
-
-  return packet
 }

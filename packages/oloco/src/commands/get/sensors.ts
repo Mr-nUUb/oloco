@@ -1,5 +1,5 @@
-import { OLoCo } from '@oloco/oloco'
-import { logObject } from '../../cli.common'
+import { OLoCo } from '../../lib/oloco'
+import { logObject } from '../../util'
 import { Config } from '../../config'
 
 export const command = 'sensors'

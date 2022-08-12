@@ -1,4 +1,4 @@
-import { Arguments, Argv } from 'yargs'
+import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
 
 export const command = 'delete [name]'

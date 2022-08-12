@@ -1,7 +1,7 @@
 import { exit } from 'process'
-import { Arguments, Argv } from 'yargs'
+import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
-import { FanProfilePoint } from '../../../cli.common'
+import type { FanProfilePoint } from '../../../lib/interfaces'
 
 export const command = 'create [name]'
 export const describe = 'Create a custom fan profile.'

@@ -1,6 +1,8 @@
-import { fanProfileChoices, FanProfileName, FanProfilePoint } from '../../../cli.common'
+import type { FanProfilePoint } from '../../../lib/interfaces'
+import { FanProfiles } from '../../../lib/iterables'
+import type { FanProfileName } from '../../../lib/types'
 import { exit } from 'process'
-import { Arguments, Argv } from 'yargs'
+import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
 import {
   AirBalanced,
@@ -9,7 +11,7 @@ import {
   LiquidPerformance,
   LiquidSilent,
   Max,
-} from '../../../profiles'
+} from '../../../lib/profiles'
 
 export const command = 'copy [name] [newName]'
 export const describe = 'Copy a custom fan profile.'
@@ -38,7 +40,7 @@ export const handler = (yargs: Arguments): void => {
   let profile: FanProfilePoint[]
 
   if (!profiles[name]) {
-    if (fanProfileChoices.some((f) => f === name)) {
+    if (FanProfiles.some((f) => f === name)) {
       const predefined = {
         air_silent: AirSilent,
         air_balanced: AirBalanced,

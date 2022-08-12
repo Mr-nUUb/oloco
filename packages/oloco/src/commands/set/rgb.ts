@@ -1,8 +1,11 @@
-import { Arguments, Argv } from 'yargs'
-import { OLoCo, RgbColor, RgbMode, rgbmodeIterable, RgbSpeed, rgbspeedIterable } from '@oloco/oloco'
+import type { Arguments, Argv } from 'yargs'
+import { OLoCo } from '../../lib/oloco'
+import type { RgbMode, RgbSpeed } from '../../lib/types'
+import type { RgbColor } from '../../lib/interfaces'
 import { exit } from 'process'
-import { logObject } from '../../cli.common'
+import { logObject } from '../../util'
 import { Config } from '../../config'
+import { RgbModes, RgbSpeeds } from '../../lib/iterables'
 
 export const command = 'rgb <mode> <speed> <color>'
 export const describe = 'Configure RGB RGB mode, speed and color.'
@@ -10,11 +13,11 @@ export const describe = 'Configure RGB RGB mode, speed and color.'
 export const builder = (yargs: Argv): Argv =>
   yargs
     .positional('mode', {
-      choices: rgbmodeIterable,
+      choices: RgbModes,
       describe: 'The pattern.',
     })
     .positional('speed', {
-      choices: rgbspeedIterable,
+      choices: RgbSpeeds,
       describe: 'The speed.',
     })
     .positional('color', {

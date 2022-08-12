@@ -1,7 +1,9 @@
-import { OLoCo, FanPort, fanportIterable } from '@oloco/oloco'
-import { Arguments, Argv } from 'yargs'
+import { OLoCo } from '../../lib/oloco'
+import type { FanPort } from '../../lib/types'
+import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
-import { logObject } from '../../cli.common'
+import { logObject } from '../../util'
+import { FanPorts } from '../../lib/iterables'
 
 export const command = 'curves [port]'
 export const describe = 'Get PWM response curves for a specific fan port or all ports.'
@@ -9,7 +11,7 @@ export const describe = 'Get PWM response curves for a specific fan port or all 
 export const builder = (yargs: Argv): Argv =>
   yargs
     .positional('port', {
-      choices: fanportIterable,
+      choices: FanPorts,
       describe: 'The fan(s) to read.',
     })
     .option('s', {

@@ -1,5 +1,5 @@
 import { exit } from 'process'
-import { Arguments, Argv } from 'yargs'
+import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
 
 export const command = 'set [entry] [value]'

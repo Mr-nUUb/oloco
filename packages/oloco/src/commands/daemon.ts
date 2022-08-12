@@ -1,15 +1,14 @@
-import {
-  OLoCo,
-  fanportIterable,
-  tempportIterable,
+import { OLoCo } from '../lib/oloco'
+import type {
+  FanProfileCurves,
+  FanProfilePoint,
   RgbData,
   SensorData,
   FanData,
-} from '@oloco/oloco'
-import { FanProfileCurves, FanProfilePoint } from '../cli.common'
+} from '../lib/interfaces'
 import { Config, DaemonConfig } from '../config'
 import Logger from 'js-logger'
-import util from 'util'
+import { inspect } from 'util'
 import { exit } from 'process'
 import {
   AirBalanced,
@@ -18,7 +17,8 @@ import {
   LiquidPerformance,
   LiquidSilent,
   Max,
-} from '../profiles'
+} from '../lib/profiles'
+import { FanPorts, TempPorts } from '../lib/iterables'
 
 Logger.useDefaults()
 
@@ -104,7 +104,7 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
 }
 
 function handleSensor(sensor: SensorData) {
-  tempportIterable.forEach((port) => {
+  TempPorts.forEach((port) => {
     const tempConfig = Config.get('temps')[port]
 
     if (tempConfig.enabled) {
@@ -156,7 +156,7 @@ function handleRgb() {
 
   if (!equalRgb(newRgb, oldRgb)) {
     Logger.info(
-      `Update RGB setting: ${util.inspect(newRgb, { depth: null, colors: false, compact: true })}`,
+      `Update RGB setting: ${inspect(newRgb, { depth: null, colors: false, compact: true })}`,
     )
     controller.setRgb(newRgb)
     oldRgb = newRgb
@@ -164,7 +164,7 @@ function handleRgb() {
 }
 
 function handleFan(sensor: SensorData) {
-  fanportIterable.forEach((port) => {
+  FanPorts.forEach((port) => {
     const fanConfig = Config.get('fans')[port]
 
     if (fanConfig.enabled) {

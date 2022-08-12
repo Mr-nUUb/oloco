@@ -1,7 +1,9 @@
-import { Arguments, Argv } from 'yargs'
-import { OLoCo, FanPort, fanportIterable } from '@oloco/oloco'
-import { logObject } from '../../cli.common'
+import type { Arguments, Argv } from 'yargs'
+import { OLoCo } from '../../lib/oloco'
+import type { FanPort } from '../../lib/types'
+import { logObject } from '../../util'
 import { Config } from '../../config'
+import { FanPorts } from '../../lib/iterables'
 
 export const command = 'fans <speed> [port]'
 export const describe = 'Set a speed of a fan or all fans.'
@@ -13,7 +15,7 @@ export const builder = (yargs: Argv): Argv =>
       describe: 'The desired fan speed (PWM duty cycle).',
     })
     .positional('port', {
-      choices: fanportIterable,
+      choices: FanPorts,
       describe: 'The fan(s) to configure.',
     })
 
