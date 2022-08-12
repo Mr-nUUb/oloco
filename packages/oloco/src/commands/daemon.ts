@@ -1,7 +1,8 @@
-import fanSilentAir from '../res/silent_air.json'
-import fanBalancedAir from '../res/balanced_air.json'
-//import fanSilentLiquid from '../res/silent_liquid.json'
-//import fanBalancedLiquid from '../res/balanced_liquid.json'
+import fanAirSilent from '../res/air_silent.json'
+import fanAirBalanced from '../res/air_balanced.json'
+import fanLiquidSilent from '../res/liquid_silent.json'
+import fanLiquidBalanced from '../res/liquid_balanced.json'
+import fanLiquidPerformance from '../res/liquid_performance.json'
 import fanMax from '../res/max.json'
 import {
   OLoCo,
@@ -184,18 +185,19 @@ function handleFan(sensor: SensorData) {
 
       if (fanConfig.activeProfile === 'custom' && !customProfile) {
         console.warn(
-          `Custom profile "${fanConfig.customProfile}" not found, falling back to "balanced_air".`,
+          `Custom profile "${fanConfig.customProfile}" not found, falling back to "air_balanced".`,
         )
       }
 
       const fanProfiles: FanProfileCurves = {
         profiles: {
-          silent_air: fanSilentAir,
-          balanced_air: fanBalancedAir,
-          //'silent_liquid': fanSilentLiquid,
-          //'balanced_liquid': fanBalancedLiquid,
+          air_silent: fanAirSilent,
+          air_balanced: fanAirBalanced,
+          liquid_silent: fanLiquidSilent,
+          liquid_balanced: fanLiquidBalanced,
+          liquid_performance: fanLiquidPerformance,
           max: fanMax,
-          custom: customProfile || fanBalancedAir,
+          custom: customProfile || fanAirBalanced,
         },
       }
 

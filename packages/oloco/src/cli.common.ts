@@ -1,20 +1,22 @@
 import util from 'util'
 
 export type FanProfileName =
-  | 'silent_air'
-  | 'balanced_air'
-  //| 'silent_liquid'
-  //| 'balanced_liquid'
+  | 'air_silent'
+  | 'air_balanced'
+  | 'liquid_silent'
+  | 'liquid_balanced'
+  | 'liquid_performance'
   | 'max'
   | 'custom'
 export type LogTarget = 'terminal'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 export const fanProfileChoices: ReadonlyArray<FanProfileName> = [
-  'silent_air',
-  'balanced_air',
-  //'silent_liquid',
-  //'balanced_liquid',
+  'air_silent',
+  'air_balanced',
+  'liquid_silent',
+  'liquid_balanced',
+  'liquid_performance',
   'max',
   'custom',
 ]

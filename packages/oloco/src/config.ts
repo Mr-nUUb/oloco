@@ -283,7 +283,7 @@ export const Config = new Conf<AppConfig>({
           enabled: true,
           warning: 500,
           tempSource: 'T1',
-          activeProfile: port === 'F6' ? 'custom' : 'balanced_air',
+          activeProfile: port === 'F6' ? 'custom' : 'air_balanced',
           customProfile: port === 'F6' ? 'Pump' : '',
           responseCurve: [],
         },
