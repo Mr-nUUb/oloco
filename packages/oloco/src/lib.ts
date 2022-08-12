@@ -148,7 +148,7 @@ export class OLoCo {
 
     return {
       port,
-      rpm: parseInt(`0x${recv[12].toString(16)}${padLeadingZeros(recv[13].toString(16), 2)}`),
+      rpm: parseInt(`0x${recv[12].toString(16)}${recv[13].toString(16).padStart(2, '0')}`),
       pwm: recv[21],
     }
   }
@@ -272,12 +272,6 @@ export class OLoCo {
 
 export function sleep(ms: number): Promise<unknown> {
   return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function padLeadingZeros(s: string, n: number): string {
-  let p = s
-  while (p.length < n) p = `0${p}`
-  return p
 }
 
 function createPacket(mode: CommMode, port: DevicePort): number[] {
