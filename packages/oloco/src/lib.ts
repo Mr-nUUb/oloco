@@ -122,6 +122,9 @@ export const rgbspeedIterable: ReadonlyArray<RgbSpeed> = [
 ]
 
 export class OLoCo {
+  private _device
+  private _readTimeout = 1000
+
   constructor(device?: HID) {
     if (device) this._device = device
     else {
@@ -139,9 +142,6 @@ export class OLoCo {
       this._device = new HID(dev.path)
     }
   }
-
-  private _device
-  private _readTimeout = 1000
 
   private _getFan(port: FanPort): FanData {
     const recv = this._write(createPacket('Read', port))
