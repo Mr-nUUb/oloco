@@ -188,6 +188,7 @@ __metadata:
     "@types/yargs": ^17
     conf: ^10.2.0
     detect-ts-node: ^1.0.5
+    exit-hook: ^2.2.1
     js-logger: ^1.6.1
     node-hid: ^2.1.1
     rimraf: ^3.0.2
@@ -1365,6 +1366,13 @@ __metadata:
   version: 2.0.3
   resolution: "esutils@npm:2.0.3"
   checksum: 22b5b08f74737379a840b8ed2036a5fb35826c709ab000683b092d9054e5c2a82c27818f12604bfc2a9a76b90b6834ef081edbc1c7ae30d1627012e067c6ec87
+  languageName: node
+  linkType: hard
+
+"exit-hook@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "exit-hook@npm:2.2.1"
+  checksum: 1aa8359b6c5590a012d6cadf9cd337d227291bfcaa8970dc585d73dffef0582af34ed8ac56f6164f8979979fb417cff1eb49f03cdfd782f9332a30c773f0ada0
   languageName: node
   linkType: hard
 

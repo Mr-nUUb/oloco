@@ -15,6 +15,7 @@ import {
 import { FanPorts, TempPorts } from '../lib/iterables'
 import type { AppConfig, FanProfileCurves, LogTarget } from '../lib/types'
 import { LogLevel } from '../lib/enums'
+import exitHook from 'exit-hook'
 
 let defaultLogger: ILogHandler
 let controller: OLoCo
@@ -47,19 +48,12 @@ export const handler = async (): Promise<void> => {
       handleLogger()
     }, Config.get('daemon').interval)
 
-    process
-      .on('SIGTERM', () => {
-        Logger.info('SIGTERM signal received, setting all fans to 100%.')
-        clearInterval(interval)
-        controller.setFan(100)
-        process.exit(0)
-      })
-      .on('SIGINT', () => {
-        Logger.info('SIGINT signal received, setting all fans to 100%.')
-        clearInterval(interval)
-        controller.setFan(100)
-        process.exit(0)
-      })
+    exitHook(() => {
+      logCounter = 0
+      Logger.info('Daemon terminating, setting all fans to 100%.')
+      clearInterval(interval)
+      controller.setFan(100)
+    })
   } catch (error) {
     if (error instanceof Error) Logger.error(error.message)
     exit(1)
