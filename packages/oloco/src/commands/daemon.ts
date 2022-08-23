@@ -1,7 +1,7 @@
 import { OLoCo } from '../lib/oloco'
 import type { FanProfilePoint, RgbData, SensorData, FanData } from '../lib/interfaces'
 import { Config, DaemonConfig } from '../config'
-import Logger from 'js-logger'
+import Logger, { ILogHandler } from 'js-logger'
 import { inspect } from 'util'
 import { exit } from 'process'
 import {
@@ -13,25 +13,23 @@ import {
   Maximum,
 } from '../lib/profiles'
 import { FanPorts, TempPorts } from '../lib/iterables'
-import type { FanProfileCurves } from '../lib/types'
+import type { FanProfileCurves, LogTarget } from '../lib/types'
 
-Logger.useDefaults()
-
+let defaultLogger: ILogHandler
 let controller: OLoCo
 let oldFan: FanData[]
 let oldRgb: RgbData
 let daemonConfig: DaemonConfig
-let logCounter = 0
+let currentLogTarget: LogTarget
+let logCounter = -1
 
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
 
 export const handler = async (): Promise<void> => {
-  daemonConfig = Config.get('daemon')
-
-  Logger.setLevel(Logger[LogLevel[daemonConfig.logLevel]])
-
   try {
+    handleLogger()
+
     controller = new OLoCo()
     controller.setReadTimeout(Config.get('readTimeout'))
     Logger.info('Successfully connected to controller!')
@@ -44,8 +42,9 @@ export const handler = async (): Promise<void> => {
       handleRgb()
       handleSensor(current)
       handleFan(current)
-      logCounter++
-    }, daemonConfig.interval)
+
+      handleLogger()
+    }, Config.get('daemon').interval)
 
     process
       .on('SIGTERM', () => {
@@ -116,12 +115,9 @@ function handleSensor(sensor: SensorData) {
       temp += tempConfig.offset
 
       if (temp > warn) {
-        logThreshold(
-          LogLevel.warn,
-          `Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`,
-        )
+        Logger.warn(`Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
       } else {
-        logThreshold(LogLevel.info, `Temp ${name}: ${temp} °C`)
+        Logger.info(`Temp ${name}: ${temp} °C`)
       }
     }
   })
@@ -132,16 +128,16 @@ function handleSensor(sensor: SensorData) {
     const warn = flowConfig.warning
     const flow = (sensor.flow.flow * flowConfig.signalsPerLiter) / 100
     if (flow < warn) {
-      logThreshold(LogLevel.warn, `Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
+      Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
     } else {
-      logThreshold(LogLevel.info, `Sensor ${name}: ${flow} l/h`)
+      Logger.info(`Sensor ${name}: ${flow} l/h`)
     }
   }
 
   const levelConfig = Config.get('level')
   if (levelConfig.enabled) {
     if (levelConfig.warning && sensor.level.level === 'warning') {
-      logThreshold(LogLevel.warn, `Sensor ${levelConfig.name} is below warning level!`)
+      Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
     }
   }
 }
@@ -167,10 +163,7 @@ function handleFan(sensor: SensorData) {
       const currentRpm = currentFan.rpm
 
       if (currentRpm < warn) {
-        logThreshold(
-          LogLevel.warn,
-          `Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`,
-        )
+        Logger.warn(`Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`)
       }
 
       const customProfile = Config.get('profiles')[fanConfig.customProfile]
@@ -212,7 +205,7 @@ function handleFan(sensor: SensorData) {
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
 
-      logThreshold(LogLevel.info, `Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
+      Logger.info(`Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
 
       if (oldFan[fanIndex].pwm !== speed) {
         Logger.info(`Update Fan ${name}: ${speed}%`)
@@ -223,13 +216,38 @@ function handleFan(sensor: SensorData) {
   })
 }
 
-function logThreshold(level: LogLevel, message: string) {
-  if (logCounter === 0 || logCounter % daemonConfig.logThreshold === 0) {
-    if (level === LogLevel.debug) Logger.debug(message)
-    if (level === LogLevel.info) Logger.info(message)
-    if (level === LogLevel.warn) Logger.warn(message)
-    if (level === LogLevel.error) Logger.error(message)
+function handleLogger() {
+  daemonConfig = Config.get('daemon')
+
+  if (!defaultLogger) {
+    Logger.useDefaults()
+    defaultLogger = Logger.createDefaultHandler()
   }
+
+  const level = Logger[LogLevel[daemonConfig.logLevel]]
+  if (Logger.getLevel() !== level) Logger.setLevel(level)
+
+  if (currentLogTarget !== daemonConfig.logTarget) {
+    switch (daemonConfig.logTarget) {
+      case 'none':
+        Logger.setHandler(() => {
+          // log nothing
+        })
+        break
+
+      case 'console':
+        Logger.setHandler((msg, ctx) => {
+          if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
+            defaultLogger(msg, ctx)
+            logCounter = 0
+          }
+        })
+        break
+    }
+    currentLogTarget = daemonConfig.logTarget
+  }
+
+  logCounter++
 }
 
 function average(...values: number[]) {

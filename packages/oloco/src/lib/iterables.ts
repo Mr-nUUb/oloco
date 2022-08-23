@@ -2,6 +2,7 @@ import type {
   FanPort,
   FanProfileName,
   LogLevel,
+  LogTarget,
   RgbMode,
   RgbSpeed,
   TempMode,
@@ -50,3 +51,5 @@ export const FanProfiles: ReadonlyArray<FanProfileName> = [
 export const LogLevels: ReadonlyArray<LogLevel> = ['debug', 'info', 'warn', 'error']
 
 export const TempModes: ReadonlyArray<TempMode> = ['average', 'maximum']
+
+export const LogTargets: ReadonlyArray<LogTarget> = ['none', 'console']

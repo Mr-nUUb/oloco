@@ -10,7 +10,7 @@ export type FanProfileName =
   | 'Maximum'
   | 'Custom'
 
-export type LogTarget = 'terminal'
+export type LogTarget = 'none' | 'console'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 

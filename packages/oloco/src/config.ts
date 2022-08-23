@@ -3,6 +3,7 @@ import {
   FanPorts,
   FanProfiles,
   LogLevels,
+  LogTargets,
   RgbModes,
   RgbSpeeds,
   TempModes,
@@ -212,7 +213,7 @@ export const Config = new Conf<AppConfig>({
           type: 'string',
         },
         logTarget: {
-          const: 'terminal',
+          enum: LogTargets.slice(),
           type: 'string',
         },
         logThreshold: {
@@ -318,7 +319,7 @@ export const Config = new Conf<AppConfig>({
     daemon: {
       interval: 1000,
       logLevel: 'info',
-      logTarget: 'terminal',
+      logTarget: 'console',
       logThreshold: 5,
     },
     temps: TempPorts.reduce(
