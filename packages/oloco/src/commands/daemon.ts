@@ -150,9 +150,7 @@ function handleRgb() {
   const newRgb = Config.get('rgb')
 
   if (!equalRgb(newRgb, oldRgb)) {
-    Logger.info(
-      `Update RGB setting: ${inspect(newRgb, { depth: null, colors: false, compact: true })}`,
-    )
+    Logger.info(`Update RGB setting: ${inspect(newRgb, { compact: true })}`)
     controller.setRgb(newRgb)
     oldRgb = newRgb
   }
@@ -178,7 +176,7 @@ function handleFan(sensor: SensorData) {
       const customProfile = Config.get('profiles')[fanConfig.customProfile]
 
       if (fanConfig.activeProfile === 'Custom' && !customProfile) {
-        console.warn(
+        Logger.warn(
           `Custom profile "${fanConfig.customProfile}" not found, falling back to "AirBalanced".`,
         )
       }
@@ -193,19 +191,24 @@ function handleFan(sensor: SensorData) {
         Custom: customProfile || AirBalanced,
       }
 
-      let currentTemp = sensor.temps.find((t) => t.port === fanConfig.tempSource)?.temp
+      const temps: number[] = []
+      fanConfig.tempSources.forEach((src) => {
+        const currentSensor = sensor.temps.find((s) => s.port === src)
+        if (!currentSensor || !currentSensor.temp) {
+          Logger.warn(`Couldn't read temperature sensor: ${inspect(currentSensor)}`)
+          return
+        }
+        const currentTemp = currentSensor.temp + Config.get('temps')[currentSensor.port].offset
+        temps.push(currentTemp)
+      })
 
-      if (!currentTemp) {
-        Logger.error("Couldn't read current temperature!")
-        return
-      }
-
-      currentTemp += Config.get('temps')[fanConfig.tempSource].offset
+      const tempMode = fanConfig.tempMode
+      const controlTemp = tempMode === 'average' ? average(...temps) : Math.max(...temps)
 
       const curve = fanProfiles[fanConfig.activeProfile]
-      const lower = findLessOrEqual(curve, currentTemp)
-      const higher = findGreater(curve, currentTemp)
-      const speed = interpolate(currentTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
+      const lower = findLessOrEqual(curve, controlTemp)
+      const higher = findGreater(curve, controlTemp)
+      const speed = interpolate(controlTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
 
@@ -227,6 +230,10 @@ function logThreshold(level: LogLevel, message: string) {
     if (level === LogLevel.warn) Logger.warn(message)
     if (level === LogLevel.error) Logger.error(message)
   }
+}
+
+function average(...values: number[]) {
+  return values.reduce((x, s) => s + x) / values.length
 }
 
 enum LogLevel {

@@ -1,13 +1,22 @@
 import type { CurvePoint, FanProfilePoint, RgbData } from './lib/interfaces'
-import { FanPorts, FanProfiles, LogLevels, RgbModes, RgbSpeeds, TempPorts } from './lib/iterables'
-import type { FanPort, FanProfileName, LogLevel, LogTarget, TempPort } from './lib/types'
+import {
+  FanPorts,
+  FanProfiles,
+  LogLevels,
+  RgbModes,
+  RgbSpeeds,
+  TempModes,
+  TempPorts,
+} from './lib/iterables'
+import type { FanPort, FanProfileName, LogLevel, LogTarget, TempMode, TempPort } from './lib/types'
 import Conf from 'conf'
 
 type FanConfig = {
   name: string
   enabled: boolean
   warning: number
-  tempSource: TempPort
+  tempSources: TempPort[]
+  tempMode: TempMode
   activeProfile: FanProfileName
   customProfile: string
   responseCurve: CurvePoint[]
@@ -93,8 +102,15 @@ export const Config = new Conf<AppConfig>({
               },
               type: 'array',
             },
-            tempSource: {
-              enum: TempPorts.slice(),
+            tempSources: {
+              items: {
+                enum: TempPorts.slice(),
+                type: 'string',
+              },
+              type: 'array',
+            },
+            tempMode: {
+              enum: TempModes.slice(),
               type: 'string',
             },
             warning: {
@@ -105,7 +121,8 @@ export const Config = new Conf<AppConfig>({
             'name',
             'enabled',
             'warning',
-            'tempSource',
+            'tempSources',
+            'tempMode',
             'activeProfile',
             'customProfile',
             'responseCurve',
@@ -269,7 +286,8 @@ export const Config = new Conf<AppConfig>({
           name: port,
           enabled: true,
           warning: 500,
-          tempSource: 'T1',
+          tempSources: ['T1'],
+          tempMode: 'maximum',
           activeProfile: port === 'F6' ? 'custom' : 'AirBalanced',
           customProfile: port === 'F6' ? 'Pump' : '',
           responseCurve: [],

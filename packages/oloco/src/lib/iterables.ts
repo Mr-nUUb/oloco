@@ -1,4 +1,12 @@
-import type { FanPort, FanProfileName, LogLevel, RgbMode, RgbSpeed, TempPort } from './types'
+import type {
+  FanPort,
+  FanProfileName,
+  LogLevel,
+  RgbMode,
+  RgbSpeed,
+  TempMode,
+  TempPort,
+} from './types'
 
 export const FanPorts: ReadonlyArray<FanPort> = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6']
 
@@ -40,3 +48,5 @@ export const FanProfiles: ReadonlyArray<FanProfileName> = [
 ]
 
 export const LogLevels: ReadonlyArray<LogLevel> = ['debug', 'info', 'warn', 'error']
+
+export const TempModes: ReadonlyArray<TempMode> = ['average', 'maximum']

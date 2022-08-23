@@ -29,3 +29,5 @@ export type RgbMode = keyof typeof RgbModeEnum
 export type RgbSpeed = keyof typeof RgbSpeedEnum
 
 export type FanProfileCurves = { [key in FanProfileName]: FanProfilePoint[] }
+
+export type TempMode = 'maximum' | 'average'
