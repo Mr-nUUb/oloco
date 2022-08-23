@@ -1,5 +1,5 @@
-import type { RgbModeEnum, RgbSpeedEnum } from './enums'
-import type { FanProfilePoint } from './interfaces'
+import type { LogLevel as LogLevelEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
+import type { CurvePoint, FanProfilePoint, RgbData } from './interfaces'
 
 export type FanProfileName =
   | 'AirSilent'
@@ -10,11 +10,9 @@ export type FanProfileName =
   | 'Maximum'
   | 'Custom'
 
-export type LogTarget = 'none' | 'console'
+export type LogTarget = 'None' | 'Console'
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-
-export type LevelData = 'warning' | 'good'
+export type LevelData = 'Warning' | 'Good'
 
 export type FanPort = 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'F6'
 
@@ -28,6 +26,51 @@ export type RgbMode = keyof typeof RgbModeEnum
 
 export type RgbSpeed = keyof typeof RgbSpeedEnum
 
+export type LogLevel = keyof typeof LogLevelEnum
+
 export type FanProfileCurves = { [key in FanProfileName]: FanProfilePoint[] }
 
-export type TempMode = 'maximum' | 'average'
+export type TempMode = 'Maximum' | 'Average'
+
+export type AppConfig = {
+  fans: {
+    [key in FanPort]: {
+      name: string
+      enabled: boolean
+      warning: number
+      tempSources: TempPort[]
+      tempMode: TempMode
+      activeProfile: FanProfileName
+      customProfile: string
+      responseCurve: CurvePoint[]
+    }
+  }
+  flow: {
+    name: string
+    enabled: boolean
+    warning: number
+    signalsPerLiter: number
+  }
+  level: {
+    name: string
+    enabled: boolean
+    warning: boolean
+  }
+  rgb: RgbData
+  daemon: {
+    logTarget: LogTarget
+    logLevel: LogLevel
+    logThreshold: number
+    interval: number
+  }
+  temps: {
+    [key in TempPort]: {
+      name: string
+      enabled: boolean
+      warning: number
+      offset: number
+    }
+  }
+  profiles: { [key: string]: FanProfilePoint[] }
+  readTimeout: number
+}

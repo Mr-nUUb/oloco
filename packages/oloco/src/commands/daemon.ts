@@ -1,6 +1,6 @@
 import { OLoCo } from '../lib/oloco'
 import type { FanProfilePoint, RgbData, SensorData, FanData } from '../lib/interfaces'
-import { Config, DaemonConfig } from '../config'
+import { Config } from '../config'
 import Logger, { ILogHandler } from 'js-logger'
 import { inspect } from 'util'
 import { exit } from 'process'
@@ -13,13 +13,14 @@ import {
   Maximum,
 } from '../lib/profiles'
 import { FanPorts, TempPorts } from '../lib/iterables'
-import type { FanProfileCurves, LogTarget } from '../lib/types'
+import type { AppConfig, FanProfileCurves, LogTarget } from '../lib/types'
+import { LogLevel } from '../lib/enums'
 
 let defaultLogger: ILogHandler
 let controller: OLoCo
 let oldFan: FanData[]
 let oldRgb: RgbData
-let daemonConfig: DaemonConfig
+let daemonConfig: AppConfig['daemon']
 let currentLogTarget: LogTarget
 let logCounter = -1
 
@@ -136,7 +137,7 @@ function handleSensor(sensor: SensorData) {
 
   const levelConfig = Config.get('level')
   if (levelConfig.enabled) {
-    if (levelConfig.warning && sensor.level.level === 'warning') {
+    if (levelConfig.warning && sensor.level.level === 'Warning') {
       Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
     }
   }
@@ -196,7 +197,7 @@ function handleFan(sensor: SensorData) {
       })
 
       const tempMode = fanConfig.tempMode
-      const controlTemp = tempMode === 'average' ? average(...temps) : Math.max(...temps)
+      const controlTemp = tempMode === 'Average' ? average(...temps) : Math.max(...temps)
 
       const curve = fanProfiles[fanConfig.activeProfile]
       const lower = findLessOrEqual(curve, controlTemp)
@@ -229,13 +230,13 @@ function handleLogger() {
 
   if (currentLogTarget !== daemonConfig.logTarget) {
     switch (daemonConfig.logTarget) {
-      case 'none':
+      case 'None':
         Logger.setHandler(() => {
           // log nothing
         })
         break
 
-      case 'console':
+      case 'Console':
         Logger.setHandler((msg, ctx) => {
           if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
             defaultLogger(msg, ctx)
@@ -252,11 +253,4 @@ function handleLogger() {
 
 function average(...values: number[]) {
   return values.length > 1 ? values.reduce((x, s) => s + x) / values.length : values[0]
-}
-
-enum LogLevel {
-  debug = 'DEBUG',
-  info = 'INFO',
-  warn = 'WARN',
-  error = 'ERROR',
 }

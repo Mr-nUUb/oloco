@@ -1,4 +1,3 @@
-import type { CurvePoint, FanProfilePoint, RgbData } from './lib/interfaces'
 import {
   FanPorts,
   FanProfiles,
@@ -9,61 +8,8 @@ import {
   TempModes,
   TempPorts,
 } from './lib/iterables'
-import type { FanPort, FanProfileName, LogLevel, LogTarget, TempMode, TempPort } from './lib/types'
 import Conf from 'conf'
-
-type FanConfig = {
-  name: string
-  enabled: boolean
-  warning: number
-  tempSources: TempPort[]
-  tempMode: TempMode
-  activeProfile: FanProfileName
-  customProfile: string
-  responseCurve: CurvePoint[]
-}
-
-type FlowConfig = {
-  name: string
-  enabled: boolean
-  warning: number
-  signalsPerLiter: number
-}
-
-type LevelConfig = {
-  name: string
-  enabled: boolean
-  warning: boolean
-}
-
-type TempConfig = {
-  name: string
-  enabled: boolean
-  warning: number
-  offset: number
-}
-
-type AppConfig = {
-  fans: FanConfigByPort
-  flow: FlowConfig
-  level: LevelConfig
-  rgb: RgbData
-  daemon: DaemonConfig
-  temps: TempConfigByPort
-  profiles: { [key: string]: FanProfilePoint[] }
-  readTimeout: number
-}
-
-type FanConfigByPort = { [key in FanPort]: FanConfig }
-
-type TempConfigByPort = { [key in TempPort]: TempConfig }
-
-export type DaemonConfig = {
-  logTarget: LogTarget
-  logLevel: LogLevel
-  logThreshold: number
-  interval: number
-}
+import type { AppConfig } from './lib/types'
 
 export const Config = new Conf<AppConfig>({
   accessPropertiesByDotNotation: true,
@@ -294,7 +240,7 @@ export const Config = new Conf<AppConfig>({
           responseCurve: [],
         },
       }),
-      {} as FanConfigByPort,
+      {} as AppConfig['fans'],
     ),
     flow: {
       name: 'FLO',
@@ -318,8 +264,8 @@ export const Config = new Conf<AppConfig>({
     },
     daemon: {
       interval: 1000,
-      logLevel: 'info',
-      logTarget: 'console',
+      logLevel: 'Info',
+      logTarget: 'Console',
       logThreshold: 5,
     },
     temps: TempPorts.reduce(
@@ -332,7 +278,7 @@ export const Config = new Conf<AppConfig>({
           offset: 0,
         },
       }),
-      {} as TempConfigByPort,
+      {} as AppConfig['temps'],
     ),
     profiles: {
       Pump: [

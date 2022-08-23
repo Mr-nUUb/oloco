@@ -147,7 +147,7 @@ export class OLoCo {
         return { port, temp: temp !== 231 ? temp : undefined }
       }),
       flow: { port: 'FLO', flow: recv[23] },
-      level: { port: 'LVL', level: recv[27] === 100 ? 'good' : 'warning' },
+      level: { port: 'LVL', level: recv[27] === 100 ? 'Good' : 'Warning' },
     }
   }
 

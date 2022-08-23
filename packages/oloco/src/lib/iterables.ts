@@ -48,8 +48,8 @@ export const FanProfiles: ReadonlyArray<FanProfileName> = [
   'Custom',
 ]
 
-export const LogLevels: ReadonlyArray<LogLevel> = ['debug', 'info', 'warn', 'error']
+export const LogLevels: ReadonlyArray<LogLevel> = ['Debug', 'Info', 'Warn', 'Error']
 
-export const TempModes: ReadonlyArray<TempMode> = ['average', 'maximum']
+export const TempModes: ReadonlyArray<TempMode> = ['Average', 'Maximum']
 
-export const LogTargets: ReadonlyArray<LogTarget> = ['none', 'console']
+export const LogTargets: ReadonlyArray<LogTarget> = ['None', 'Console']

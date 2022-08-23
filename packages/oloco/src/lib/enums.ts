@@ -22,3 +22,10 @@ export enum RgbSpeedEnum {
   Faster = 0x57,
   Fastest = 0x64,
 }
+
+export enum LogLevel {
+  Debug = 'DEBUG',
+  Info = 'INFO',
+  Warn = 'WARN',
+  Error = 'ERROR',
+}
