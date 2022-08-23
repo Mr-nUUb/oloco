@@ -233,7 +233,7 @@ function logThreshold(level: LogLevel, message: string) {
 }
 
 function average(...values: number[]) {
-  return values.reduce((x, s) => s + x) / values.length
+  return values.length > 1 ? values.reduce((x, s) => s + x) / values.length : values[0]
 }
 
 enum LogLevel {
