@@ -238,8 +238,7 @@ function setupLogger() {
       case 'Console':
         Logger.setHandler((msg, ctx) => {
           if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
-            const prefix = generateLogPrefix()
-            defaultLogger([prefix, ...msg], ctx)
+            defaultLogger([generateLogPrefix(), ...msg], ctx)
             logCounter = 0
           }
         })
@@ -261,8 +260,7 @@ function getTimestamp() {
 }
 
 function generateLogPrefix() {
-  const level = Logger.getLevel().name.padEnd(5)
-  return `[ ${getTimestamp()} | ${level} ]>`
+  return `[ ${getTimestamp()} | ${Logger.getLevel().name.padEnd(5)} ]>`
 }
 
 function average(...values: number[]) {
