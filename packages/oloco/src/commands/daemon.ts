@@ -238,7 +238,8 @@ function setupLogger() {
       case 'Console':
         Logger.setHandler((msg, ctx) => {
           if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
-            defaultLogger(msg, ctx)
+            const prefix = generateLogPrefix()
+            defaultLogger([prefix, ...msg], ctx)
             logCounter = 0
           }
         })
@@ -246,6 +247,22 @@ function setupLogger() {
     }
     currentLogTarget = daemonConfig.logTarget
   }
+}
+
+function getTimestamp() {
+  switch (Config.get('daemon').timestampFormat) {
+    case 'ISO':
+      return new Date().toISOString()
+    case 'UNIX':
+      return Date.now().toString()
+    case 'UTC':
+      return new Date().toUTCString()
+  }
+}
+
+function generateLogPrefix() {
+  const level = Logger.getLevel().name.padEnd(5)
+  return `[ ${getTimestamp()} | ${level} ]>`
 }
 
 function average(...values: number[]) {

@@ -7,6 +7,7 @@ import {
   RgbSpeeds,
   TempModes,
   TempPorts,
+  TimestampFormats,
 } from './lib/iterables'
 import Conf from 'conf'
 import type { AppConfig } from './lib/types'
@@ -165,8 +166,12 @@ export const Config = new Conf<AppConfig>({
         logThreshold: {
           type: 'number',
         },
+        timestampFormat: {
+          enum: TimestampFormats.slice(),
+          type: 'string',
+        },
       },
-      required: ['interval', 'logLevel', 'logTarget', 'logThreshold'],
+      required: ['interval', 'logLevel', 'logTarget', 'logThreshold', 'timestampFormat'],
       type: 'object',
     },
     temps: {
@@ -267,6 +272,7 @@ export const Config = new Conf<AppConfig>({
       logLevel: 'Info',
       logTarget: 'Console',
       logThreshold: 5,
+      timestampFormat: 'ISO',
     },
     temps: TempPorts.reduce(
       (conf, port) => ({

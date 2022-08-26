@@ -62,6 +62,7 @@ export type AppConfig = {
     logLevel: LogLevel
     logThreshold: number
     interval: number
+    timestampFormat: TimestampFormat
   }
   temps: {
     [key in TempPort]: {
@@ -74,3 +75,5 @@ export type AppConfig = {
   profiles: { [key: string]: FanProfilePoint[] }
   readTimeout: number
 }
+
+export type TimestampFormat = 'ISO' | 'UNIX' | 'UTC'

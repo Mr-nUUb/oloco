@@ -7,6 +7,7 @@ import type {
   RgbSpeed,
   TempMode,
   TempPort,
+  TimestampFormat,
 } from './types'
 
 export const FanPorts: ReadonlyArray<FanPort> = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6']
@@ -53,3 +54,5 @@ export const LogLevels: ReadonlyArray<LogLevel> = ['Debug', 'Info', 'Warn', 'Err
 export const TempModes: ReadonlyArray<TempMode> = ['Average', 'Maximum']
 
 export const LogTargets: ReadonlyArray<LogTarget> = ['None', 'Console']
+
+export const TimestampFormats: ReadonlyArray<TimestampFormat> = ['ISO', 'UNIX', 'UTC']
