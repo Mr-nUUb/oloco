@@ -53,6 +53,6 @@ export const LogLevels: ReadonlyArray<LogLevel> = ['Debug', 'Info', 'Warn', 'Err
 
 export const TempModes: ReadonlyArray<TempMode> = ['Average', 'Maximum']
 
-export const LogTargets: ReadonlyArray<LogTarget> = ['None', 'Console']
+export const LogTargets: ReadonlyArray<LogTarget> = ['None', 'Console', 'File']
 
 export const TimestampFormats: ReadonlyArray<TimestampFormat> = ['ISO', 'UNIX', 'UTC']

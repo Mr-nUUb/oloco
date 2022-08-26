@@ -16,6 +16,10 @@ import { FanPorts, TempPorts } from '../lib/iterables'
 import type { AppConfig, FanProfileCurves, LogTarget } from '../lib/types'
 import { LogLevel } from '../lib/enums'
 import exitHook from 'exit-hook'
+import { access, appendFile, rm, stat } from 'fs/promises'
+import { EOL } from 'os'
+import { dirname } from 'path'
+import { constants as FsConstants } from 'fs'
 
 let defaultLogger: ILogHandler
 let controller: OLoCo
@@ -239,6 +243,38 @@ function setupLogger() {
         Logger.setHandler((msg, ctx) => {
           if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
             defaultLogger([generateLogPrefix(), ...msg], ctx)
+            logCounter = 0
+          }
+        })
+        break
+
+      case 'File':
+        Logger.setHandler((msg) => {
+          if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
+            const file = daemonConfig.logFile
+
+            access(dirname(file), FsConstants.R_OK | FsConstants.W_OK)
+              .then(() => {
+                access(file)
+                  .then(() => {
+                    stat(file).then((stats) => {
+                      if (stats.size > daemonConfig.logFileMaxSizeMB * 1024 * 1024) {
+                        rm(file)
+                      }
+                    })
+                  })
+                  .catch((_err) => {
+                    const err = _err as NodeJS.ErrnoException
+                    if (err.errno !== -2) console.error(err)
+                  })
+
+                appendFile(file, `${[generateLogPrefix(), ...msg].join(' ')}${EOL}`)
+              })
+              .catch((_err) => {
+                const err = _err as NodeJS.ErrnoException
+                console.error(err)
+              })
+
             logCounter = 0
           }
         })

@@ -10,7 +10,7 @@ export type FanProfileName =
   | 'Maximum'
   | 'Custom'
 
-export type LogTarget = 'None' | 'Console'
+export type LogTarget = 'None' | 'Console' | 'File'
 
 export type LevelData = 'Warning' | 'Good'
 
@@ -58,6 +58,8 @@ export type AppConfig = {
   }
   rgb: RgbData
   daemon: {
+    logFile: string
+    logFileMaxSizeMB: number
     logTarget: LogTarget
     logLevel: LogLevel
     logThreshold: number

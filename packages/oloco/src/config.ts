@@ -11,6 +11,7 @@ import {
 } from './lib/iterables'
 import Conf from 'conf'
 import type { AppConfig } from './lib/types'
+import { dirname, resolve } from 'path'
 
 export const Config = new Conf<AppConfig>({
   accessPropertiesByDotNotation: true,
@@ -155,6 +156,12 @@ export const Config = new Conf<AppConfig>({
         interval: {
           type: 'number',
         },
+        logFile: {
+          type: 'string',
+        },
+        logFileMaxSizeMB: {
+          type: 'number',
+        },
         logLevel: {
           enum: LogLevels.slice(),
           type: 'string',
@@ -171,7 +178,15 @@ export const Config = new Conf<AppConfig>({
           type: 'string',
         },
       },
-      required: ['interval', 'logLevel', 'logTarget', 'logThreshold', 'timestampFormat'],
+      required: [
+        'interval',
+        'logFile',
+        'logFileMaxSizeMB',
+        'logLevel',
+        'logTarget',
+        'logThreshold',
+        'timestampFormat',
+      ],
       type: 'object',
     },
     temps: {
@@ -269,6 +284,8 @@ export const Config = new Conf<AppConfig>({
     },
     daemon: {
       interval: 1000,
+      logFile: resolve(dirname(new Conf({ configName: 'dummy' }).path), 'logfile.log'),
+      logFileMaxSizeMB: 16,
       logLevel: 'Info',
       logTarget: 'Console',
       logThreshold: 5,
