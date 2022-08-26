@@ -23,14 +23,14 @@ let oldFan: FanData[]
 let oldRgb: RgbData
 let daemonConfig: AppConfig['daemon']
 let currentLogTarget: LogTarget
-let logCounter = -1
+let logCounter = 0
 
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
 
 export const handler = async (): Promise<void> => {
   try {
-    handleLogger()
+    setupLogger()
 
     controller = new OLoCo()
     controller.setReadTimeout(Config.get('readTimeout'))
@@ -212,6 +212,11 @@ function handleFan(sensor: SensorData) {
 }
 
 function handleLogger() {
+  setupLogger()
+  logCounter++
+}
+
+function setupLogger() {
   daemonConfig = Config.get('daemon')
 
   if (!defaultLogger) {
@@ -241,8 +246,6 @@ function handleLogger() {
     }
     currentLogTarget = daemonConfig.logTarget
   }
-
-  logCounter++
 }
 
 function average(...values: number[]) {
