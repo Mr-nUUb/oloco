@@ -234,42 +234,8 @@ function handleFan(sensor: SensorData): PartialLogData['fans'] {
 }
 
 function handleLogger(data: PartialLogData) {
-  const messages: string[] = []
-
   setupLogger()
-
-  if (data.sensors) {
-    if (data.sensors.temps) {
-      data.sensors.temps.forEach((t) => {
-        messages.push(`Temp "${t.name}" (${t.port}): ${t.temp}°C`)
-      })
-    }
-    if (data.sensors.flow) {
-      const f = data.sensors.flow
-      messages.push(`Flow "${f.name}" (${f.port}): ${f.flow} l/h`)
-    }
-    if (data.sensors.level) {
-      const l = data.sensors.level
-      messages.push(`Level "${l.name}" (${l.port}): ${l.level}`)
-    }
-  }
-  if (data.fans) {
-    data.fans.forEach((f) => {
-      messages.push(`Fan "${f.name}" (${f.port}): ${f.pwm}%, ${f.rpm} RPM`)
-    })
-  }
-  if (data.rgb) {
-    const r = data.rgb
-    const msg: string[] = [
-      `RGB (${r.port}): Mode: ${r.mode}`,
-      `Speed: ${r.speed}`,
-      `Color: R:${r.color?.red} G:${r.color?.green} B:${r.color?.blue}`,
-    ]
-    messages.push(msg.join(', '))
-  }
-
-  Logger.info(messages.join(' | '))
-
+  Logger.info(data)
   logCounter++
 }
 
@@ -295,7 +261,7 @@ function setupLogger() {
       case 'Console':
         Logger.setHandler((msg, ctx) => {
           if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
-            defaultLogger([generateLogPrefix(), ...msg], ctx)
+            defaultLogger(buildMessage(msg), ctx)
             logCounter = 0
           }
         })
@@ -321,7 +287,7 @@ function setupLogger() {
                     if (err.errno !== -2) console.error(err)
                   })
 
-                appendFile(file, `${[generateLogPrefix(), ...msg].join(' ')}${EOL}`)
+                appendFile(file, `${buildMessage(msg).join(' ')}${EOL}`)
               })
               .catch((_err) => {
                 const err = _err as NodeJS.ErrnoException
@@ -337,6 +303,67 @@ function setupLogger() {
   }
 }
 
+function buildMessage(msgs: unknown[]) {
+  const logMode = Config.get('daemon').logMode
+  const data = Object.values(msgs)
+  const timestamp = getTimestamp()
+  const level = Logger.getLevel().name.padEnd(5)
+
+  const jsonMsg = { timestamp, level, messages: [] as unknown[] }
+  const txtMsg: string[] = []
+
+  data.forEach((d) => {
+    switch (logMode) {
+      case 'JSON':
+        jsonMsg.messages.push(d)
+        break
+      case 'Text':
+        if (typeof d === 'string') {
+          txtMsg.push(d)
+        } else {
+          const _d = d as PartialLogData
+          if (_d.sensors) {
+            if (_d.sensors.temps) {
+              _d.sensors.temps.forEach((t) => {
+                txtMsg.push(`Temp "${t.name}" (${t.port}): ${t.temp}°C`)
+              })
+            }
+            if (_d.sensors.flow) {
+              const f = _d.sensors.flow
+              txtMsg.push(`Flow "${f.name}" (${f.port}): ${f.flow} l/h`)
+            }
+            if (_d.sensors.level) {
+              const l = _d.sensors.level
+              txtMsg.push(`Level "${l.name}" (${l.port}): ${l.level}`)
+            }
+          }
+          if (_d.fans) {
+            _d.fans.forEach((f) => {
+              txtMsg.push(`Fan "${f.name}" (${f.port}): ${f.pwm}%, ${f.rpm} RPM`)
+            })
+          }
+          if (_d.rgb) {
+            const r = _d.rgb
+            const msg: string[] = [
+              `RGB (${r.port}): Mode: ${r.mode}`,
+              `Speed: ${r.speed}`,
+              `Color: R:${r.color?.red} G:${r.color?.green} B:${r.color?.blue}`,
+            ]
+            txtMsg.push(msg.join(', '))
+          }
+        }
+        break
+    }
+  })
+
+  switch (logMode) {
+    case 'JSON':
+      return [JSON.stringify(jsonMsg)]
+    case 'Text':
+      return [`[ ${timestamp} | ${level} ]> ${txtMsg.join(' | ')}`]
+  }
+}
+
 function getTimestamp() {
   switch (Config.get('daemon').timestampFormat) {
     case 'ISO':
@@ -346,10 +373,6 @@ function getTimestamp() {
     case 'UTC':
       return new Date().toUTCString()
   }
-}
-
-function generateLogPrefix() {
-  return `[ ${getTimestamp()} | ${Logger.getLevel().name.padEnd(5)} ]>`
 }
 
 function average(...values: number[]) {
