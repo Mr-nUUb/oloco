@@ -123,6 +123,12 @@ export const Config = new Conf<AppConfig>({
     rgb: {
       additionalProperties: false,
       properties: {
+        name: {
+          type: 'string',
+        },
+        enabled: {
+          type: 'boolean',
+        },
         color: {
           additionalProperties: false,
           properties: {
@@ -279,6 +285,8 @@ export const Config = new Conf<AppConfig>({
       warning: true,
     },
     rgb: {
+      name: 'All Zones',
+      enabled: true,
       mode: 'SpectrumWave',
       speed: 'Normal',
       color: {

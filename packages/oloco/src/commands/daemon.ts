@@ -157,11 +157,13 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
 function handleRgb(): PartialLogData['rgb'] {
   const newRgb = Config.get('rgb')
 
-  if (!equalRgb(newRgb, oldRgb)) {
-    controller.setRgb(newRgb)
-    oldRgb = newRgb
+  if (newRgb.enabled) {
+    if (!equalRgb(newRgb, oldRgb)) {
+      controller.setRgb(newRgb)
+      oldRgb = newRgb
+    }
+    return { ...newRgb, port: 'Lx' }
   }
-  return { ...newRgb, port: 'Lx' }
 }
 
 function handleFan(sensor: SensorData): PartialLogData['fans'] {
@@ -366,7 +368,7 @@ function buildMessageFromControllerData(data: PartialLogData) {
   if (data.rgb) {
     const r = data.rgb
     const msg: string[] = [
-      `RGB (${r.port}): Mode: ${r.mode}`,
+      `RGB "${r.name}" (${r.port}): Mode: ${r.mode}`,
       `Speed: ${r.speed}`,
       `Color: R:${r.color?.red} G:${r.color?.green} B:${r.color?.blue}`,
     ]

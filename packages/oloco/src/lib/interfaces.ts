@@ -65,5 +65,5 @@ export interface LogData {
     level: SensorData['level'] & NamedObject
   }
   fans: (FanData & NamedObject)[]
-  rgb: RgbData
+  rgb: RgbData & NamedObject
 }

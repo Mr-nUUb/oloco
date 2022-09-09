@@ -58,7 +58,7 @@ export type AppConfig = {
     enabled: boolean
     warning: boolean
   }
-  rgb: RgbData
+  rgb: RgbData & { name: string; enabled: boolean }
   daemon: {
     logFile: string
     logFileMaxSizeMB: number
