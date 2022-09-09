@@ -163,6 +163,10 @@ function handleRgb(): PartialLogData['rgb'] {
       oldRgb = newRgb
     }
     return { ...newRgb, port: 'Lx' }
+  } else {
+    oldRgb = { ...newRgb, mode: 'Off' }
+    Config.set('rgb', oldRgb)
+    controller.setRgb(oldRgb)
   }
 }
 
