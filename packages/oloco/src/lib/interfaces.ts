@@ -54,3 +54,16 @@ export interface DeviceInformation {
   sensors: SensorData
   rgb: RgbData
 }
+
+interface NamedObject {
+  name: string
+}
+export interface LogData {
+  sensors: SensorData & {
+    temps: (TempData & NamedObject)[]
+    flow: SensorData['flow'] & NamedObject
+    level: SensorData['level'] & NamedObject
+  }
+  fans: (FanData & NamedObject)[]
+  rgb: RgbData
+}

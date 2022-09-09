@@ -1,5 +1,5 @@
 import type { LogLevel as LogLevelEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
-import type { CurvePoint, FanProfilePoint, RgbData } from './interfaces'
+import type { CurvePoint, FanProfilePoint, LogData, RgbData } from './interfaces'
 
 export type FanProfileName =
   | 'AirSilent'
@@ -79,3 +79,9 @@ export type AppConfig = {
 }
 
 export type TimestampFormat = 'ISO' | 'UNIX' | 'UTC'
+
+export type RecursivePartial<T> = {
+  [P in keyof T]?: T[P] extends (infer U)[] ? RecursivePartial<U>[] : RecursivePartial<T[P]>
+}
+
+export type PartialLogData = RecursivePartial<LogData>
