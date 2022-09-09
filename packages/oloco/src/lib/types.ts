@@ -28,6 +28,8 @@ export type RgbSpeed = keyof typeof RgbSpeedEnum
 
 export type LogLevel = keyof typeof LogLevelEnum
 
+export type LogMode = 'JSON' | 'Text'
+
 export type FanProfileCurves = { [key in FanProfileName]: FanProfilePoint[] }
 
 export type TempMode = 'Maximum' | 'Average'
@@ -62,6 +64,7 @@ export type AppConfig = {
     logFileMaxSizeMB: number
     logTarget: LogTarget
     logLevel: LogLevel
+    logMode: LogMode
     logThreshold: number
     interval: number
     timestampFormat: TimestampFormat

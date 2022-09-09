@@ -2,6 +2,7 @@ import {
   FanPorts,
   FanProfiles,
   LogLevels,
+  LogModes,
   LogTargets,
   RgbModes,
   RgbSpeeds,
@@ -166,6 +167,10 @@ export const Config = new Conf<AppConfig>({
           enum: LogLevels.slice(),
           type: 'string',
         },
+        logMode: {
+          enum: LogModes.slice(),
+          type: 'string',
+        },
         logTarget: {
           enum: LogTargets.slice(),
           type: 'string',
@@ -287,6 +292,7 @@ export const Config = new Conf<AppConfig>({
       logFile: resolve(dirname(new Conf({ configName: 'dummy' }).path), 'logfile.log'),
       logFileMaxSizeMB: 16,
       logLevel: 'Info',
+      logMode: 'Text',
       logTarget: 'Console',
       logThreshold: 5,
       timestampFormat: 'ISO',
