@@ -266,18 +266,19 @@ function setupLogger() {
 
       case 'Console':
         Logger.setHandler((msg, ctx) => {
-          if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
-            defaultLogger(buildMessage(msg), ctx)
+          if (checkLogCounter()) {
+            defaultLogger(buildMessage(msg, ctx), ctx)
             logCounter = 0
+          } else if (ctx.level === Logger.WARN || ctx.level === Logger.ERROR) {
+            defaultLogger(buildMessage(msg, ctx), ctx)
           }
         })
         break
 
       case 'File':
-        Logger.setHandler((msg) => {
-          if (logCounter === -1 || logCounter % daemonConfig.logThreshold === 0) {
-            const file = daemonConfig.logFile
-
+        Logger.setHandler((msg, ctx) => {
+          const file = daemonConfig.logFile
+          if (checkLogCounter()) {
             access(dirname(file), FsConstants.R_OK | FsConstants.W_OK)
               .then(() => {
                 access(file)
@@ -293,7 +294,7 @@ function setupLogger() {
                     if (err.errno !== -2) console.error(err)
                   })
 
-                appendFile(file, `${buildMessage(msg).join(' ')}${EOL}`)
+                appendFile(file, `${buildMessage(msg, ctx)}${EOL}`)
               })
               .catch((_err) => {
                 const err = _err as NodeJS.ErrnoException
@@ -301,6 +302,8 @@ function setupLogger() {
               })
 
             logCounter = 0
+          } else if (ctx.level === Logger.WARN || ctx.level === Logger.ERROR) {
+            appendFile(file, `${buildMessage(msg, ctx)}${EOL}`)
           }
         })
         break
@@ -308,14 +311,17 @@ function setupLogger() {
     currentLogTarget = daemonConfig.logTarget
   }
 }
+function checkLogCounter() {
+  return logCounter === -1 || logCounter % daemonConfig.logThreshold === 0
+}
 
-function buildMessage(msgs: unknown[]) {
+function buildMessage(msgs: Parameters<ILogHandler>[0], ctx: Parameters<ILogHandler>[1]) {
   const logMode = Config.get('daemon').logMode
   const data = Object.values(msgs)
 
   const msg = {
     timestamp: getTimestamp(),
-    level: Logger.getLevel().name.padEnd(5),
+    level: ctx.level.name,
     messages: [] as unknown[],
   }
 
@@ -338,7 +344,7 @@ function buildMessage(msgs: unknown[]) {
     case 'JSON':
       return [JSON.stringify(msg)]
     case 'Text':
-      return [`[ ${msg.timestamp} | ${msg.level} ]> ${msg.messages.join(' | ')}`]
+      return [`[ ${msg.timestamp} | ${msg.level.padEnd(5)} ]> ${msg.messages.join(' | ')}`]
   }
 }
 
