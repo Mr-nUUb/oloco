@@ -306,51 +306,23 @@ function setupLogger() {
 function buildMessage(msgs: unknown[]) {
   const logMode = Config.get('daemon').logMode
   const data = Object.values(msgs)
-  const timestamp = getTimestamp()
-  const level = Logger.getLevel().name.padEnd(5)
 
-  const jsonMsg = { timestamp, level, messages: [] as unknown[] }
-  const txtMsg: string[] = []
+  const msg = {
+    timestamp: getTimestamp(),
+    level: Logger.getLevel().name.padEnd(5),
+    messages: [] as unknown[],
+  }
 
   data.forEach((d) => {
     switch (logMode) {
       case 'JSON':
-        jsonMsg.messages.push(d)
+        msg.messages.push(d)
         break
       case 'Text':
         if (typeof d === 'string') {
-          txtMsg.push(d)
+          msg.messages.push(d)
         } else {
-          const _d = d as PartialLogData
-          if (_d.sensors) {
-            if (_d.sensors.temps) {
-              _d.sensors.temps.forEach((t) => {
-                txtMsg.push(`Temp "${t.name}" (${t.port}): ${t.temp}°C`)
-              })
-            }
-            if (_d.sensors.flow) {
-              const f = _d.sensors.flow
-              txtMsg.push(`Flow "${f.name}" (${f.port}): ${f.flow} l/h`)
-            }
-            if (_d.sensors.level) {
-              const l = _d.sensors.level
-              txtMsg.push(`Level "${l.name}" (${l.port}): ${l.level}`)
-            }
-          }
-          if (_d.fans) {
-            _d.fans.forEach((f) => {
-              txtMsg.push(`Fan "${f.name}" (${f.port}): ${f.pwm}%, ${f.rpm} RPM`)
-            })
-          }
-          if (_d.rgb) {
-            const r = _d.rgb
-            const msg: string[] = [
-              `RGB (${r.port}): Mode: ${r.mode}`,
-              `Speed: ${r.speed}`,
-              `Color: R:${r.color?.red} G:${r.color?.green} B:${r.color?.blue}`,
-            ]
-            txtMsg.push(msg.join(', '))
-          }
+          msg.messages.push(...buildMessageFromControllerData(d as PartialLogData))
         }
         break
     }
@@ -358,10 +330,50 @@ function buildMessage(msgs: unknown[]) {
 
   switch (logMode) {
     case 'JSON':
-      return [JSON.stringify(jsonMsg)]
+      return [JSON.stringify(msg)]
     case 'Text':
-      return [`[ ${timestamp} | ${level} ]> ${txtMsg.join(' | ')}`]
+      return [`[ ${msg.timestamp} | ${msg.level} ]> ${msg.messages.join(' | ')}`]
   }
+}
+
+function buildMessageFromControllerData(data: PartialLogData) {
+  const txtMsg: string[] = []
+
+  if (data.sensors) {
+    if (data.sensors.temps) {
+      data.sensors.temps.forEach((t) => {
+        txtMsg.push(`Temp "${t.name}" (${t.port}): ${t.temp}°C`)
+      })
+    }
+
+    if (data.sensors.flow) {
+      const f = data.sensors.flow
+      txtMsg.push(`Flow "${f.name}" (${f.port}): ${f.flow} l/h`)
+    }
+
+    if (data.sensors.level) {
+      const l = data.sensors.level
+      txtMsg.push(`Level "${l.name}" (${l.port}): ${l.level}`)
+    }
+  }
+
+  if (data.fans) {
+    data.fans.forEach((f) => {
+      txtMsg.push(`Fan "${f.name}" (${f.port}): ${f.pwm}%, ${f.rpm} RPM`)
+    })
+  }
+
+  if (data.rgb) {
+    const r = data.rgb
+    const msg: string[] = [
+      `RGB (${r.port}): Mode: ${r.mode}`,
+      `Speed: ${r.speed}`,
+      `Color: R:${r.color?.red} G:${r.color?.green} B:${r.color?.blue}`,
+    ]
+    txtMsg.push(msg.join(', '))
+  }
+
+  return txtMsg
 }
 
 function getTimestamp() {
