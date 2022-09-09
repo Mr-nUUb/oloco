@@ -1,5 +1,5 @@
 import { OLoCo } from '../lib/oloco'
-import type { FanProfilePoint, RgbData, SensorData, FanData } from '../lib/interfaces'
+import type { FanProfilePoint, RgbData, SensorData, FanData, LogData } from '../lib/interfaces'
 import { Config } from '../config'
 import Logger, { ILogHandler } from 'js-logger'
 import { inspect } from 'util'
@@ -13,7 +13,7 @@ import {
   Maximum,
 } from '../lib/profiles'
 import { FanPorts, TempPorts } from '../lib/iterables'
-import type { AppConfig, FanProfileCurves, LogTarget } from '../lib/types'
+import type { AppConfig, FanProfileCurves, LogTarget, PartialLogData } from '../lib/types'
 import { LogLevel } from '../lib/enums'
 import exitHook from 'exit-hook'
 import { access, appendFile, rm, stat } from 'fs/promises'
@@ -45,11 +45,12 @@ export const handler = async (): Promise<void> => {
 
     const interval = setInterval(() => {
       const current = controller.getSensor()
-      handleRgb()
-      handleSensor(current)
-      handleFan(current)
 
-      handleLogger()
+      const rgb = handleRgb()
+      const sensors = handleSensor(current)
+      const fans = handleFan(current)
+
+      handleLogger({ fans, rgb, sensors })
     }, Config.get('daemon').interval)
 
     exitHook(() => {
@@ -96,7 +97,11 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
   )
 }
 
-function handleSensor(sensor: SensorData) {
+function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
+  let resultTemps: LogData['sensors']['temps'] | undefined = undefined
+  let resultFlow: LogData['sensors']['flow'] | undefined = undefined
+  let resultLevel: LogData['sensors']['level'] | undefined = undefined
+
   TempPorts.forEach((port) => {
     const tempConfig = Config.get('temps')[port]
 
@@ -115,9 +120,11 @@ function handleSensor(sensor: SensorData) {
 
       if (temp > warn) {
         Logger.warn(`Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
-      } else {
-        Logger.info(`Temp ${name}: ${temp} °C`)
       }
+
+      const addTemp = { port, name, temp }
+      if (!resultTemps) resultTemps = [addTemp]
+      else resultTemps.push(addTemp)
     }
   })
 
@@ -126,32 +133,40 @@ function handleSensor(sensor: SensorData) {
     const name = flowConfig.name
     const warn = flowConfig.warning
     const flow = (sensor.flow.flow * flowConfig.signalsPerLiter) / 100
+
     if (flow < warn) {
       Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
-    } else {
-      Logger.info(`Sensor ${name}: ${flow} l/h`)
     }
+
+    resultFlow = { port: 'FLO', name, flow }
   }
 
   const levelConfig = Config.get('level')
   if (levelConfig.enabled) {
-    if (levelConfig.warning && sensor.level.level === 'Warning') {
-      Logger.warn(`Sensor ${levelConfig.name} is below warning level!`)
+    const name = levelConfig.name
+    const level = sensor.level.level
+    if (levelConfig.warning && level === 'Warning') {
+      Logger.warn(`Sensor ${name} is below warning level!`)
     }
+    resultLevel = { port: 'LVL', name, level }
   }
+
+  return { temps: resultTemps, flow: resultFlow, level: resultLevel }
 }
 
-function handleRgb() {
+function handleRgb(): PartialLogData['rgb'] {
   const newRgb = Config.get('rgb')
 
   if (!equalRgb(newRgb, oldRgb)) {
-    Logger.info(`Update RGB setting: ${inspect(newRgb, { compact: true })}`)
     controller.setRgb(newRgb)
     oldRgb = newRgb
   }
+  return { ...newRgb, port: 'Lx' }
 }
 
-function handleFan(sensor: SensorData) {
+function handleFan(sensor: SensorData): PartialLogData['fans'] {
+  let resultFans: PartialLogData['fans'] = undefined
+
   FanPorts.forEach((port) => {
     const fanConfig = Config.get('fans')[port]
 
@@ -204,19 +219,57 @@ function handleFan(sensor: SensorData) {
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
 
-      Logger.info(`Fan ${name}: ${currentFan.pwm}%, ${currentRpm} RPM`)
-
       if (oldFan[fanIndex].pwm !== speed) {
-        Logger.info(`Update Fan ${name}: ${speed}%`)
         controller.setFan(speed, port)
         oldFan[fanIndex].pwm = speed
       }
+
+      const addFan = { port, name, pwm: speed, rpm: currentRpm }
+      if (!resultFans) resultFans = [addFan]
+      else resultFans.push(addFan)
     }
   })
+
+  return resultFans
 }
 
-function handleLogger() {
+function handleLogger(data: PartialLogData) {
+  const messages: string[] = []
+
   setupLogger()
+
+  if (data.sensors) {
+    if (data.sensors.temps) {
+      data.sensors.temps.forEach((t) => {
+        messages.push(`Temp "${t.name}" (${t.port}): ${t.temp}°C`)
+      })
+    }
+    if (data.sensors.flow) {
+      const f = data.sensors.flow
+      messages.push(`Flow "${f.name}" (${f.port}): ${f.flow} l/h`)
+    }
+    if (data.sensors.level) {
+      const l = data.sensors.level
+      messages.push(`Level "${l.name}" (${l.port}): ${l.level}`)
+    }
+  }
+  if (data.fans) {
+    data.fans.forEach((f) => {
+      messages.push(`Fan "${f.name}" (${f.port}): ${f.pwm}%, ${f.rpm} RPM`)
+    })
+  }
+  if (data.rgb) {
+    const r = data.rgb
+    const msg: string[] = [
+      `RGB (${r.port}): Mode: ${r.mode}`,
+      `Speed: ${r.speed}`,
+      `Color: R:${r.color?.red} G:${r.color?.green} B:${r.color?.blue}`,
+    ]
+    messages.push(msg.join(', '))
+  }
+
+  Logger.info(messages.join(' | '))
+
   logCounter++
 }
 
