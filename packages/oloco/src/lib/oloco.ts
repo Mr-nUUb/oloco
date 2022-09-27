@@ -137,7 +137,7 @@ export class OLoCo {
     const packet = OLoCo._createPacket('Read', 'Sensor')
     let offset = 7
 
-    packet[9] = 0x20 // offset for checksum? length of answer?
+    packet[9] = 0x20 // position of checksum? length of answer?
 
     const recv = this._write(packet)
 
