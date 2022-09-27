@@ -161,6 +161,9 @@ export const schema: Schema<AppConfig> = {
       interval: {
         type: 'number',
       },
+      logDelimiter: {
+        type: 'string',
+      },
       logFile: {
         type: 'string',
       },
@@ -189,6 +192,7 @@ export const schema: Schema<AppConfig> = {
     },
     required: [
       'interval',
+      'logDelimiter',
       'logFile',
       'logFileMaxSizeMB',
       'logLevel',
@@ -296,6 +300,7 @@ export const defaults: Readonly<AppConfig> = {
   },
   daemon: {
     interval: 1000,
+    logDelimiter: ', ',
     logFile: resolve(dirname(new Conf({ configName: 'dummy' }).path), 'logfile.log'),
     logFileMaxSizeMB: 16,
     logLevel: 'Info',

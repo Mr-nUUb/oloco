@@ -60,6 +60,7 @@ export type AppConfig = {
   }
   rgb: RgbData & { name: string; enabled: boolean }
   daemon: {
+    logDelimiter: string
     logFile: string
     logFileMaxSizeMB: number
     logTarget: LogTarget

@@ -316,7 +316,7 @@ function checkLogCounter() {
 }
 
 function buildMessage(msgs: Parameters<ILogHandler>[0], ctx: Parameters<ILogHandler>[1]) {
-  const logMode = Config.get('daemon').logMode
+  const { logDelimiter, logMode } = Config.get('daemon')
   const data = Object.values(msgs)
 
   const msg = {
@@ -344,7 +344,7 @@ function buildMessage(msgs: Parameters<ILogHandler>[0], ctx: Parameters<ILogHand
     case 'JSON':
       return [JSON.stringify(msg)]
     case 'Text':
-      return [`[${msg.timestamp} ${msg.level[0]}] ${msg.messages.join(' | ')}`]
+      return [`[${msg.timestamp} ${msg.level[0]}] ${msg.messages.join(logDelimiter)}`]
   }
 }
 
