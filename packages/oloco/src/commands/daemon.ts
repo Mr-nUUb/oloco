@@ -322,28 +322,19 @@ function buildMessage(msgs: Parameters<ILogHandler>[0], ctx: Parameters<ILogHand
   const msg = {
     timestamp: getTimestamp(),
     level: ctx.level.name,
-    messages: [] as unknown[],
+    messages: [] as string[],
   }
-
-  data.forEach((d) => {
-    switch (logMode) {
-      case 'JSON':
-        msg.messages.push(d)
-        break
-      case 'Text':
-        if (typeof d === 'string') {
-          msg.messages.push(d)
-        } else {
-          msg.messages.push(...buildMessageFromControllerData(d as PartialLogData))
-        }
-        break
-    }
-  })
 
   switch (logMode) {
     case 'JSON':
+      msg.messages = data
       return [JSON.stringify(msg)]
     case 'Text':
+      data.forEach((d) => {
+        msg.messages.push(
+          ...(typeof d === 'string' ? [d] : buildMessageFromControllerData(d as PartialLogData)),
+        )
+      })
       return [`[${msg.timestamp} ${msg.level[0]}] ${msg.messages.join(logDelimiter)}`]
   }
 }
