@@ -344,7 +344,7 @@ function buildMessage(msgs: Parameters<ILogHandler>[0], ctx: Parameters<ILogHand
     case 'JSON':
       return [JSON.stringify(msg)]
     case 'Text':
-      return [`[ ${msg.timestamp} | ${msg.level.padEnd(5)} ]> ${msg.messages.join(' | ')}`]
+      return [`[${msg.timestamp} ${msg.level[0]}] ${msg.messages.join(' | ')}`]
   }
 }
 
@@ -354,36 +354,38 @@ function buildMessageFromControllerData(data: PartialLogData) {
   if (data.sensors) {
     if (data.sensors.temps) {
       data.sensors.temps.forEach((t) => {
-        txtMsg.push(`Temp "${t.name}" (${t.port}): ${t.temp}°C`)
+        txtMsg.push(`Temp ${t.name}: ${t.temp}°C`)
       })
     }
 
     if (data.sensors.flow) {
       const f = data.sensors.flow
-      txtMsg.push(`Flow "${f.name}" (${f.port}): ${f.flow} l/h`)
+      txtMsg.push(`Flow ${f.name}: ${f.flow} l/h`)
     }
 
     if (data.sensors.level) {
       const l = data.sensors.level
-      txtMsg.push(`Level "${l.name}" (${l.port}): ${l.level}`)
+      txtMsg.push(`Level ${l.name}: ${l.level}`)
     }
   }
 
   if (data.fans) {
     data.fans.forEach((f) => {
-      txtMsg.push(`Fan "${f.name}" (${f.port}): ${f.pwm}%, ${f.rpm} RPM`)
+      txtMsg.push(`Fan ${f.name}: ${f.rpm} RPM`)
     })
   }
 
+  /*
   if (data.rgb) {
     const r = data.rgb
     const msg: string[] = [
-      `RGB "${r.name}" (${r.port}): Mode: ${r.mode}`,
+      `RGB ${r.name}: Mode: ${r.mode}`,
       `Speed: ${r.speed}`,
       `Color: R:${r.color?.red} G:${r.color?.green} B:${r.color?.blue}`,
     ]
     txtMsg.push(msg.join(', '))
   }
+  */
 
   return txtMsg
 }
