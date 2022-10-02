@@ -345,24 +345,24 @@ function buildMessageFromControllerData(data: PartialLogData) {
   if (data.sensors) {
     if (data.sensors.temps) {
       data.sensors.temps.forEach((t) => {
-        txtMsg.push(`Temp ${t.name}: ${t.temp}°C`)
+        txtMsg.push(`Temp${padName(t.name)}: ${t.temp}°C`)
       })
     }
 
     if (data.sensors.flow) {
       const f = data.sensors.flow
-      txtMsg.push(`Flow ${f.name}: ${f.flow} l/h`)
+      txtMsg.push(`Flow${padName(f.name)}: ${f.flow} l/h`)
     }
 
     if (data.sensors.level) {
       const l = data.sensors.level
-      txtMsg.push(`Level ${l.name}: ${l.level}`)
+      txtMsg.push(`Level${padName(l.name)}: ${l.level}`)
     }
   }
 
   if (data.fans) {
     data.fans.forEach((f) => {
-      txtMsg.push(`Fan ${f.name}: ${f.rpm} RPM`)
+      txtMsg.push(`Fan${padName(f.name)}: ${f.rpm} RPM`)
     })
   }
 
@@ -394,4 +394,8 @@ function getTimestamp() {
 
 function average(...values: number[]) {
   return values.length > 1 ? values.reduce((x, s) => s + x) / values.length : values[0]
+}
+
+function padName(name: string | undefined): string {
+  return name && name.length > 0 ? name.padStart(name.length + 1) : ''
 }
