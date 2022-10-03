@@ -347,33 +347,33 @@ function buildMessageFromControllerData(data: PartialLogData) {
   if (data.sensors) {
     if (data.sensors.temps) {
       data.sensors.temps.forEach((t) => {
-        txtMsg.push(`${t.name || t.port}: ${t.temp}°C`)
+        const { name, port, temp } = t
+        txtMsg.push(`${name || port}: ${temp} °C`)
       })
     }
 
     if (data.sensors.flow) {
-      const f = data.sensors.flow
-      txtMsg.push(`${f.name || f.port}: ${f.flow} l/h`)
+      const { name, port, flow } = data.sensors.flow
+      txtMsg.push(`${name || port}: ${flow} l/h`)
     }
 
     if (data.sensors.level) {
-      const l = data.sensors.level
-      txtMsg.push(`${l.name || l.port}: ${l.level}`)
+      const { name, port, level } = data.sensors.level
+      txtMsg.push(`${name || port}: ${level}`)
     }
   }
 
   if (data.fans) {
     data.fans.forEach((f) => {
-      txtMsg.push(`${f.name || f.port}: ${f.rpm} RPM`)
+      const { name, port, rpm } = f
+      txtMsg.push(`${name || port}: ${rpm} RPM`)
     })
   }
 
   /*
   if (data.rgb) {
-    const r = data.rgb
-    const color = `${r.color?.red},${r.color?.green},${r.color?.blue}`
-    const msg = `${r.name || r.port}: ${r.mode}/${r.speed}/${color}`
-    txtMsg.push(msg)
+    const { name, port, color, mode, speed } = data.rgb
+    txtMsg.push(`${name || port}: ${mode}/${speed}/${color?.red},${color?.green},${color?.blue}`)
   }
   */
 
