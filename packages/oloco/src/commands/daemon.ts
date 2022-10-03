@@ -342,27 +342,29 @@ function buildMessage(msgs: Parameters<ILogHandler>[0], ctx: Parameters<ILogHand
 function buildMessageFromControllerData(data: PartialLogData) {
   const txtMsg: string[] = []
 
+  // Names are optional, ports are always there
+
   if (data.sensors) {
     if (data.sensors.temps) {
       data.sensors.temps.forEach((t) => {
-        txtMsg.push(`Temp${padName(t.name)}: ${t.temp}°C`)
+        txtMsg.push(`${t.name || t.port}: ${t.temp}°C`)
       })
     }
 
     if (data.sensors.flow) {
       const f = data.sensors.flow
-      txtMsg.push(`Flow${padName(f.name)}: ${f.flow} l/h`)
+      txtMsg.push(`${f.name || f.port}: ${f.flow} l/h`)
     }
 
     if (data.sensors.level) {
       const l = data.sensors.level
-      txtMsg.push(`Level${padName(l.name)}: ${l.level}`)
+      txtMsg.push(`${l.name || l.port}: ${l.level}`)
     }
   }
 
   if (data.fans) {
     data.fans.forEach((f) => {
-      txtMsg.push(`Fan${padName(f.name)}: ${f.rpm} RPM`)
+      txtMsg.push(`${f.name || f.port}: ${f.rpm} RPM`)
     })
   }
 
@@ -394,8 +396,4 @@ function getTimestamp() {
 
 function average(...values: number[]) {
   return values.length > 1 ? values.reduce((x, s) => s + x) / values.length : values[0]
-}
-
-function padName(name: string | undefined): string {
-  return name && name.length > 0 ? name.padStart(name.length + 1) : ''
 }
