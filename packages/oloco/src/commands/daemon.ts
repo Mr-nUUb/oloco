@@ -371,12 +371,9 @@ function buildMessageFromControllerData(data: PartialLogData) {
   /*
   if (data.rgb) {
     const r = data.rgb
-    const msg: string[] = [
-      `RGB ${r.name}: Mode: ${r.mode}`,
-      `Speed: ${r.speed}`,
-      `Color: R:${r.color?.red} G:${r.color?.green} B:${r.color?.blue}`,
-    ]
-    txtMsg.push(msg.join(', '))
+    const color = `${r.color?.red},${r.color?.green},${r.color?.blue}`
+    const msg = `${r.name || r.port}: ${r.mode}/${r.speed}/${color}`
+    txtMsg.push(msg)
   }
   */
 
