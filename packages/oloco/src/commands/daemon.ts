@@ -181,11 +181,10 @@ function handleFan(sensor: SensorData): PartialLogData['fans'] {
     if (fanConfig.enabled) {
       const name = fanConfig.name
       const warn = fanConfig.warning
-      const currentFan = controller.getFan(port)[0]
-      const currentRpm = currentFan.rpm
+      const rpm = controller.getFan(port)[0].rpm
 
-      if (currentRpm < warn) {
-        Logger.warn(`${name || port} is below warning speed: ${currentRpm} < ${warn} RPM!`)
+      if (rpm < warn) {
+        Logger.warn(`${name || port} is below warning speed: ${rpm} < ${warn} RPM!`)
       }
 
       const customProfile = Config.get('profiles')[fanConfig.customProfile]
@@ -226,16 +225,16 @@ function handleFan(sensor: SensorData): PartialLogData['fans'] {
         findLessOrEqual(curve, controlTemp),
         findGreater(curve, controlTemp),
       )
-      const speed = interpolate(controlTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
+      const pwm = interpolate(controlTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
 
-      if (oldFan[fanIndex].pwm !== speed) {
-        controller.setFan(speed, port)
-        oldFan[fanIndex].pwm = speed
+      if (oldFan[fanIndex].pwm !== pwm) {
+        controller.setFan(pwm, port)
+        oldFan[fanIndex].pwm = pwm
       }
 
-      const addFan = { port, name, pwm: speed, rpm: currentRpm }
+      const addFan = { port, name, pwm, rpm }
       if (!resultFans) resultFans = [addFan]
       else resultFans.push(addFan)
     }
