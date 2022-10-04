@@ -163,16 +163,12 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
 function handleRgb(): PartialLogData['rgb'] {
   const newRgb = Config.get('rgb')
 
-  if (newRgb.enabled) {
-    if (!equalRgb(newRgb, oldRgb)) {
-      controller.setRgb(newRgb)
-      oldRgb = newRgb
-    }
+  if (!newRgb.enabled) newRgb.mode = 'Off'
+
+  if (!equalRgb(newRgb, oldRgb)) {
+    controller.setRgb(newRgb)
+    oldRgb = newRgb
     return { ...newRgb, port: 'Lx' }
-  } else {
-    oldRgb = { ...newRgb, mode: 'Off' }
-    Config.set('rgb', oldRgb)
-    controller.setRgb(oldRgb)
   }
 }
 
@@ -379,12 +375,10 @@ function buildMessageFromControllerData(data: PartialLogData) {
     })
   }
 
-  /*
   if (data.rgb) {
     const { name, port, color, mode, speed } = data.rgb
     txtMsg.push(`${name || port}: ${mode}/${speed}/${color?.red},${color?.green},${color?.blue}`)
   }
-  */
 
   return txtMsg
 }
