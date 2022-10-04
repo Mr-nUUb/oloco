@@ -119,7 +119,7 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
       temp += tempConfig.offset
 
       if (temp > warn) {
-        Logger.warn(`Temp ${name} is above warning temperature: ${temp} > ${warn} °C!`)
+        Logger.warn(`${name || port} is above warning temperature: ${temp} > ${warn} °C!`)
       }
 
       const addTemp = { port, name, temp }
@@ -132,23 +132,25 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
   if (flowConfig.enabled) {
     const name = flowConfig.name
     const warn = flowConfig.warning
+    const port = sensor.flow.port
     const flow = (sensor.flow.flow * flowConfig.signalsPerLiter) / 100
 
     if (flow < warn) {
-      Logger.warn(`Sensor ${name} is below warning flow: ${flow} < ${warn} l/h!`)
+      Logger.warn(`${name || port} is below warning flow: ${flow} < ${warn} l/h!`)
     }
 
-    resultFlow = { port: 'FLO', name, flow }
+    resultFlow = { port, name, flow }
   }
 
   const levelConfig = Config.get('level')
   if (levelConfig.enabled) {
     const name = levelConfig.name
+    const port = sensor.level.port
     const level = sensor.level.level
     if (levelConfig.warning && level === 'Warning') {
-      Logger.warn(`Sensor ${name} is below warning level!`)
+      Logger.warn(`${name || port} is below warning level!`)
     }
-    resultLevel = { port: 'LVL', name, level }
+    resultLevel = { port, name, level }
   }
 
   return { temps: resultTemps, flow: resultFlow, level: resultLevel }
@@ -183,7 +185,7 @@ function handleFan(sensor: SensorData): PartialLogData['fans'] {
       const currentRpm = currentFan.rpm
 
       if (currentRpm < warn) {
-        Logger.warn(`Fan ${name} is below warning speed: ${currentRpm} < ${warn} RPM!`)
+        Logger.warn(`${name || port} is below warning speed: ${currentRpm} < ${warn} RPM!`)
       }
 
       const customProfile = Config.get('profiles')[fanConfig.customProfile]
