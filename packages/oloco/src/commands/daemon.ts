@@ -13,7 +13,13 @@ import {
   Maximum,
 } from '../lib/profiles'
 import { FanPorts, TempPorts } from '../lib/iterables'
-import type { AppConfig, FanProfileCurves, LogTarget, PartialLogData } from '../lib/types'
+import type {
+  AppConfig,
+  FanProfileCurves,
+  FanProfileName,
+  LogTarget,
+  PartialLogData,
+} from '../lib/types'
 import { LogLevel } from '../lib/enums'
 import exitHook from 'exit-hook'
 import { access, appendFile, rm, stat } from 'fs/promises'
@@ -66,21 +72,19 @@ export const handler = async (): Promise<void> => {
 }
 
 function findLessOrEqual(curve: FanProfilePoint[], find: number) {
-  let max = 0
-  const match = curve.find((c) => c.temp === find)
-  if (match) return match
-  curve.forEach((value) => {
-    if (value.temp < find && value.temp - find > max - find) max = value.temp
-  })
-  return curve.find((val) => val.temp === max) as FanProfilePoint
+  const maximum = curve.reduce(
+    (max, cur) => (cur.temp < find && cur.temp - find > max - find ? cur.temp : max),
+    0,
+  )
+  return curve.find((val) => val.temp === maximum)
 }
 
 function findGreater(curve: FanProfilePoint[], find: number) {
-  let min = 100
-  curve.forEach((value) => {
-    if (value.temp > find && value.temp + find < min + find) min = value.temp
-  })
-  return curve.find((val) => val.temp === min) as FanProfilePoint
+  const minimum = curve.reduce(
+    (min, cur) => (cur.temp > find && cur.temp + find < min + find ? cur.temp : min),
+    100,
+  )
+  return curve.find((val) => val.temp === minimum)
 }
 
 function interpolate(x: number, x1: number, x2: number, y1: number, y2: number) {
@@ -221,8 +225,11 @@ function handleFan(sensor: SensorData): PartialLogData['fans'] {
       const controlTemp = tempMode === 'Average' ? average(...temps) : Math.max(...temps)
 
       const curve = fanProfiles[fanConfig.activeProfile]
-      const lower = findLessOrEqual(curve, controlTemp)
-      const higher = findGreater(curve, controlTemp)
+      const { lower, higher } = checkPoints(
+        fanConfig.activeProfile,
+        findLessOrEqual(curve, controlTemp),
+        findGreater(curve, controlTemp),
+      )
       const speed = interpolate(controlTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
       const fanIndex = oldFan.findIndex((f) => f.port === port)
@@ -395,4 +402,17 @@ function getTimestamp() {
 
 function average(...values: number[]) {
   return values.length > 1 ? values.reduce((x, s) => s + x) / values.length : values[0]
+}
+
+function checkPoints(
+  profile: FanProfileName,
+  lower?: FanProfilePoint,
+  higher?: FanProfilePoint,
+): { lower: FanProfilePoint; higher: FanProfilePoint } {
+  if (!lower || !higher) {
+    const max = { pwm: 100, temp: 100 }
+    Logger.warn(`Fan profile ${profile} incomplete or broken, using max values!`)
+    return { lower: max, higher: max }
+  }
+  return { lower, higher }
 }
