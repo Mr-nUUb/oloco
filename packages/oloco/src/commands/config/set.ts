@@ -20,16 +20,18 @@ export const handler = (yargs: Arguments): void => {
   const entry = yargs.entry as string
   const value = yargs.value as string
 
-  let val: string | number | boolean
-  if (!isNaN(Number.parseInt(value))) val = Number.parseInt(value)
-  else if (value.toUpperCase() === 'TRUE') val = true
-  else if (value.toUpperCase() === 'FALSE') val = false
-  else val = value as string
+  const val = !isNaN(Number.parseInt(value))
+    ? Number.parseInt(value)
+    : value.toUpperCase() === 'TRUE'
+    ? true
+    : value.toUpperCase() === 'FALSE'
+    ? false
+    : value
 
   try {
     Config.set(entry, val)
   } catch (error) {
-    if (error instanceof Error) console.error(error.message)
+    console.error((error as Error).message || error)
     exit(1)
   }
 }
