@@ -309,6 +309,7 @@ function setupLogger() {
     currentLogTarget = daemonConfig.logTarget
   }
 }
+
 function checkLogCounter() {
   return logCounter === -1 || logCounter % daemonConfig.logThreshold === 0
 }
