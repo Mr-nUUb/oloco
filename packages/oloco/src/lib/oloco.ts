@@ -139,16 +139,14 @@ export class OLoCo {
     // anybody got an idea what kind of checksum EKWB is using?
 
     // prepend report number for windows
-    if (platform() === 'win32') packet.unshift(0x00)
-
-    this._device.write(packet)
+    //if (platform() === 'win32') packet.unshift(0x00)
+    this._device.write((platform() === 'win32' ? [0x00] : []).concat(packet))
     const recv = this._device.readTimeout(this._readTimeout)
     if (recv.length === 0) throw 'Unable to read response!'
 
     // check response here
     // since checksums are optional, I doubt checking the response is worth it
 
-    if (platform() === 'win32') packet.shift()
     OLoCo._validateRecv(packet, recv)
 
     return recv
