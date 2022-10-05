@@ -388,7 +388,7 @@ function getTimestamp() {
 }
 
 function average(...values: number[]) {
-  return values.length > 1 ? values.reduce((x, s) => s + x) / values.length : values[0]
+  return values.length > 1 ? values.reduce((x, s) => s + x, 0) / values.length : values[0]
 }
 
 function checkPoints(
