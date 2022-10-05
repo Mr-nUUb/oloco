@@ -10,6 +10,8 @@ export class OLoCo {
   private _device
   private _readTimeout = 1000
 
+  private static _packetLength = 63
+
   constructor(device?: HID) {
     if (device) this._device = device
     else {
@@ -29,7 +31,7 @@ export class OLoCo {
   }
 
   private static _createPacket(mode: CommMode, port: DevicePort): number[] {
-    const packet = new Array<number>(63)
+    const packet = new Array<number>(OLoCo._packetLength)
 
     const header: { [k in CommMode]: number[] } = {
       Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
@@ -47,7 +49,7 @@ export class OLoCo {
       RGB: [0xa2, 0x60],
     }
 
-    for (let i = 0; i < packet.length; i++) {
+    for (let i = 0; i < OLoCo._packetLength; i++) {
       if (i === 6 || i === 7) packet[i] = portAddress[port][i - 6]
       else if (i < header[mode].length) packet[i] = header[mode][i]
       else packet[i] = 0
