@@ -2,7 +2,7 @@ import { HID, devices } from 'node-hid'
 import { platform } from 'os'
 import type { CurveData, DeviceInformation, FanData, RgbData, SensorData } from './interfaces'
 import { FanPorts, TempPorts } from './iterables'
-import type { CommMode, DevicePort, FanPort, RgbMode, RgbSpeed } from './types'
+import type { CommMode, DevicePort, FanPort } from './types'
 import { sleep } from '../util'
 import { RgbModeEnum, RgbSpeedEnum } from './enums'
 
@@ -198,8 +198,8 @@ export class OLoCo {
 
     return {
       port: 'Lx',
-      mode: RgbModeEnum[recv[9]] as RgbMode,
-      speed: RgbSpeedEnum[recv[11]] as RgbSpeed,
+      mode: RgbModeEnum[recv[9]] as keyof typeof RgbModeEnum,
+      speed: RgbSpeedEnum[recv[11]] as keyof typeof RgbSpeedEnum,
       color: { red: recv[13], green: recv[14], blue: recv[15] },
     }
   }
