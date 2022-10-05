@@ -56,6 +56,62 @@ export class OLoCo {
     return packet
   }
 
+  private static _validateRecv(write: number[], recv: number[]) {
+    const writeMode = write[2] === 0x29
+    const fans =
+      (write[6] === 0xa0 && write[7] === 0xa0) ||
+      (write[6] === 0xa0 && write[7] === 0xc0) ||
+      (write[6] === 0xa0 && write[7] === 0xe0) ||
+      (write[6] === 0xa1 && write[7] === 0x00) ||
+      (write[6] === 0xa1 && write[7] === 0x20) ||
+      (write[6] === 0xa1 && write[7] === 0xe0)
+    const sensors = write[6] === 0xa2 && write[7] === 0x20
+    const rgb = write[6] === 0xa2 && write[7] === 0x60
+
+    if (
+      (fans &&
+        (recv[0] !== 0x10 ||
+          recv[1] !== 0x12 ||
+          recv[2] !== (writeMode ? 0x27 : 0x17) ||
+          recv[3] !== 0xaa ||
+          recv[4] !== 0x01 ||
+          recv[5] !== 0x03 ||
+          recv[6] !== 0x00 ||
+          recv[7] !== 0x10 ||
+          recv[8] !== 0x00 ||
+          recv[9] !== 0x00 ||
+          recv[10] !== 0x00)) ||
+      (sensors &&
+        (recv[0] !== 0x10 ||
+          recv[1] !== 0x12 ||
+          recv[2] !== 0x27 ||
+          recv[3] !== 0xaa ||
+          recv[4] !== 0x01 ||
+          recv[5] !== 0x03 ||
+          recv[6] !== 0x00 ||
+          recv[7] !== 0x20 ||
+          recv[8] !== 0x00 ||
+          recv[9] !== 0x01 ||
+          recv[10] !== 0x00)) ||
+      (rgb &&
+        (recv[0] !== 0x10 ||
+          recv[1] !== 0x12 ||
+          recv[2] !== (writeMode ? 0x27 : 0x17) ||
+          recv[3] !== 0xaa ||
+          recv[4] !== 0x01 ||
+          recv[5] !== 0x03 ||
+          recv[6] !== 0x00 ||
+          recv[7] !== 0x10 ||
+          recv[8] !== 0x00))
+    ) {
+      throw new Error(
+        `Invalid packet received: [ ${recv
+          .map((p) => `0x${p.toString(16).padStart(2, '0')}`)
+          .join(', ')}} ]`,
+      )
+    }
+  }
+
   private _getFan(port: FanPort): FanData {
     const recv = this._write(OLoCo._createPacket('Read', port))
 
@@ -91,6 +147,9 @@ export class OLoCo {
 
     // check response here
     // since checksums are optional, I doubt checking the response is worth it
+
+    if (platform() === 'win32') packet.shift()
+    OLoCo._validateRecv(packet, recv)
 
     return recv
   }
