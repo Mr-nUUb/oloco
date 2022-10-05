@@ -1,5 +1,3 @@
-import type { FanProfilePoint } from '../../../lib/interfaces'
-import { FanProfiles } from '../../../lib/iterables'
 import type { FanProfileCurves, FanProfileName } from '../../../lib/types'
 import { exit } from 'process'
 import type { Arguments, Argv } from 'yargs'
@@ -37,26 +35,25 @@ export const handler = (yargs: Arguments): void => {
     exit(1)
   }
 
-  let profile: FanProfilePoint[]
+  const predefined: Omit<FanProfileCurves, 'Custom'> = {
+    AirSilent,
+    AirBalanced,
+    LiquidSilent,
+    LiquidBalanced,
+    LiquidPerformance,
+    Maximum,
+  }
 
-  if (!profiles[name]) {
-    if (FanProfiles.some((f) => f === name)) {
-      const predefined: FanProfileCurves = {
-        AirSilent,
-        AirBalanced,
-        LiquidSilent,
-        LiquidBalanced,
-        LiquidPerformance,
-        Maximum,
-        Custom: [],
-      }
-      profile = predefined[name as FanProfileName]
-    } else {
-      console.error(`Couldn't find profile "${name}"!`)
-      exit(2)
-    }
-  } else {
-    profile = profiles[name]
+  const profile =
+    name in profiles
+      ? profiles[name]
+      : name in predefined
+      ? predefined[name as Exclude<FanProfileName, 'Custom'>]
+      : undefined
+
+  if (!profile) {
+    console.error(`Couldn't find profile "${name}"!`)
+    exit(2)
   }
 
   try {
