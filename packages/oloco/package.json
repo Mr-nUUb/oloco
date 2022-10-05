@@ -25,7 +25,8 @@
     "clean": "rimraf ./dist ./tsconfig.build.tsbuildinfo",
     "compile": "tsc -b tsconfig.build.json --verbose",
     "prepack": "run build",
-    "start": "ts-node src/cli.ts"
+    "start": "node dist/cli.js",
+    "start:dev": "ts-node src/cli.ts"
   },
   "dependencies": {
     "conf": "^10.2.0",
