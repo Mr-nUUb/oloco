@@ -29,9 +29,9 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   controller.setReadTimeout(Config.get('readTimeout'))
   const curves = await controller.getResponseCurve(port)
   if (save) {
-    curves.forEach((curve) => {
-      Config.set(`fans.${curve.port}.responseCurve`, curve.curve)
-    })
+    for (let i = 0; i < curves.length; i++) {
+      Config.set(`fans.${curves[i].port}.responseCurve`, curves[i].curve)
+    }
   }
 
   logObject(curves)

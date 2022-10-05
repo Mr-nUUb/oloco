@@ -100,25 +100,39 @@ export class OLoCo {
   }
 
   public getFan(port?: FanPort): FanData[] {
-    return port ? [this._getFan(port)] : FanPorts.map((p) => this._getFan(p))
+    const ports = port ? [port] : FanPorts
+    const result = new Array<FanData>(ports.length)
+
+    for (let i = 0; i < ports.length; i++) {
+      result[i] = this._getFan(ports[i])
+    }
+
+    return result
   }
 
   public async getResponseCurve(port?: FanPort, interval = 10000): Promise<CurveData[]> {
-    const curves: CurveData[] = port
-      ? [{ port, curve: [] }]
-      : FanPorts.map((p) => ({ port: p, curve: [] }))
+    const pointsNr = 11
     const backups = this.getFan(port)
+    const ports = port ? [port] : FanPorts
+    const curves = new Array<CurveData>(ports.length)
 
-    for (let i = 0; i <= 100; i += 10) {
-      this.setFan(i, port)
-      await sleep(interval)
-      curves.forEach((c) => {
-        const current = this._getFan(c.port)
-        c.curve.push({ pwm: current.pwm, rpm: current.rpm })
-      })
+    for (let i = 0; i < ports.length; i++) {
+      curves[i] = { port: ports[i], curve: new Array(pointsNr) }
     }
 
-    backups.forEach((b) => this._setFan(b.pwm, b.port))
+    for (let i = 0; i < pointsNr; i++) {
+      this.setFan(i * 10, port)
+      await sleep(interval)
+      for (let c = 0; c < curves.length; c++) {
+        const current = this._getFan(curves[c].port)
+        curves[c].curve[i] = { pwm: current.pwm, rpm: current.rpm }
+      }
+    }
+
+    for (let i = 0; i < backups.length; i++) {
+      this._setFan(backups[i].pwm, backups[i].port)
+    }
+
     return curves
   }
 
@@ -135,20 +149,22 @@ export class OLoCo {
 
   public getSensor(): SensorData {
     const packet = OLoCo._createPacket('Read', 'Sensor')
-    let offset = 7
+    const offset = 11
 
     packet[9] = 0x20 // position of checksum? length of answer?
 
     const recv = this._write(packet)
 
-    return {
-      temps: TempPorts.map((port) => {
-        const temp = recv[(offset += 4)]
-        return { port, temp: temp !== 231 ? temp : undefined }
-      }),
-      flow: { port: 'FLO', flow: recv[23] },
-      level: { port: 'LVL', level: recv[27] === 100 ? 'Good' : 'Warning' },
+    const flow: SensorData['flow'] = { port: 'FLO', flow: recv[23] }
+    const level: SensorData['level'] = { port: 'LVL', level: recv[27] === 100 ? 'Good' : 'Warning' }
+    const temps: SensorData['temps'] = new Array(TempPorts.length)
+
+    for (let i = 0; i < temps.length; i++) {
+      const temp = recv[offset + i * 4]
+      temps[i] = { port: TempPorts[i], temp: temp !== 231 ? temp : undefined }
     }
+
+    return { flow, level, temps }
   }
 
   public getInformation(): DeviceInformation {
@@ -160,7 +176,10 @@ export class OLoCo {
   }
 
   public setFan(speed: number, port?: FanPort): void {
-    port ? this._setFan(speed, port) : FanPorts.forEach((p) => this._setFan(speed, p))
+    const ports = port ? [port] : FanPorts
+    for (let i = 0; i < ports.length; i++) {
+      this._setFan(speed, ports[i])
+    }
   }
 
   public setRgb(rgb: RgbData): number[] {
