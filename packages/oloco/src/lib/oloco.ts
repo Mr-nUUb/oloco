@@ -99,7 +99,7 @@ export class OLoCo {
     const len = expect.length
     if (recv.length !== len) throw new Error('length mismatch')
     for (let i = 0; i < len; i++) {
-      if (recv[i] !== expect[i]) throw new Error(`mismath on index ${i}`)
+      if (recv[i] !== expect[i]) throw new Error(`mismatch on index ${i}`)
     }
   }
 
