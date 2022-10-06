@@ -83,22 +83,24 @@ export class OLoCo {
   }
 
   private static _compareHeader(header: number[], expect: number[]) {
-    if (!OLoCo._compareBytes(header, expect)) {
+    try {
+      OLoCo._compareBytes(header, expect)
+    } catch (err) {
       const fmtHdr = OLoCo._formatBytes(header)
       const fmtExp = OLoCo._formatBytes(expect)
       throw new Error(
-        `Invalid packet received, malformed header: received ${fmtHdr}, expected ${fmtExp}`,
+        'Invalid packet received, malformed header: ' +
+          `received ${fmtHdr}, expected ${fmtExp}, ${(err as Error).message}`,
       )
     }
   }
 
   private static _compareBytes(recv: number[], expect: number[]) {
     const len = expect.length
-    if (recv.length !== len) return false
+    if (recv.length !== len) throw new Error('length mismatch')
     for (let i = 0; i < len; i++) {
-      if (recv[i] !== expect[i]) return false
+      if (recv[i] !== expect[i]) throw new Error(`mismath on index ${i}`)
     }
-    return true
   }
 
   private static _formatBytes(arr: number[]) {
