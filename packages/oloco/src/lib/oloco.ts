@@ -50,7 +50,8 @@ export class OLoCo {
 
   private static _createPacket(mode: CommMode, port: DevicePort): number[] {
     const header = OLoCo._writeHeaders[mode]
-    const packet = header.concat(new Array<number>(OLoCo._packetLength - header.length).fill(0x00))
+    const packet = new Array<number>(OLoCo._packetLength - header.length).fill(0x00)
+    packet.unshift(...header)
     packet[6] = OLoCo._portAddresses[port][0]
     packet[7] = OLoCo._portAddresses[port][1]
     return packet
