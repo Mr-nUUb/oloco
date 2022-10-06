@@ -15,6 +15,22 @@ export class OLoCo {
     Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
     Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
   }
+  private static _recvHeaders: {
+    [k in 'fans' | 'sensors' | 'rgb']: { [m in CommMode]: number[] }
+  } = {
+    fans: {
+      Read: [0x10, 0x12, 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10],
+      Write: [0x10, 0x12, 0x27, 0xaa, 0x01, 0x03, 0x00, 0x10],
+    },
+    sensors: {
+      Read: [0x10, 0x12, 0x27, 0xaa, 0x01, 0x03, 0x00, 0x20],
+      Write: [],
+    },
+    rgb: {
+      Read: [0x10, 0x12, 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10],
+      Write: [0x10, 0x12, 0x27, 0xaa, 0x01, 0x03, 0x00, 0x10],
+    },
+  }
   private static _portAddresses: { [k in DevicePort]: number[] } = {
     F1: [0xa0, 0xa0],
     F2: [0xa0, 0xc0],
@@ -57,28 +73,30 @@ export class OLoCo {
   }
 
   private static _validateRecv(recv: number[], expect: number[]) {
-    const write = expect[2] === 0x29
-    const fans =
+    const mode: CommMode = expect[2] === 0x29 ? 'Write' : 'Read'
+    const type: keyof typeof OLoCo._recvHeaders | 'unknown' =
       (expect[6] === OLoCo._portAddresses.F1[0] && expect[7] === OLoCo._portAddresses.F1[1]) ||
       (expect[6] === OLoCo._portAddresses.F2[0] && expect[7] === OLoCo._portAddresses.F2[1]) ||
       (expect[6] === OLoCo._portAddresses.F3[0] && expect[7] === OLoCo._portAddresses.F3[1]) ||
       (expect[6] === OLoCo._portAddresses.F4[0] && expect[7] === OLoCo._portAddresses.F4[1]) ||
       (expect[6] === OLoCo._portAddresses.F5[0] && expect[7] === OLoCo._portAddresses.F5[1]) ||
       (expect[6] === OLoCo._portAddresses.F6[0] && expect[7] === OLoCo._portAddresses.F6[1])
-    const sensors =
-      expect[6] === OLoCo._portAddresses.Sensor[0] && expect[7] === OLoCo._portAddresses.Sensor[1]
-    const rgb =
-      expect[6] === OLoCo._portAddresses.RGB[0] && expect[7] === OLoCo._portAddresses.RGB[1]
+        ? 'fans'
+        : expect[6] === OLoCo._portAddresses.Sensor[0] &&
+          expect[7] === OLoCo._portAddresses.Sensor[1]
+        ? 'sensors'
+        : expect[6] === OLoCo._portAddresses.RGB[0] && expect[7] === OLoCo._portAddresses.RGB[1]
+        ? 'rgb'
+        : 'unknown'
 
     // header, error out if malformed
+    if (type === 'unknown') {
+      throw new Error(
+        `Invalid packet received, unknown header ${OLoCo._formatBytes(recv.slice(0, 8))}`,
+      )
+    }
     const header = recv.slice(0, 8)
-    const expectHeader = fans
-      ? [0x10, 0x12, write ? 0x27 : 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10]
-      : sensors
-      ? [0x10, 0x12, 0x27, 0xaa, 0x01, 0x03, 0x00, 0x20]
-      : rgb
-      ? [0x10, 0x12, write ? 0x27 : 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10]
-      : []
+    const expectHeader = OLoCo._recvHeaders[type][mode]
     try {
       const len = expectHeader.length
       if (header.length !== len) throw new Error('length mismatch')
