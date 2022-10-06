@@ -58,60 +58,54 @@ export class OLoCo {
     return packet
   }
 
-  private static _validateRecv(write: number[], recv: number[]) {
-    const writeMode = write[2] === 0x29
+  private static _validateRecv(recv: number[], expect: number[]) {
+    const writeMode = expect[2] === 0x29
     const fans =
-      (write[6] === 0xa0 && write[7] === 0xa0) ||
-      (write[6] === 0xa0 && write[7] === 0xc0) ||
-      (write[6] === 0xa0 && write[7] === 0xe0) ||
-      (write[6] === 0xa1 && write[7] === 0x00) ||
-      (write[6] === 0xa1 && write[7] === 0x20) ||
-      (write[6] === 0xa1 && write[7] === 0xe0)
-    const sensors = write[6] === 0xa2 && write[7] === 0x20
-    const rgb = write[6] === 0xa2 && write[7] === 0x60
+      (expect[6] === 0xa0 && expect[7] === 0xa0) ||
+      (expect[6] === 0xa0 && expect[7] === 0xc0) ||
+      (expect[6] === 0xa0 && expect[7] === 0xe0) ||
+      (expect[6] === 0xa1 && expect[7] === 0x00) ||
+      (expect[6] === 0xa1 && expect[7] === 0x20) ||
+      (expect[6] === 0xa1 && expect[7] === 0xe0)
+    const sensors = expect[6] === 0xa2 && expect[7] === 0x20
+    const rgb = expect[6] === 0xa2 && expect[7] === 0x60
 
-    if (
-      (fans &&
-        (recv[0] !== 0x10 ||
-          recv[1] !== 0x12 ||
-          recv[2] !== (writeMode ? 0x27 : 0x17) ||
-          recv[3] !== 0xaa ||
-          recv[4] !== 0x01 ||
-          recv[5] !== 0x03 ||
-          recv[6] !== 0x00 ||
-          recv[7] !== 0x10 ||
-          recv[8] !== 0x00 ||
-          recv[9] !== 0x00 ||
-          recv[10] !== 0x00)) ||
-      (sensors &&
-        (recv[0] !== 0x10 ||
-          recv[1] !== 0x12 ||
-          recv[2] !== 0x27 ||
-          recv[3] !== 0xaa ||
-          recv[4] !== 0x01 ||
-          recv[5] !== 0x03 ||
-          recv[6] !== 0x00 ||
-          recv[7] !== 0x20 ||
-          recv[8] !== 0x00 ||
-          recv[9] !== 0x01 ||
-          recv[10] !== 0x00)) ||
-      (rgb &&
-        (recv[0] !== 0x10 ||
-          recv[1] !== 0x12 ||
-          recv[2] !== (writeMode ? 0x27 : 0x17) ||
-          recv[3] !== 0xaa ||
-          recv[4] !== 0x01 ||
-          recv[5] !== 0x03 ||
-          recv[6] !== 0x00 ||
-          recv[7] !== 0x10 ||
-          recv[8] !== 0x00))
-    ) {
+    // header, error out if malformed
+    const header = recv.slice(0, 8)
+    const expectHeader = fans
+      ? [0x10, 0x12, writeMode ? 0x27 : 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10]
+      : sensors
+      ? [0x10, 0x12, 0x27, 0xaa, 0x01, 0x03, 0x00, 0x20]
+      : rgb
+      ? [0x10, 0x12, writeMode ? 0x27 : 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10]
+      : []
+    OLoCo._compareHeader(header, expectHeader)
+  }
+
+  private static _compareHeader(header: number[], expect: number[]) {
+    if (!OLoCo._compareBytes(header, expect)) {
+      const fmtHdr = OLoCo._formatBytes(header)
+      const fmtExp = OLoCo._formatBytes(expect)
       throw new Error(
-        `Invalid packet received: [ ${recv
-          .map((p) => `0x${p.toString(16).padStart(2, '0')}`)
-          .join(', ')}} ]`,
+        `Invalid packet received, malformed header: received ${fmtHdr}, expected ${fmtExp}`,
       )
     }
+  }
+
+  private static _compareBytes(recv: number[], expect: number[]) {
+    const len = expect.length
+    if (recv.length !== len) return false
+    for (let i = 0; i < len; i++) {
+      if (recv[i] !== expect[i]) return false
+    }
+    return true
+  }
+
+  private static _formatBytes(arr: number[]) {
+    return `[ ${arr
+      .slice(0, 8)
+      .map((n) => `0x${n.toString(16).padStart(2, '0')}`)
+      .join(', ')} ]`
   }
 
   private _getFan(port: FanPort): FanData {
@@ -149,7 +143,7 @@ export class OLoCo {
     // check response here
     // since checksums are optional, I doubt checking the response is worth it
 
-    OLoCo._validateRecv(packet, recv)
+    OLoCo._validateRecv(recv, packet)
 
     return recv
   }
