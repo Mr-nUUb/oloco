@@ -116,7 +116,7 @@ export class OLoCo {
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
     packet[24] = speed
 
-    const recv = this._write(packet) // I don'w know what to expect here
+    const recv = this._write(packet) // I don't know what to expect here
 
     return recv
   }
@@ -236,7 +236,7 @@ export class OLoCo {
     packet[17] = rgb.color.green
     packet[18] = rgb.color.blue
 
-    const recv = this._write(packet) // I don'w know what to expect here
+    const recv = this._write(packet) // I don't know what to expect here
 
     return recv
   }
