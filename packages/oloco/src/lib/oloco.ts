@@ -104,10 +104,7 @@ export class OLoCo {
   }
 
   private static _formatBytes(arr: number[]) {
-    return `[ ${arr
-      .slice(0, 8)
-      .map((n) => `0x${n.toString(16).padStart(2, '0')}`)
-      .join(', ')} ]`
+    return `[ ${arr.map((n) => `0x${n.toString(16).padStart(2, '0')}`).join(', ')} ]`
   }
 
   private _getFan(port: FanPort): FanData {
