@@ -79,27 +79,19 @@ export class OLoCo {
       : rgb
       ? [0x10, 0x12, write ? 0x27 : 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10]
       : []
-    OLoCo._compareHeader(header, expectHeader)
-  }
-
-  private static _compareHeader(header: number[], expect: number[]) {
     try {
-      OLoCo._compareBytes(header, expect)
+      const len = expectHeader.length
+      if (header.length !== len) throw new Error('length mismatch')
+      for (let i = 0; i < len; i++) {
+        if (header[i] !== expectHeader[i]) throw new Error(`mismatch on index ${i}`)
+      }
     } catch (err) {
       const fmtHdr = OLoCo._formatBytes(header)
-      const fmtExp = OLoCo._formatBytes(expect)
+      const fmtExp = OLoCo._formatBytes(expectHeader)
       throw new Error(
         'Invalid packet received, malformed header: ' +
           `received ${fmtHdr}, expected ${fmtExp}, ${(err as Error).message}`,
       )
-    }
-  }
-
-  private static _compareBytes(recv: number[], expect: number[]) {
-    const len = expect.length
-    if (recv.length !== len) throw new Error('length mismatch')
-    for (let i = 0; i < len; i++) {
-      if (recv[i] !== expect[i]) throw new Error(`mismatch on index ${i}`)
     }
   }
 
