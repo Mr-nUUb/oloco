@@ -49,14 +49,11 @@ export class OLoCo {
   }
 
   private static _createPacket(mode: CommMode, port: DevicePort): number[] {
-    const packet = new Array<number>(OLoCo._packetLength)
-
-    for (let i = 0; i < OLoCo._packetLength; i++) {
-      if (i === 6 || i === 7) packet[i] = OLoCo._portAddresses[port][i - 6]
-      else if (i < OLoCo._writeHeaders[mode].length) packet[i] = OLoCo._writeHeaders[mode][i]
-      else packet[i] = 0
-    }
-
+    const fillerLength = OLoCo._packetLength - OLoCo._writeHeaders[mode].length
+    const filler = new Array<number>(fillerLength).fill(0x00)
+    const packet = OLoCo._writeHeaders[mode].slice().concat(filler)
+    packet[6] = OLoCo._portAddresses[port][0]
+    packet[7] = OLoCo._portAddresses[port][1]
     return packet
   }
 
