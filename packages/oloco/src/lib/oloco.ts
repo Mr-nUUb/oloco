@@ -11,6 +11,20 @@ export class OLoCo {
   private _readTimeout = 1000
 
   private static _packetLength = 63
+  private static _writeHeaders: { [k in CommMode]: number[] } = {
+    Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
+    Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
+  }
+  private static _portAddresses: { [k in DevicePort]: number[] } = {
+    F1: [0xa0, 0xa0],
+    F2: [0xa0, 0xc0],
+    F3: [0xa0, 0xe0],
+    F4: [0xa1, 0x00],
+    F5: [0xa1, 0x20],
+    F6: [0xa1, 0xe0],
+    Sensor: [0xa2, 0x20],
+    RGB: [0xa2, 0x60],
+  }
 
   constructor(device?: HID) {
     if (device) this._device = device
@@ -33,25 +47,9 @@ export class OLoCo {
   private static _createPacket(mode: CommMode, port: DevicePort): number[] {
     const packet = new Array<number>(OLoCo._packetLength)
 
-    const header: { [k in CommMode]: number[] } = {
-      Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
-      Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
-    }
-
-    const portAddress: { [k in DevicePort]: number[] } = {
-      F1: [0xa0, 0xa0],
-      F2: [0xa0, 0xc0],
-      F3: [0xa0, 0xe0],
-      F4: [0xa1, 0x00],
-      F5: [0xa1, 0x20],
-      F6: [0xa1, 0xe0],
-      Sensor: [0xa2, 0x20],
-      RGB: [0xa2, 0x60],
-    }
-
     for (let i = 0; i < OLoCo._packetLength; i++) {
-      if (i === 6 || i === 7) packet[i] = portAddress[port][i - 6]
-      else if (i < header[mode].length) packet[i] = header[mode][i]
+      if (i === 6 || i === 7) packet[i] = OLoCo._portAddresses[port][i - 6]
+      else if (i < OLoCo._writeHeaders[mode].length) packet[i] = OLoCo._writeHeaders[mode][i]
       else packet[i] = 0
     }
 
@@ -61,14 +59,16 @@ export class OLoCo {
   private static _validateRecv(recv: number[], expect: number[]) {
     const write = expect[2] === 0x29
     const fans =
-      (expect[6] === 0xa0 && expect[7] === 0xa0) ||
-      (expect[6] === 0xa0 && expect[7] === 0xc0) ||
-      (expect[6] === 0xa0 && expect[7] === 0xe0) ||
-      (expect[6] === 0xa1 && expect[7] === 0x00) ||
-      (expect[6] === 0xa1 && expect[7] === 0x20) ||
-      (expect[6] === 0xa1 && expect[7] === 0xe0)
-    const sensors = expect[6] === 0xa2 && expect[7] === 0x20
-    const rgb = expect[6] === 0xa2 && expect[7] === 0x60
+      (expect[6] === OLoCo._portAddresses.F1[0] && expect[7] === OLoCo._portAddresses.F1[1]) ||
+      (expect[6] === OLoCo._portAddresses.F2[0] && expect[7] === OLoCo._portAddresses.F2[1]) ||
+      (expect[6] === OLoCo._portAddresses.F3[0] && expect[7] === OLoCo._portAddresses.F3[1]) ||
+      (expect[6] === OLoCo._portAddresses.F4[0] && expect[7] === OLoCo._portAddresses.F4[1]) ||
+      (expect[6] === OLoCo._portAddresses.F5[0] && expect[7] === OLoCo._portAddresses.F5[1]) ||
+      (expect[6] === OLoCo._portAddresses.F6[0] && expect[7] === OLoCo._portAddresses.F6[1])
+    const sensors =
+      expect[6] === OLoCo._portAddresses.Sensor[0] && expect[7] === OLoCo._portAddresses.Sensor[1]
+    const rgb =
+      expect[6] === OLoCo._portAddresses.RGB[0] && expect[7] === OLoCo._portAddresses.RGB[1]
 
     // header, error out if malformed
     const header = recv.slice(0, 8)
