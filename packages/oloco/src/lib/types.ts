@@ -20,8 +20,6 @@ export type TempPort = 'T1' | 'T2' | 'T3'
 
 export type DevicePort = FanPort | 'RGB' | 'Sensor'
 
-export type CommMode = 'Read' | 'Write'
-
 export type RgbMode = keyof typeof RgbModeEnum
 
 export type RgbSpeed = keyof typeof RgbSpeedEnum

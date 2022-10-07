@@ -23,6 +23,11 @@ export enum RgbSpeedEnum {
   Fastest = 0x64,
 }
 
+export enum CommMode {
+  Read = 0x03,
+  Write = 0x10,
+}
+
 export enum LogLevel {
   Debug = 'DEBUG',
   Info = 'INFO',

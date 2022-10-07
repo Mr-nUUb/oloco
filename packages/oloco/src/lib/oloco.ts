@@ -2,23 +2,16 @@ import { HID, devices } from 'node-hid'
 import { platform } from 'os'
 import type { CurveData, DeviceInformation, FanData, RgbData, SensorData } from './interfaces'
 import { FanPorts, TempPorts } from './iterables'
-import type { CommMode, DevicePort, FanPort } from './types'
+import type { DevicePort, FanPort } from './types'
 import { sleep } from '../util'
-import { RgbModeEnum, RgbSpeedEnum } from './enums'
+import { CommMode, RgbModeEnum, RgbSpeedEnum } from './enums'
 
 export class OLoCo {
   private _device
   private _readTimeout = 1000
 
-  private static _packetLength = 63
-  private static _writeHeaders: { [k in CommMode]: number[] } = {
-    Read: [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03, 0x00, 0x00, 0x00, 0x10, 0x20],
-    Write: [0x10, 0x12, 0x29, 0xaa, 0x01, 0x10, 0x00, 0x00, 0x00, 0x10, 0x20],
-  }
-  private static _recvHeaders: { [k in CommMode]: number[] } = {
-    Read: [0x10, 0x12, 0x17, 0xaa, 0x01, 0x03, 0x00, 0x00],
-    Write: [0x10, 0x12, 0x27, 0xaa, 0x01, 0x03, 0x00, 0x00],
-  }
+  private static _vendorId = 0x0483
+  private static _deviceId = 0x5750
   private static _portAddresses: { [k in DevicePort]: number[] } = {
     F1: [0xa0, 0xa0],
     F2: [0xa0, 0xc0],
@@ -33,7 +26,9 @@ export class OLoCo {
   constructor(device?: HID) {
     if (device) this._device = device
     else {
-      const devs = devices(0x0483, 0x5750).filter((dev) => dev.interface === 0 && dev.usage === 1)
+      const devs = devices(OLoCo._vendorId, OLoCo._deviceId).filter(
+        (dev) => dev.interface === 0 && dev.usage === 1,
+      )
       if (devs.length === 0) {
         throw new Error("Couldn't find controller: not connected!")
       }
@@ -48,40 +43,64 @@ export class OLoCo {
     }
   }
 
-  private static _createPacket(mode: CommMode, port: DevicePort): number[] {
-    const header = OLoCo._writeHeaders[mode]
-    const packet = new Array<number>(OLoCo._packetLength - header.length).fill(0x00)
-    packet.unshift(...header)
+  private static _createPacket(mode: CommMode, port: DevicePort, dataLength: number): number[] {
+    const packetLength = dataLength + 4 // 4 bytes header
+    const packet = new Array<number>(packetLength).fill(0x00)
+
+    // header
+    packet[0] = 0x10
+    packet[1] = 0x12
+    packet[2] = dataLength
+    packet[3] = 0xaa
+
+    // data header
+    packet[4] = 0x01
+    packet[5] = mode
     packet[6] = OLoCo._portAddresses[port][0]
     packet[7] = OLoCo._portAddresses[port][1]
+    // packet[8] = 0x00
+    packet[9] = port === 'Sensor' ? 0x20 : 0x10
+    packet[10] = 0x20
+
+    // tail? don't forget to increase packetLength if used!
+    // packet[packetLength - 4] = 0xaa
+    // packet[packetLength - 3] = 0xbb
+    // packet[packetLength - 2] = 0x00 // checksum here?
+    // packet[packetLength - 1] = 0xed
+
     return packet
   }
 
-  private static _validateRecv(recv: number[], expect: number[]) {
-    const mode: CommMode = expect[2] === 0x29 ? 'Write' : 'Read'
-    const sensors =
-      expect[6] === OLoCo._portAddresses.Sensor[0] && expect[7] === OLoCo._portAddresses.Sensor[1]
+  private static _validateRecv(recv: number[], write: number[]) {
+    const port = Object.entries(OLoCo._portAddresses).find(
+      (p) => p[1][0] === write[6] && p[1][1] === write[7],
+    ) as [DevicePort, number[]]
+    const sensors = port[0] === 'Sensor'
+    const longRecv = write[2] === 0x29
 
-    // header, error out if malformed
-    const header = recv.slice(0, 8)
-    const expectHeader = OLoCo._recvHeaders[mode].slice()
-    if (sensors) {
-      expectHeader[2] = 0x27
-      expectHeader[7] = 0x20
-    } else {
-      expectHeader[7] = 0x10
-    }
+    // header
+    const header = recv.slice(0, 4)
+    const expectHeader = [0x10, 0x12, sensors || longRecv ? 0x27 : 0x17, 0xaa]
+    OLoCo._compareBytes(header, expectHeader, 'header')
+
+    // data
+    const data = recv.slice(4, 8)
+    const expectData = [0x01, 0x03, 0x00, sensors ? 0x20 : 0x10]
+    OLoCo._compareBytes(data, expectData, 'data')
+  }
+
+  private static _compareBytes(recv: number[], expect: number[], desc: string) {
     try {
-      const len = expectHeader.length
-      if (header.length !== len) throw new Error('length mismatch')
+      const len = expect.length
+      if (recv.length !== len) throw new Error(`length mismatch`)
       for (let i = 0; i < len; i++) {
-        if (header[i] !== expectHeader[i]) throw new Error(`mismatch on index ${i}`)
+        if (recv[i] !== expect[i]) throw new Error(`mismatch on index ${i}`)
       }
     } catch (err) {
-      const fmtHdr = OLoCo._formatBytes(header)
-      const fmtExp = OLoCo._formatBytes(expectHeader)
+      const fmtHdr = OLoCo._formatBytes(recv)
+      const fmtExp = OLoCo._formatBytes(expect)
       throw new Error(
-        'Invalid packet received, malformed header: ' +
+        `Invalid packet received, malformed ${desc}: ` +
           `received ${fmtHdr}, expected ${fmtExp}, ${(err as Error).message}`,
       )
     }
@@ -92,7 +111,7 @@ export class OLoCo {
   }
 
   private _getFan(port: FanPort): FanData {
-    const recv = this._write(OLoCo._createPacket('Read', port))
+    const recv = this._write(OLoCo._createPacket(CommMode.Read, port, 8))
 
     return {
       port,
@@ -102,13 +121,13 @@ export class OLoCo {
   }
 
   private _setFan(speed: number, port: FanPort): number[] {
-    const packet = OLoCo._createPacket('Write', port)
+    const packet = OLoCo._createPacket(CommMode.Write, port, 41)
 
     // original packet contains RPM on bytes 15 and 16 - why?
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
     packet[24] = speed
 
-    const recv = this._write(packet) // I don't know what to expect here
+    const recv = this._write(packet)
 
     return recv
   }
@@ -118,14 +137,11 @@ export class OLoCo {
     // anybody got an idea what kind of checksum EKWB is using?
 
     // prepend report number for windows
-    //if (platform() === 'win32') packet.unshift(0x00)
     this._device.write((platform() === 'win32' ? [0x00] : []).concat(packet))
     const recv = this._device.readTimeout(this._readTimeout)
     if (recv.length === 0) throw 'Unable to read response!'
 
     // check response here
-    // since checksums are optional, I doubt checking the response is worth it
-
     OLoCo._validateRecv(recv, packet)
 
     return recv
@@ -173,7 +189,7 @@ export class OLoCo {
   }
 
   public getRgb(): RgbData {
-    const recv = this._write(OLoCo._createPacket('Read', 'RGB'))
+    const recv = this._write(OLoCo._createPacket(CommMode.Read, 'RGB', 8))
 
     return {
       port: 'Lx',
@@ -184,10 +200,8 @@ export class OLoCo {
   }
 
   public getSensor(): SensorData {
-    const packet = OLoCo._createPacket('Read', 'Sensor')
+    const packet = OLoCo._createPacket(CommMode.Read, 'Sensor', 8)
     const offset = 11
-
-    packet[9] = 0x20 // position of checksum? length of answer?
 
     const recv = this._write(packet)
 
@@ -219,7 +233,7 @@ export class OLoCo {
   }
 
   public setRgb(rgb: RgbData): number[] {
-    const packet = OLoCo._createPacket('Write', 'RGB')
+    const packet = OLoCo._createPacket(CommMode.Write, 'RGB', 41)
 
     packet[12] = RgbModeEnum[rgb.mode]
     packet[13] = rgb.mode === 'CoveringMarquee' ? 0xff : 0x00 // this is just dumb
@@ -228,7 +242,7 @@ export class OLoCo {
     packet[17] = rgb.color.green
     packet[18] = rgb.color.blue
 
-    const recv = this._write(packet) // I don't know what to expect here
+    const recv = this._write(packet)
 
     return recv
   }
