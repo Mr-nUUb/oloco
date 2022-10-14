@@ -4,6 +4,7 @@
     "baseUrl": "./packages",
     "paths": {
       "@oloco/*": ["*/src"]
-    }
+    },
+    "types": ["node", "jest", "jest-extended"]
   }
 }
