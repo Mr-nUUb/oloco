@@ -53,9 +53,9 @@ export const handler = async (): Promise<void> => {
     const interval = setInterval(() => {
       const current = controller.getSensor()
 
-      const rgb = handleRgb()
       const sensors = handleSensor(current)
       const fans = handleFan(current)
+      const rgb = handleRgb()
 
       handleLogger({ fans, rgb, sensors })
     }, Config.get('daemon').interval)
