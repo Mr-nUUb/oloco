@@ -1,5 +1,5 @@
 import { HID, devices } from 'node-hid'
-import { platform } from 'os'
+import { EOL, platform } from 'os'
 import type { CurveData, DeviceInformation, FanData, RgbData, SensorData } from './interfaces'
 import { FanPorts, TempPorts } from './iterables'
 import type { DevicePort, FanPort } from './types'
@@ -100,8 +100,11 @@ export class OLoCo {
       const fmtHdr = OLoCo._formatBytes(recv)
       const fmtExp = OLoCo._formatBytes(expect)
       throw new Error(
-        `Invalid packet received, malformed ${desc}: ` +
-          `received ${fmtHdr}, expected ${fmtExp}, ${(err as Error).message}`,
+        [
+          `Invalid packet received, malformed ${desc}: ${(err as Error).message}`,
+          `received ${fmtHdr}`,
+          `expected ${fmtExp}`,
+        ].join(`${EOL}  `),
       )
     }
   }
