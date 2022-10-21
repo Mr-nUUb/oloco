@@ -982,7 +982,6 @@ __metadata:
     "@types/node-hid": ^1
     "@types/yargs": ^17
     conf: ^10.2.0
-    detect-ts-node: ^1.0.5
     exit-hook: ^2.2.1
     jest-extended: ^3.1.0
     js-logger: ^1.6.1
@@ -2157,13 +2156,6 @@ __metadata:
   version: 3.1.0
   resolution: "detect-newline@npm:3.1.0"
   checksum: ae6cd429c41ad01b164c59ea36f264a2c479598e61cba7c99da24175a7ab80ddf066420f2bec9a1c57a6bead411b4655ff15ad7d281c000a89791f48cbe939e7
-  languageName: node
-  linkType: hard
-
-"detect-ts-node@npm:^1.0.5":
-  version: 1.0.5
-  resolution: "detect-ts-node@npm:1.0.5"
-  checksum: a3fae76b6c52ef23112c4d3b47b11b19e4c907e6aef9cb5f9b816cf43d9521e64ada41fc9d79034fa49866db339aa7e46bca82195ef60ab042412784f3186ef7
   languageName: node
   linkType: hard
 

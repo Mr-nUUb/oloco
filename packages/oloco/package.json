@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "conf": "^10.2.0",
-    "detect-ts-node": "^1.0.5",
     "exit-hook": "^2.2.1",
     "js-logger": "^1.6.1",
     "node-hid": "^2.1.1",
