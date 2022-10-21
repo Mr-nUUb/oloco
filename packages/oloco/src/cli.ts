@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import yargs from 'yargs/yargs'
+import { hideBin } from 'yargs/helpers'
 
-yargs(process.argv.slice(2))
+yargs(hideBin(process.argv))
   .scriptName('oloco')
   //.usage('Usage: $0 <command>')
   .commandDir('commands', { extensions: ['ts', 'js'] })
