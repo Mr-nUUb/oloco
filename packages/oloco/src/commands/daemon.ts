@@ -1,7 +1,7 @@
 import { OLoCo } from '../lib/oloco'
 import type { FanProfilePoint, RgbData, SensorData, FanData, LogData } from '../lib/interfaces'
 import { Config } from '../config'
-import Logger, { ILogHandler } from 'js-logger'
+import Logger, { ILogHandler, ILogLevel } from 'js-logger'
 import { inspect } from 'util'
 import { exit } from 'process'
 import {
@@ -264,11 +264,9 @@ function setupLogger() {
 
       case 'Console':
         Logger.setHandler((msg, ctx) => {
-          if (checkLogCounter()) {
+          if (shouldLog(ctx.level)) {
             defaultLogger(buildMessage(msg, ctx), ctx)
             logCounter = 0
-          } else if (ctx.level === Logger.WARN || ctx.level === Logger.ERROR) {
-            defaultLogger(buildMessage(msg, ctx), ctx)
           }
         })
         break
@@ -276,7 +274,7 @@ function setupLogger() {
       case 'File':
         Logger.setHandler((msg, ctx) => {
           const file = daemonConfig.logFile
-          if (checkLogCounter()) {
+          if (shouldLog(ctx.level)) {
             access(dirname(file), FsConstants.R_OK | FsConstants.W_OK)
               .then(() => {
                 access(file)
@@ -300,8 +298,6 @@ function setupLogger() {
               })
 
             logCounter = 0
-          } else if (ctx.level === Logger.WARN || ctx.level === Logger.ERROR) {
-            appendFile(file, `${buildMessage(msg, ctx)}${EOL}`)
           }
         })
         break
@@ -310,8 +306,13 @@ function setupLogger() {
   }
 }
 
-function checkLogCounter() {
-  return logCounter === -1 || logCounter % daemonConfig.logThreshold === 0
+function shouldLog(level: ILogLevel) {
+  return (
+    logCounter === -1 ||
+    logCounter % daemonConfig.logThreshold === 0 ||
+    level === Logger.WARN ||
+    level === Logger.ERROR
+  )
 }
 
 function buildMessage(msgs: Parameters<ILogHandler>[0], ctx: Parameters<ILogHandler>[1]) {
