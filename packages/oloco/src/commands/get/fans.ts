@@ -16,10 +16,11 @@ export const builder = (yargs: Argv): Argv =>
 
 export const handler = (yargs: Arguments): void => {
   const port = (yargs.port as FanPort) || undefined
+  const skipValidation = yargs.skipValidation as boolean
 
   const controller = new OLoCo()
   controller.setReadTimeout(Config.get('readTimeout'))
-  const data = controller.getFan(port)
+  const data = controller.getFan(port, skipValidation)
   controller.close()
 
   logObject(data)

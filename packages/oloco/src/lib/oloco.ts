@@ -7,11 +7,11 @@ import { sleep } from '../util'
 import { CommMode, RgbModeEnum, RgbSpeedEnum } from './enums'
 
 export class OLoCo {
-  private _device
+  private _device: HID
   private _readTimeout = 1000
 
-  private static _vendorId = 0x0483
-  private static _deviceId = 0x5750
+  private static _vendorId = 0x0483 as const
+  private static _deviceId = 0x5750 as const
   private static _portAddresses: { [k in DevicePort]: number[] } = {
     F1: [0xa0, 0xa0],
     F2: [0xa0, 0xc0],
@@ -78,18 +78,22 @@ export class OLoCo {
     const sensors = port[0] === 'Sensor'
     const longRecv = write[2] === 0x29
 
-    // header
-    const header = recv.slice(0, 4)
-    const expectHeader = [0x10, 0x12, sensors || longRecv ? 0x27 : 0x17, 0xaa]
-    OLoCo._compareBytes(header, expectHeader, 'header')
-
-    // data
-    const data = recv.slice(4, 8)
-    const expectData = [0x01, 0x03, 0x00, sensors ? 0x20 : 0x10]
-    OLoCo._compareBytes(data, expectData, 'data')
+    //console.log(recv.length, recv)
+    const packet = recv.slice(0, 8)
+    const expectPacket = [
+      0x10,
+      0x12,
+      sensors || longRecv ? 0x27 : 0x17,
+      0xaa,
+      0x01,
+      0x03,
+      0x00,
+      sensors ? 0x20 : 0x10,
+    ]
+    OLoCo._compareBytes(packet, expectPacket)
   }
 
-  private static _compareBytes(recv: number[], expect: number[], desc: string) {
+  private static _compareBytes(recv: number[], expect: number[]) {
     try {
       const len = expect.length
       if (recv.length !== len) throw new Error(`length mismatch`)
@@ -101,7 +105,7 @@ export class OLoCo {
       const fmtExp = OLoCo._formatBytes(expect)
       throw new Error(
         [
-          `Invalid packet received, malformed ${desc}: ${(err as Error).message}`,
+          `Invalid packet received: ${(err as Error).message}`,
           `received ${fmtHdr}`,
           `expected ${fmtExp}`,
         ].join(`${EOL}  `),
@@ -113,8 +117,8 @@ export class OLoCo {
     return `[ ${arr.map((n) => `0x${n.toString(16).padStart(2, '0')}`).join(', ')} ]`
   }
 
-  private _getFan(port: FanPort): FanData {
-    const recv = this._write(OLoCo._createPacket(CommMode.Read, port, 8))
+  private _getFan(port: FanPort, skipValidation = false): FanData {
+    const recv = this._write(OLoCo._createPacket(CommMode.Read, port, 8), skipValidation)
 
     return {
       port,
@@ -123,19 +127,19 @@ export class OLoCo {
     }
   }
 
-  private _setFan(speed: number, port: FanPort): number[] {
+  private _setFan(speed: number, port: FanPort, skipValidation = false): number[] {
     const packet = OLoCo._createPacket(CommMode.Write, port, 41)
 
     // original packet contains RPM on bytes 15 and 16 - why?
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
     packet[24] = speed
 
-    const recv = this._write(packet)
+    const recv = this._write(packet, skipValidation)
 
     return recv
   }
 
-  private _write(packet: number[]): number[] {
+  private _write(packet: number[], skipValidation = false): number[] {
     // calculate checksum here. Checksum is optional though...
     // anybody got an idea what kind of checksum EKWB is using?
 
@@ -145,7 +149,7 @@ export class OLoCo {
     if (recv.length === 0) throw 'Unable to read response!'
 
     // check response here
-    OLoCo._validateRecv(recv, packet)
+    if (!skipValidation) OLoCo._validateRecv(recv, packet)
 
     return recv
   }
@@ -154,20 +158,24 @@ export class OLoCo {
     this._readTimeout = timeout
   }
 
-  public getFan(port?: FanPort): FanData[] {
+  public getFan(port?: FanPort, skipValidation = false): FanData[] {
     const ports = port ? [port] : FanPorts
     const result = new Array<FanData>(ports.length)
 
     for (let i = 0; i < ports.length; i++) {
-      result[i] = this._getFan(ports[i])
+      result[i] = this._getFan(ports[i], skipValidation)
     }
 
     return result
   }
 
-  public async getResponseCurve(port?: FanPort, interval = 10000): Promise<CurveData[]> {
+  public async getResponseCurve(
+    port?: FanPort,
+    interval = 10000,
+    skipValidation = false,
+  ): Promise<CurveData[]> {
     const pointsNr = 11
-    const backups = this.getFan(port)
+    const backups = this.getFan(port, skipValidation)
     const ports = port ? [port] : FanPorts
     const curves = new Array<CurveData>(ports.length)
 
@@ -176,23 +184,23 @@ export class OLoCo {
     }
 
     for (let i = 0; i < pointsNr; i++) {
-      this.setFan(i * 10, port)
+      this.setFan(i * 10, port, skipValidation)
       await sleep(interval)
       for (let c = 0; c < curves.length; c++) {
-        const current = this._getFan(curves[c].port)
+        const current = this._getFan(curves[c].port, skipValidation)
         curves[c].curve[i] = { pwm: current.pwm, rpm: current.rpm }
       }
     }
 
     for (let i = 0; i < backups.length; i++) {
-      this._setFan(backups[i].pwm, backups[i].port)
+      this._setFan(backups[i].pwm, backups[i].port, skipValidation)
     }
 
     return curves
   }
 
-  public getRgb(): RgbData {
-    const recv = this._write(OLoCo._createPacket(CommMode.Read, 'RGB', 8))
+  public getRgb(skipValidation = false): RgbData {
+    const recv = this._write(OLoCo._createPacket(CommMode.Read, 'RGB', 8), skipValidation)
 
     return {
       port: 'Lx',
@@ -202,11 +210,11 @@ export class OLoCo {
     }
   }
 
-  public getSensor(): SensorData {
+  public getSensor(skipValidation = false): SensorData {
     const packet = OLoCo._createPacket(CommMode.Read, 'Sensor', 8)
     const offset = 11
 
-    const recv = this._write(packet)
+    const recv = this._write(packet, skipValidation)
 
     const flow: SensorData['flow'] = { port: 'FLO', flow: recv[23] }
     const level: SensorData['level'] = { port: 'LVL', level: recv[27] === 100 ? 'Good' : 'Warning' }
@@ -220,22 +228,22 @@ export class OLoCo {
     return { flow, level, temps }
   }
 
-  public getInformation(): DeviceInformation {
+  public getInformation(skipValidation = false): DeviceInformation {
     return {
-      fans: this.getFan(),
-      rgb: this.getRgb(),
-      sensors: this.getSensor(),
+      fans: this.getFan(undefined, skipValidation),
+      rgb: this.getRgb(skipValidation),
+      sensors: this.getSensor(skipValidation),
     }
   }
 
-  public setFan(speed: number, port?: FanPort): void {
+  public setFan(speed: number, port?: FanPort, skipValidation = false): void {
     const ports = port ? [port] : FanPorts
     for (let i = 0; i < ports.length; i++) {
-      this._setFan(speed, ports[i])
+      this._setFan(speed, ports[i], skipValidation)
     }
   }
 
-  public setRgb(rgb: RgbData): number[] {
+  public setRgb(rgb: RgbData, skipValidation = false): number[] {
     const packet = OLoCo._createPacket(CommMode.Write, 'RGB', 41)
 
     packet[12] = RgbModeEnum[rgb.mode]
@@ -245,7 +253,7 @@ export class OLoCo {
     packet[17] = rgb.color.green
     packet[18] = rgb.color.blue
 
-    const recv = this._write(packet)
+    const recv = this._write(packet, skipValidation)
 
     return recv
   }
