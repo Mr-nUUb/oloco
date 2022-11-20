@@ -68,7 +68,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
       logCounter = 0
       Logger.info('Daemon terminating, setting all fans to 100%.')
       clearInterval(interval)
-      controller.setFan(100, undefined, true)
+      controller.setFan(100, undefined, true, true)
     })
   } catch (error) {
     if (error instanceof Error) Logger.error(error.message)

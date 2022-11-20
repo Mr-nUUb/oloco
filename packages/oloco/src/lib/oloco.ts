@@ -127,31 +127,40 @@ export class OLoCo {
     }
   }
 
-  private _setFan(speed: number, port: FanPort, skipValidation = false): number[] {
+  private _setFan(
+    speed: number,
+    port: FanPort,
+    skipValidation = false,
+    skipReadback = false,
+  ): number[] | void {
     const packet = OLoCo._createPacket(CommMode.Write, port, 41)
 
     // original packet contains RPM on bytes 15 and 16 - why?
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
     packet[24] = speed
 
-    const recv = this._write(packet, skipValidation)
+    const recv = this._write(packet, skipValidation, skipReadback)
 
     return recv
   }
 
-  private _write(packet: number[], skipValidation = false): number[] {
+  private _write(packet: number[], skipValidation = false, skipReadback = false): number[] {
     // calculate checksum here. Checksum is optional though...
     // anybody got an idea what kind of checksum EKWB is using?
 
     // prepend report number for windows
     this._device.write((platform() === 'win32' ? [0x00] : []).concat(packet))
-    const recv = this._device.readTimeout(this._readTimeout)
-    if (recv.length === 0) throw 'Unable to read response!'
 
-    // check response here
-    if (!skipValidation) OLoCo._validateRecv(recv, packet)
+    // readback, must be able to disable because daemon shutdown messes up order of answers
+    if (!skipReadback) {
+      const recv = this._device.readTimeout(this._readTimeout)
+      if (recv.length === 0) throw 'Unable to read response!'
 
-    return recv
+      // check response here
+      if (!skipValidation) OLoCo._validateRecv(recv, packet)
+      return recv
+    }
+    return []
   }
 
   public setReadTimeout(timeout: number): void {
@@ -236,14 +245,14 @@ export class OLoCo {
     }
   }
 
-  public setFan(speed: number, port?: FanPort, skipValidation = false): void {
+  public setFan(speed: number, port?: FanPort, skipValidation = false, skipReadback = false): void {
     const ports = port ? [port] : FanPorts
     for (let i = 0; i < ports.length; i++) {
-      this._setFan(speed, ports[i], skipValidation)
+      this._setFan(speed, ports[i], skipValidation, skipReadback)
     }
   }
 
-  public setRgb(rgb: RgbData, skipValidation = false): number[] {
+  public setRgb(rgb: RgbData, skipValidation = false, skipReadback = false): number[] {
     const packet = OLoCo._createPacket(CommMode.Write, 'RGB', 41)
 
     packet[12] = RgbModeEnum[rgb.mode]
@@ -253,7 +262,7 @@ export class OLoCo {
     packet[17] = rgb.color.green
     packet[18] = rgb.color.blue
 
-    const recv = this._write(packet, skipValidation)
+    const recv = this._write(packet, skipValidation, skipReadback)
 
     return recv
   }
