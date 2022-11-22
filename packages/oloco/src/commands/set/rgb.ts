@@ -29,7 +29,6 @@ export const handler = (yargs: Arguments): void => {
   const mode = yargs.mode as RgbMode
   const speed = yargs.speed as RgbSpeed
   const userColor = yargs.color as string
-  const skipValidation = yargs.skipValidation as boolean
 
   if (!(userColor.length === 7 || userColor.startsWith('#'))) {
     console.log("Couln't set color: wrong format!")
@@ -43,8 +42,8 @@ export const handler = (yargs: Arguments): void => {
 
   const controller = new OLoCo()
   controller.setReadTimeout(Config.get('readTimeout'))
-  controller.setRgb({ mode, speed, color }, skipValidation)
-  const recv = controller.getRgb(skipValidation)
+  controller.setRgb({ mode, speed, color })
+  const recv = controller.getRgb()
   controller.close()
 
   logObject(recv)

@@ -1,4 +1,3 @@
-import type { Arguments } from 'yargs'
 import { OLoCo } from '../lib/oloco'
 import type { FanProfilePoint, RgbData, SensorData, FanData, LogData } from '../lib/interfaces'
 import { Config } from '../config'
@@ -36,26 +35,23 @@ let oldRgb: RgbData
 let daemonConfig: AppConfig['daemon']
 let currentLogTarget: LogTarget
 let logCounter = 0
-let skipValidation: boolean
 
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
 
-export const handler = async (yargs: Arguments): Promise<void> => {
+export const handler = async (): Promise<void> => {
   try {
-    skipValidation = yargs.skipValidation as boolean
-
     setupLogger()
 
     controller = new OLoCo()
     controller.setReadTimeout(Config.get('readTimeout'))
     Logger.info('Successfully connected to controller!')
 
-    oldRgb = controller.getRgb(skipValidation)
-    oldFan = controller.getFan(undefined, skipValidation)
+    oldRgb = controller.getRgb()
+    oldFan = controller.getFan()
 
     const interval = setInterval(() => {
-      const current = controller.getSensor(skipValidation)
+      const current = controller.getSensor()
 
       const sensors = handleSensor(current)
       const fans = handleFan(current)
@@ -68,7 +64,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
       logCounter = 0
       Logger.info('Daemon terminating, setting all fans to 100%.')
       clearInterval(interval)
-      controller.setFan(100, undefined, true, true)
+      controller.setFan(100)
     })
   } catch (error) {
     if (error instanceof Error) Logger.error(error.message)
@@ -167,7 +163,7 @@ function handleRgb(): PartialLogData['rgb'] {
   if (!newRgb.enabled) newRgb.mode = 'Off'
 
   if (!equalRgb(newRgb, oldRgb)) {
-    controller.setRgb(newRgb, skipValidation)
+    controller.setRgb(newRgb)
     oldRgb = newRgb
     return { ...newRgb, port: 'Lx' }
   }
@@ -181,7 +177,7 @@ function handleFan(sensor: SensorData): PartialLogData['fans'] {
     const port = fanConfigs[i][0] as FanPort
     const name = fanConfig.name
     const warn = fanConfig.warning
-    const rpm = controller.getFan(port, skipValidation)[0].rpm
+    const rpm = controller.getFan(port)[0].rpm
 
     if (rpm < warn) {
       Logger.warn(`${name || port} is below warning speed: ${rpm} < ${warn} RPM!`)
@@ -231,7 +227,7 @@ function handleFan(sensor: SensorData): PartialLogData['fans'] {
     const fanIndex = oldFan.findIndex((f) => f.port === port)
 
     if (oldFan[fanIndex].pwm !== pwm) {
-      controller.setFan(pwm, port, skipValidation)
+      controller.setFan(pwm, port)
       oldFan[fanIndex].pwm = pwm
     }
 
