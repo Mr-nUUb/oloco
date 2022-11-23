@@ -51,7 +51,6 @@ export const handler = async (): Promise<void> => {
     oldRgb = controller.getRgb()
     oldFan = controller.getFan()
 
-    const intervalMs = Config.get('daemon').interval
     const interval = setInterval(() => {
       const current = controller.getSensor()
 
@@ -60,13 +59,13 @@ export const handler = async (): Promise<void> => {
       const rgb = handleRgb()
 
       handleLogger({ fans, rgb, sensors })
-    }, intervalMs)
+    }, Config.get('daemon').interval)
 
     exitHook(() => {
       logCounter = 0
       Logger.info('Daemon terminating, setting all fans to 100%.')
       clearInterval(interval)
-      sleepSync(intervalMs)
+      sleepSync(1000)
       controller.setFan(100)
     })
   } catch (error) {
