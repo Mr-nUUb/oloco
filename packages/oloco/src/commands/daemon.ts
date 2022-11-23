@@ -27,6 +27,7 @@ import { access, appendFile, rm, stat } from 'fs/promises'
 import { EOL } from 'os'
 import { dirname } from 'path'
 import { constants as FsConstants } from 'fs'
+import { sleepSync } from '../util'
 
 let defaultLogger: ILogHandler
 let controller: OLoCo
@@ -50,6 +51,7 @@ export const handler = async (): Promise<void> => {
     oldRgb = controller.getRgb()
     oldFan = controller.getFan()
 
+    const intervalMs = Config.get('daemon').interval
     const interval = setInterval(() => {
       const current = controller.getSensor()
 
@@ -58,12 +60,13 @@ export const handler = async (): Promise<void> => {
       const rgb = handleRgb()
 
       handleLogger({ fans, rgb, sensors })
-    }, Config.get('daemon').interval)
+    }, intervalMs)
 
     exitHook(() => {
       logCounter = 0
       Logger.info('Daemon terminating, setting all fans to 100%.')
       clearInterval(interval)
+      sleepSync(intervalMs)
       controller.setFan(100)
     })
   } catch (error) {
