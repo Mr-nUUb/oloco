@@ -14,16 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
       - name: Snyk Test
-        uses: snyk/actions@master
+        uses: snyk/actions@0.3.0
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --yarn-workspaces --sarif-file-output=snyk.sarif
       - name: Snyk Monitor
-        uses: snyk/actions@master
+        uses: snyk/actions@0.3.0
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -31,6 +31,6 @@ jobs:
           command: monitor
           args: --yarn-workspaces
       - name: Upload result
-        uses: github/codeql-action/upload-sarif@master
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk.sarif
