@@ -1,14 +1,15 @@
 export enum RgbModeEnum {
   Off = 0x00,
-  Static,
-  Breathing,
-  Fading,
-  Marquee,
-  CoveringMarquee,
-  Pulse,
-  SpectrumWave,
-  Alternating,
-  Candle,
+  Static = 0x01,
+  Breathing = 0x02,
+  Fading = 0x03,
+  Marquee = 0x04,
+  CoveringMarquee = 0x05,
+  Pulse = 0x06,
+  SpectrumWave = 0x07,
+  Rainbow = 0x07,
+  Alternating = 0x08,
+  Candle = 0x09,
 }
 
 export enum RgbSpeedEnum {

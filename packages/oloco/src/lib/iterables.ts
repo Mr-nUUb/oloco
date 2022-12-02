@@ -24,6 +24,7 @@ export const RgbModes: ReadonlyArray<RgbMode> = [
   'CoveringMarquee',
   'Pulse',
   'SpectrumWave',
+  'Rainbow',
   'Alternating',
   'Candle',
 ]
