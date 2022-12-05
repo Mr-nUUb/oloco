@@ -3,7 +3,7 @@ import type { FanProfilePoint, RgbData, SensorData, FanData, LogData } from '../
 import { Config } from '../config'
 import Logger, { ILogHandler, ILogLevel } from 'js-logger'
 import { inspect } from 'util'
-import { exit } from 'process'
+import { exit, platform } from 'process'
 import {
   AirBalanced,
   AirSilent,
@@ -63,10 +63,12 @@ export const handler = async (): Promise<void> => {
       handleLogger(currentData)
     }, Config.get('daemon').interval)
 
-    process.on('SIGUSR1', () => {
-      const ctx: Parameters<ILogHandler>[1] = { level: Logger.INFO }
-      defaultLogger(buildMessage([currentData], ctx), ctx)
-    })
+    if (platform !== 'win32') {
+      process.on('SIGUSR1', () => {
+        const ctx: Parameters<ILogHandler>[1] = { level: Logger.INFO }
+        defaultLogger(buildMessage([currentData], ctx), ctx)
+      })
+    }
 
     exitHook(() => {
       logCounter = 0
