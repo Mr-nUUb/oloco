@@ -33,6 +33,7 @@ let defaultLogger: ILogHandler
 let controller: OLoCo
 let oldFan: FanData[]
 let oldRgb: RgbData
+let currentData: PartialLogData
 let daemonConfig: AppConfig['daemon']
 let currentLogTarget: LogTarget
 let logCounter = 0
@@ -58,8 +59,14 @@ export const handler = async (): Promise<void> => {
       const fans = handleFan(current)
       const rgb = handleRgb()
 
-      handleLogger({ fans, rgb, sensors })
+      currentData = { fans, rgb, sensors }
+      handleLogger(currentData)
     }, Config.get('daemon').interval)
+
+    process.on('SIGUSR1', () => {
+      const ctx: Parameters<ILogHandler>[1] = { level: Logger.INFO }
+      defaultLogger(buildMessage([currentData], ctx), ctx)
+    })
 
     exitHook(() => {
       logCounter = 0
