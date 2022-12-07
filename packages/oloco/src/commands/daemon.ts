@@ -17,6 +17,7 @@ import type {
   FanPort,
   FanProfileCurves,
   FanProfileName,
+  LogMode,
   LogTarget,
   PartialLogData,
   TempPort,
@@ -65,7 +66,7 @@ export const handler = async (): Promise<void> => {
 
     if (platform !== 'win32') {
       process.on('SIGUSR1', () => {
-        console.error(buildMessage([currentData], { level: Logger.INFO })[0])
+        console.error(buildMessage([currentData], { level: Logger.INFO }, ', ', 'Text')[0])
       })
     }
 
@@ -325,8 +326,14 @@ function shouldLog(level: ILogLevel) {
   )
 }
 
-function buildMessage(msgs: Parameters<ILogHandler>[0], ctx: Parameters<ILogHandler>[1]) {
-  const { logDelimiter, logMode } = Config.get('daemon')
+function buildMessage(
+  msgs: Parameters<ILogHandler>[0],
+  ctx: Parameters<ILogHandler>[1],
+  delimiterOverride?: string,
+  modeOverride?: LogMode,
+) {
+  const logDelimiter = delimiterOverride || Config.get('daemon').logDelimiter
+  const logMode = modeOverride || Config.get('daemon').logMode
   const data = Object.values(msgs)
 
   const msg = {
