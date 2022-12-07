@@ -65,8 +65,7 @@ export const handler = async (): Promise<void> => {
 
     if (platform !== 'win32') {
       process.on('SIGUSR1', () => {
-        const ctx: Parameters<ILogHandler>[1] = { level: Logger.INFO }
-        defaultLogger(buildMessage([currentData], ctx), ctx)
+        console.error(buildMessage([currentData], { level: Logger.INFO })[0])
       })
     }
 
