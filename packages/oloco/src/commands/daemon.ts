@@ -309,11 +309,13 @@ function prepareLogDirectory() {
   const { logDirectory, logFileRetentionDays } = daemonConfig
 
   if (existsSync(logDirectory)) {
+    if (logFileRetentionDays < 0) return
+
     readdir(logDirectory, (readdirErr, entries) => {
       if (readdirErr) console.error(readdirErr)
 
       const before = new Date()
-      before.setDate(before.getDate() - Math.max(logFileRetentionDays, 0))
+      before.setDate(before.getDate() - logFileRetentionDays)
       before.setMilliseconds(0)
       before.setSeconds(0)
       before.setMinutes(0)
