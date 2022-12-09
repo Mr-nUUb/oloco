@@ -312,7 +312,8 @@ function prepareLogDirectory() {
     readdir(logDirectory, (readdirErr, entries) => {
       if (readdirErr) console.error(readdirErr)
 
-      const before = new Date(new Date().setDate(new Date().getDate() - logFileRetentionDays))
+      const before = new Date()
+      before.setDate(before.getDate() - logFileRetentionDays)
       before.setMilliseconds(0)
       before.setSeconds(0)
       before.setMinutes(0)
