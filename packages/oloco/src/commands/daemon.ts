@@ -24,9 +24,11 @@ import type {
 } from '../lib/types'
 import { LogLevel } from '../lib/enums'
 import exitHook from 'exit-hook'
-import { appendFile } from 'fs/promises'
+import { appendFile, rm } from 'fs/promises'
 import { EOL } from 'os'
 import { sleepSync } from '../util'
+import { resolve } from 'path'
+import { existsSync, mkdirSync, readdir, stat } from 'fs'
 
 let defaultLogger: ILogHandler
 let controller: OLoCo
@@ -282,7 +284,8 @@ function setupLogger() {
 
       case 'File':
         Logger.setHandler((msg, ctx) => {
-          const file = daemonConfig.logFile
+          const file = resolve(daemonConfig.logDirectory, getLogFilename())
+          prepareLogDirectory()
           if (shouldLog(ctx.level)) {
             appendFile(file, `${buildMessage(msg, ctx)}${EOL}`)
             logCounter = 0
@@ -291,6 +294,42 @@ function setupLogger() {
         break
     }
     currentLogTarget = daemonConfig.logTarget
+  }
+}
+
+function getLogFilename() {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = today.getMonth().toString().padStart(2, '0')
+  const day = today.getDay().toString().padStart(2, '0')
+  return `${year}-${month}-${day}.log`
+}
+
+function prepareLogDirectory() {
+  const { logDirectory, logFileRetentionDays } = daemonConfig
+
+  if (existsSync(logDirectory)) {
+    readdir(logDirectory, (readdirErr, entries) => {
+      if (readdirErr) console.error(readdirErr)
+
+      const before = new Date(new Date().setDate(new Date().getDate() - logFileRetentionDays))
+      before.setMilliseconds(0)
+      before.setSeconds(0)
+      before.setMinutes(0)
+      const rmTime = before.setHours(1)
+
+      for (const entry of entries) {
+        const path = resolve(logDirectory, entry)
+
+        stat(path, (statErr, stats) => {
+          if (statErr) console.error(statErr)
+
+          if (stats.isFile() && stats.ctime.getTime() < rmTime) rm(path)
+        })
+      }
+    })
+  } else {
+    mkdirSync(logDirectory)
   }
 }
 

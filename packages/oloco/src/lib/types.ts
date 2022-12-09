@@ -59,7 +59,8 @@ export type AppConfig = {
   rgb: RgbData & { name: string; enabled: boolean }
   daemon: {
     logDelimiter: string
-    logFile: string
+    logDirectory: string
+    logFileRetentionDays: number
     logTarget: LogTarget
     logLevel: LogLevel
     logMode: LogMode

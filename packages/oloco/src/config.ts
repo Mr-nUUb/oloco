@@ -164,8 +164,11 @@ export const schema: Schema<AppConfig> = {
       logDelimiter: {
         type: 'string',
       },
-      logFile: {
+      logDirectory: {
         type: 'string',
+      },
+      logFileRetentionDays: {
+        type: 'number',
       },
       logLevel: {
         enum: LogLevels.slice(),
@@ -190,7 +193,8 @@ export const schema: Schema<AppConfig> = {
     required: [
       'interval',
       'logDelimiter',
-      'logFile',
+      'logDirectory',
+      'logFileRetentionDays',
       'logLevel',
       'logTarget',
       'logThreshold',
@@ -297,7 +301,8 @@ export const defaults: Readonly<AppConfig> = {
   daemon: {
     interval: 1000,
     logDelimiter: ', ',
-    logFile: resolve(dirname(new Conf({ configName: 'dummy' }).path), 'logfile.log'),
+    logDirectory: resolve(dirname(new Conf({ configName: 'dummy' }).path), 'logs'),
+    logFileRetentionDays: 30,
     logLevel: 'Info',
     logMode: 'Text',
     logTarget: 'Console',
