@@ -313,11 +313,12 @@ function prepareLogDirectory() {
       if (readdirErr) console.error(readdirErr)
 
       const before = new Date()
-      before.setDate(before.getDate() - logFileRetentionDays)
+      before.setDate(before.getDate() - Math.max(logFileRetentionDays, 0))
       before.setMilliseconds(0)
       before.setSeconds(0)
       before.setMinutes(0)
-      const rmTime = before.setHours(1)
+      before.setHours(1)
+      const rmTime = before.getTime()
 
       for (const entry of entries) {
         const path = resolve(logDirectory, entry)
