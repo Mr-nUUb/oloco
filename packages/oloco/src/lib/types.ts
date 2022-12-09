@@ -60,7 +60,6 @@ export type AppConfig = {
   daemon: {
     logDelimiter: string
     logFile: string
-    logFileMaxSizeMB: number
     logTarget: LogTarget
     logLevel: LogLevel
     logMode: LogMode

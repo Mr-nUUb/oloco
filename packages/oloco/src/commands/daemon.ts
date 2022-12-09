@@ -24,10 +24,8 @@ import type {
 } from '../lib/types'
 import { LogLevel } from '../lib/enums'
 import exitHook from 'exit-hook'
-import { access, appendFile, rm, stat } from 'fs/promises'
+import { appendFile } from 'fs/promises'
 import { EOL } from 'os'
-import { dirname } from 'path'
-import { constants as FsConstants } from 'fs'
 import { sleepSync } from '../util'
 
 let defaultLogger: ILogHandler
@@ -286,28 +284,7 @@ function setupLogger() {
         Logger.setHandler((msg, ctx) => {
           const file = daemonConfig.logFile
           if (shouldLog(ctx.level)) {
-            access(dirname(file), FsConstants.R_OK | FsConstants.W_OK)
-              .then(() => {
-                access(file)
-                  .then(() => {
-                    stat(file).then((stats) => {
-                      if (stats.size > daemonConfig.logFileMaxSizeMB * 1024 * 1024) {
-                        rm(file)
-                      }
-                    })
-                  })
-                  .catch((_err) => {
-                    const err = _err as NodeJS.ErrnoException
-                    if (err.errno !== -2) console.error(err)
-                  })
-
-                appendFile(file, `${buildMessage(msg, ctx)}${EOL}`)
-              })
-              .catch((_err) => {
-                const err = _err as NodeJS.ErrnoException
-                console.error(err)
-              })
-
+            appendFile(file, `${buildMessage(msg, ctx)}${EOL}`)
             logCounter = 0
           }
         })
