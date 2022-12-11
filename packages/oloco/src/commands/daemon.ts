@@ -304,8 +304,8 @@ function setupLogger() {
 function getLogFilename() {
   const today = new Date()
   const year = today.getFullYear()
-  const month = today.getMonth().toString().padStart(2, '0')
-  const day = today.getDay().toString().padStart(2, '0')
+  const month = (today.getMonth() + 1).toString().padStart(2, '0')
+  const day = today.getDate().toString().padStart(2, '0')
   return `${year}-${month}-${day}.log`
 }
 
