@@ -197,7 +197,7 @@ export class OLoCo {
       await sleep(interval)
       for (let c = 0; c < curves.length; c++) {
         const current = this._getFan(curves[c].port, skipValidation)
-        curves[c].curve[i] = { pwm: current.pwm, rpm: current.rpm }
+        curves[c].curve[i] = current
       }
     }
 
