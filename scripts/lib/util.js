@@ -17,8 +17,7 @@ const getFileList = (dirName) => {
   return files.flat()
 }
 
-const getLogPrefix = (pkg, instance) =>
-  `${getNextColor()}${getPackageName(pkg)}${instance ? `:${instance}` : ''}${COLOR_RESET}`
+const getLogPrefix = (pkg) => `${getNextColor()}${getPackageName(pkg)}${COLOR_RESET}`
 
 let currentColor = 0
 const getNextColor = () => COLORS[currentColor++ % COLORS.length]
