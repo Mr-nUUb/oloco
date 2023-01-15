@@ -149,7 +149,7 @@ export class OLoCo {
     // anybody got an idea what kind of checksum EKWB is using?
 
     // prepend report number for windows
-    this._device.write((platform() === 'win32' ? [0x00] : []).concat(packet))
+    this._device.write(platform() === 'win32' ? [0x00, ...packet] : packet)
 
     // readback, must be able to disable because daemon shutdown messes up order of answers
     if (!skipReadback) {
