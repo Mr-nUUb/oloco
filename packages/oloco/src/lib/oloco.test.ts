@@ -259,7 +259,7 @@ describe('OLoCo', () => {
       expect(readSpy).toHaveBeenCalledOnce()
       expect(result).toEqual({
         port: 'Lx',
-        mode: 'SpectrumWave',
+        mode: 'Rainbow',
         speed: 'Fastest',
         color: { red: 170, green: 187, blue: 204 },
       })
@@ -325,7 +325,7 @@ describe('OLoCo', () => {
         ],
         rgb: {
           port: 'Lx',
-          mode: 'SpectrumWave',
+          mode: 'Rainbow',
           speed: 'Fastest',
           color: { red: 170, green: 187, blue: 204 },
         },
