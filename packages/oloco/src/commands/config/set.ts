@@ -22,9 +22,9 @@ export const handler = (yargs: Arguments): void => {
 
   const val = !isNaN(Number.parseInt(value))
     ? Number.parseInt(value)
-    : value.toUpperCase() === 'TRUE'
+    : value.toLowerCase() === `${true}`
     ? true
-    : value.toUpperCase() === 'FALSE'
+    : value.toLowerCase() === `${false}`
     ? false
     : value
 
