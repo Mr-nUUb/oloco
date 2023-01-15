@@ -675,7 +675,9 @@ describe('OLoCo', () => {
     it('should throw on index mismatch', () => {
       const writeSpy = prepWriteSpy()
 
-      const readSpy = jest.fn().mockImplementationOnce(() => [0x10, 0x10, 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10])
+      const readSpy = jest
+        .fn()
+        .mockImplementationOnce(() => [0x10, 0x10, 0x17, 0xaa, 0x01, 0x03, 0x00, 0x10])
 
       hidHidSpy.mockImplementation(
         jest.fn().mockImplementation(() => ({
