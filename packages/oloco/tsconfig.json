@@ -4,6 +4,6 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["jest", "jest-extended"]
+    "types": ["node", "jest", "jest-extended"]
   }
 }
