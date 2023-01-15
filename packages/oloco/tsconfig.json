@@ -1,4 +1,9 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src/**/*"]
+  // already specified in build scripts, needed to prevent TS6305
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["jest", "jest-extended"]
+  }
 }

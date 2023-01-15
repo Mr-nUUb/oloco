@@ -9,7 +9,7 @@ const { resolve } = require('path')
 const root = resolve(__dirname, '..')
 const ignorePatterns = ['/dist/', '/node_modules/']
 
-/** @type {import('ts-jest').InitialOptionsTsJest} */
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
   preset: 'ts-jest',
   globalSetup: `${__dirname}/setup.js`,

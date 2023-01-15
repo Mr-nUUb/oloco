@@ -7,11 +7,15 @@
     "packages/*"
   ],
   "scripts": {
-    "eslint": "eslint",
-    "prettier": "prettier --check .",
-    "build": "yarn workspaces foreach -v -i -p -t run build",
-    "clean": "yarn workspaces foreach -v -i -p -t run clean",
-    "compile": "yarn workspaces foreach -v -i -p -t run compile"
+    "build": "node scripts/tsc.js compile",
+    "watch": "node scripts/tsc.js watch",
+    "clean": "node scripts/clean.js dist",
+    "clean:cache": "node scripts/clean.js cache",
+    "clean:modules": "node scripts/clean.js modules",
+    "clean:reports": "node scripts/clean.js reports",
+    "lint": "eslint \"./packages/*/src/**/*.ts\" --cache --cache-location \"./node_modules/.cache/eslint/\"",
+    "format": "prettier --write \"./packages/*/src/**/*.ts\" --cache",
+    "test": "jest ${0:+--projects ${0:-}}"
   },
   "repository": {
     "type": "git",
@@ -33,10 +37,13 @@
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-react": "^7.31.11",
     "eslint-plugin-tsdoc": "^0.2.17",
+    "fs-extra": "^10.1.0",
     "jest": "^29.3.1",
+    "jest-extended": "^3.2.0",
     "jest-junit": "^15.0.0",
     "jest-stare": "^2.4.1",
     "prettier": "^2.8.0",
+    "ts-jest": "^29.0.3",
     "typescript": "^4.9.3"
   }
 }

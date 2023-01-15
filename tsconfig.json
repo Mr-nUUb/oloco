@@ -1,10 +1,16 @@
 {
-  "extends": "./tsconfig.build.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "./packages",
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "sourceMap": true,
+    "composite": true,
+    "declarationMap": true,
+    "baseUrl": "packages",
     "paths": {
       "@oloco/*": ["*/src"]
-    },
-    "types": ["node", "jest", "jest-extended"]
+    }
   }
 }

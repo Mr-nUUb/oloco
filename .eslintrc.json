@@ -49,5 +49,14 @@
     "semi": ["error", "never"],
     "no-param-reassign": "error",
     "tsdoc/syntax": "warn"
-  }
+  },
+
+  "overrides": [
+    {
+      "files": ["scripts/**/*.js", "jest.*.js", "jest/*.js"],
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    }
+  ]
 }
