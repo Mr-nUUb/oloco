@@ -122,7 +122,7 @@ export class OLoCo {
 
     return {
       port,
-      rpm: parseInt(`0x${recv[12].toString(16)}${recv[13].toString(16).padStart(2, '0')}`),
+      rpm: (recv[12] << 8) | recv[13],
       pwm: recv[21],
     }
   }
