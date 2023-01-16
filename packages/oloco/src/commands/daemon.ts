@@ -76,10 +76,16 @@ export const handler = async (yargs: Arguments): Promise<void> => {
 
     exitHook(() => {
       logCounter = 0
-      Logger.info('Daemon terminating, setting all fans to 100%.')
+      Logger.info('Daemon terminating, setting all fans to their configured `backOffSpeed`.')
       clearInterval(interval)
       sleepSync(1000)
-      controller.setFan(100, undefined, true)
+
+      const fanConfigs = Object.entries(Config.get('fans')).filter((c) => c[1].enabled)
+      for (let i = 0; i < fanConfigs.length; i++) {
+        const port = fanConfigs[i][0] as FanPort
+        const pwm = fanConfigs[i][1].backOffSpeed
+        controller.setFan(pwm, port, true)
+      }
     })
   } catch (error) {
     if (error instanceof Error) Logger.error(error.message)
@@ -188,8 +194,8 @@ function handleFan(sensor: SensorData): PartialLogData['fans'] {
   const fanConfigs = Object.entries(Config.get('fans')).filter((c) => c[1].enabled)
   const resultFans: PartialLogData['fans'] = new Array(fanConfigs.length)
   for (let i = 0; i < fanConfigs.length; i++) {
-    const fanConfig = fanConfigs[i][1]
     const port = fanConfigs[i][0] as FanPort
+    const fanConfig = fanConfigs[i][1]
     const name = fanConfig.name
     const warn = fanConfig.warning
     const rpm = controller.getFan(port, skipValidation)[0].rpm

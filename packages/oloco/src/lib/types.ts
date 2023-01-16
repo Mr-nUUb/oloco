@@ -38,6 +38,7 @@ export type AppConfig = {
       name: string
       enabled: boolean
       warning: number
+      backOffSpeed: number
       tempSources: TempPort[]
       tempMode: TempMode
       activeProfile: FanProfileName

@@ -14,6 +14,8 @@ import Conf, { Schema } from 'conf'
 import type { AppConfig } from './lib/types'
 import { dirname, resolve } from 'path'
 
+const pumpSpeedDesired = 80
+
 export const schema: Schema<AppConfig> = {
   fans: {
     additionalProperties: false,
@@ -64,6 +66,9 @@ export const schema: Schema<AppConfig> = {
           warning: {
             type: 'number',
           },
+          backOffSpeed: {
+            type: 'number',
+          },
         },
         required: [
           'name',
@@ -74,6 +79,7 @@ export const schema: Schema<AppConfig> = {
           'activeProfile',
           'customProfile',
           'responseCurve',
+          'backOffSpeed',
         ],
         type: 'object',
       },
@@ -267,6 +273,7 @@ export const defaults: Readonly<AppConfig> = {
         name: port,
         enabled: true,
         warning: 500,
+        backOffSpeed: port === 'F6' ? pumpSpeedDesired : 100,
         tempSources: ['T1'],
         tempMode: 'Maximum',
         activeProfile: port === 'F6' ? 'Custom' : 'AirBalanced',
@@ -325,15 +332,11 @@ export const defaults: Readonly<AppConfig> = {
     Pump: [
       {
         temp: 0,
-        pwm: 80,
+        pwm: pumpSpeedDesired,
       },
       {
         temp: 60,
-        pwm: 80,
-      },
-      {
-        temp: 70,
-        pwm: 90,
+        pwm: pumpSpeedDesired,
       },
       {
         temp: 80,
