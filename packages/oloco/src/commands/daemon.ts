@@ -30,6 +30,7 @@ import { EOL } from 'os'
 import { sleepSync } from '../util'
 import { resolve } from 'path'
 import { existsSync, mkdirSync, readdir, stat } from 'fs'
+import { FanPorts } from '../lib/iterables'
 
 let defaultLogger: ILogHandler
 let controller: OLoCo
@@ -80,12 +81,11 @@ export const handler = async (yargs: Arguments): Promise<void> => {
       clearInterval(interval)
       sleepSync(1000)
 
-      const fanConfigs = Object.entries(Config.get('fans')).filter((c) => c[1].enabled)
-      for (let i = 0; i < fanConfigs.length; i++) {
-        const port = fanConfigs[i][0] as FanPort
-        const pwm = fanConfigs[i][1].backOffSpeed
-        controller.setFan(pwm, port, true)
-      }
+      const fanConfigs = Config.get('fans')
+      FanPorts.filter((port) => fanConfigs[port].enabled).forEach((port) => {
+        const cfg = fanConfigs[port]
+        controller.setFan(cfg.backOffSpeed, port, true)
+      })
     })
   } catch (error) {
     if (error instanceof Error) Logger.error(error.message)
