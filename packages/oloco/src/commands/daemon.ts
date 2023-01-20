@@ -21,7 +21,6 @@ import type {
   LogMode,
   LogTarget,
   PartialLogData,
-  TempPort,
 } from '../lib/types'
 import { LogLevel } from '../lib/enums'
 import exitHook from 'exit-hook'
@@ -30,7 +29,7 @@ import { EOL } from 'os'
 import { sleepSync } from '../util'
 import { resolve } from 'path'
 import { existsSync, mkdirSync, readdir, stat } from 'fs'
-import { FanPorts } from '../lib/iterables'
+import { FanPorts, TempPorts } from '../lib/iterables'
 
 let defaultLogger: ILogHandler
 let controller: OLoCo
@@ -124,29 +123,25 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
 }
 
 function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
-  const tempConfigs = Object.entries(Config.get('temps')).filter((c) => c[1].enabled)
-  const resultTemps: LogData['sensors']['temps'] = new Array(tempConfigs.length)
-  for (let i = 0; i < tempConfigs.length; i++) {
-    const tempConfig = tempConfigs[i][1]
-    const port = tempConfigs[i][0] as TempPort
+  const tempConfigs = Config.get('temps')
+  const resultTemps: LogData['sensors']['temps'] = TempPorts.filter(
+    (t) => tempConfigs[t].enabled,
+  ).map((port) => {
+    const tempConfig = tempConfigs[port]
     const name = tempConfig.name
-
+    const warn = tempConfig.warning
     let temp = sensor.temps.find((t) => t.port === port)?.temp
 
-    if (!temp) {
-      Logger.warn("Couldn't read current temperature!")
-      continue
+    if (temp) {
+      temp += tempConfig.offset
+      if (temp > warn)
+        Logger.warn(`${name || port} is above warning temperature: ${temp} > ${warn} °C!`)
+    } else {
+      Logger.warn(`Couldn't read temperature ${name}!`)
     }
 
-    const warn = tempConfig.warning
-    temp += tempConfig.offset
-
-    if (temp > warn) {
-      Logger.warn(`${name || port} is above warning temperature: ${temp} > ${warn} °C!`)
-    }
-
-    resultTemps[i] = { port, name, temp }
-  }
+    return { port, name, temp }
+  })
 
   const flowConfig = Config.get('flow')
   let resultFlow: LogData['sensors']['flow'] | undefined = undefined
@@ -156,9 +151,7 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
     const port = sensor.flow.port
     const flow = (sensor.flow.flow * flowConfig.signalsPerLiter) / 100
 
-    if (flow < warn) {
-      Logger.warn(`${name || port} is below warning flow: ${flow} < ${warn} l/h!`)
-    }
+    if (flow < warn) Logger.warn(`${name || port} is below warning flow: ${flow} < ${warn} l/h!`)
 
     resultFlow = { port, name, flow }
   }
@@ -169,9 +162,10 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
     const name = levelConfig.name
     const port = sensor.level.port
     const level = sensor.level.level
-    if (levelConfig.warning && level === 'Warning') {
+
+    if (levelConfig.warning && level === 'Warning')
       Logger.warn(`${name || port} is below warning level!`)
-    }
+
     resultLevel = { port, name, level }
   }
 
