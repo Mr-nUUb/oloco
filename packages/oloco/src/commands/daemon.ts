@@ -318,33 +318,32 @@ function getLogFilename() {
 function prepareLogDirectory() {
   const { logDirectory, logFileRetentionDays } = daemonConfig
 
-  if (existsSync(logDirectory)) {
-    if (logFileRetentionDays < 0) return
-
-    readdir(logDirectory, (readdirErr, entries) => {
-      if (readdirErr) console.error(readdirErr)
-
-      const before = new Date()
-      before.setDate(before.getDate() - logFileRetentionDays)
-      before.setMilliseconds(0)
-      before.setSeconds(0)
-      before.setMinutes(0)
-      before.setHours(1)
-      const rmTime = before.getTime()
-
-      for (const entry of entries) {
-        const path = resolve(logDirectory, entry)
-
-        stat(path, (statErr, stats) => {
-          if (statErr) console.error(statErr)
-
-          if (stats.isFile() && stats.ctime.getTime() < rmTime) rm(path)
-        })
-      }
-    })
-  } else {
+  if (!existsSync(logDirectory)) {
     mkdirSync(logDirectory)
+    return
   }
+
+  if (logFileRetentionDays < 0) return
+
+  readdir(logDirectory, (readdirErr, entries) => {
+    if (readdirErr) console.error(readdirErr)
+
+    const before = new Date()
+    before.setDate(before.getDate() - logFileRetentionDays)
+    before.setMilliseconds(0)
+    before.setSeconds(0)
+    before.setMinutes(0)
+    before.setHours(1)
+    const rmTime = before.getTime()
+
+    for (const entry of entries) {
+      const path = resolve(logDirectory, entry)
+      stat(path, (statErr, stats) => {
+        if (statErr) console.error(statErr)
+        if (stats.isFile() && stats.ctime.getTime() < rmTime) rm(path)
+      })
+    }
+  })
 }
 
 function shouldLog(level: ILogLevel) {
