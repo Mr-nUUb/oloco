@@ -83,7 +83,7 @@ export const handler = async (yargs: Arguments): Promise<void> => {
     }
 
     exitHook(() => {
-      logCounter = 0
+      resetLogCounter(true)
       Logger.info('Daemon terminating, setting all fans to their configured `backOffSpeed`.')
       clearInterval(interval)
       sleepSync(1000)
@@ -274,7 +274,7 @@ function setupLogger() {
         Logger.setHandler((msg, ctx) => {
           if (shouldLog(ctx.level)) {
             defaultLogger(buildMessage(msg, ctx), ctx)
-            logCounter = 0
+            resetLogCounter()
           }
         })
         break
@@ -285,13 +285,17 @@ function setupLogger() {
           prepareLogDirectory()
           if (shouldLog(ctx.level)) {
             appendFile(file, `${buildMessage(msg, ctx)}${EOL}`)
-            logCounter = 0
+            resetLogCounter()
           }
         })
         break
     }
     currentLogTarget = daemonConfig.logTarget
   }
+}
+
+function resetLogCounter(force = false) {
+  if (force || logCounter % daemonConfig.logThreshold === 0) logCounter = 0
 }
 
 function getLogFilename() {
