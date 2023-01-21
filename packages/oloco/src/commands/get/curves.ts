@@ -29,11 +29,8 @@ export const handler = async (yargs: Arguments): Promise<void> => {
   const controller = new OLoCo()
   controller.setReadTimeout(Config.get('readTimeout'))
   const curves = await controller.getResponseCurve(port, undefined, skipValidation)
-  if (save) {
-    for (let i = 0; i < curves.length; i++) {
-      Config.set(`fans.${curves[i].port}.responseCurve`, curves[i].curve)
-    }
-  }
+
+  if (save) curves.forEach((curve) => Config.set(`fans.${curve.port}.responseCurve`, curve.curve))
 
   logObject(curves)
   controller.close()
