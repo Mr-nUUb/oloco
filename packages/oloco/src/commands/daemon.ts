@@ -15,7 +15,6 @@ import {
 } from '../lib/profiles'
 import type {
   AppConfig,
-  FanPort,
   FanProfileCurves,
   FanProfileName,
   LogMode,
@@ -40,6 +39,15 @@ let daemonConfig: AppConfig['daemon']
 let currentLogTarget: LogTarget
 let logCounter = 0
 let skipValidation: boolean
+const fanProfiles: FanProfileCurves = {
+  AirSilent,
+  AirBalanced,
+  LiquidSilent,
+  LiquidBalanced,
+  LiquidPerformance,
+  Maximum,
+  Custom: AirBalanced, // overwritten later on
+}
 
 export const command = 'daemon'
 export const describe = 'Run this tool in daemon mode using custom user Configuration.'
@@ -185,71 +193,58 @@ function handleRgb(): PartialLogData['rgb'] {
 }
 
 function handleFan(sensor: SensorData): PartialLogData['fans'] {
-  const fanConfigs = Object.entries(Config.get('fans')).filter((c) => c[1].enabled)
-  const resultFans: PartialLogData['fans'] = new Array(fanConfigs.length)
-  for (let i = 0; i < fanConfigs.length; i++) {
-    const port = fanConfigs[i][0] as FanPort
-    const fanConfig = fanConfigs[i][1]
-    const name = fanConfig.name
-    const warn = fanConfig.warning
+  const fanConfigs = Config.get('fans')
+  return FanPorts.filter((port) => fanConfigs[port].enabled).map((port) => {
+    const { name, warning, tempMode, activeProfile, customProfile, tempSources } = fanConfigs[port]
+    const customProfileCurve = Config.get('profiles')[customProfile]
     const rpm = controller.getFan(port, skipValidation)[0].rpm
+    const logName = name || port
 
-    if (rpm < warn) {
-      Logger.warn(`${name || port} is below warning speed: ${rpm} < ${warn} RPM!`)
+    if (rpm < warning) Logger.warn(`${logName} is below warning speed: ${rpm} < ${warning} RPM!`)
+
+    if (activeProfile === 'Custom' && !customProfileCurve) {
+      Logger.warn(`Custom profile "${customProfile}" not found, falling back to "AirBalanced".`)
+      fanProfiles.Custom = AirBalanced
+    } else fanProfiles.Custom = customProfileCurve
+
+    const temps = tempSources
+      .map((src) => {
+        const currentSensor = sensor.temps.find((s) => s.port === src)
+        if (!currentSensor || !currentSensor.temp) {
+          Logger.warn(`Couldn't read temperature sensor: ${inspect(currentSensor)}`)
+          return
+        }
+        return currentSensor.temp + Config.get('temps')[currentSensor.port].offset
+      })
+      .filter(isNumber)
+
+    if (!temps.length) {
+      Logger.warn(`No valid temperature sources found for ${logName}, assuming 100°C`)
+      temps.push(100)
     }
 
-    const customProfile = Config.get('profiles')[fanConfig.customProfile]
-
-    if (fanConfig.activeProfile === 'Custom' && !customProfile) {
-      Logger.warn(
-        `Custom profile "${fanConfig.customProfile}" not found, falling back to "AirBalanced".`,
-      )
-    }
-
-    const fanProfiles: FanProfileCurves = {
-      AirSilent,
-      AirBalanced,
-      LiquidSilent,
-      LiquidBalanced,
-      LiquidPerformance,
-      Maximum,
-      Custom: customProfile || AirBalanced,
-    }
-
-    const allTemps = new Array<number | undefined>(fanConfig.tempSources.length)
-    for (let t = 0; t < allTemps.length; t++) {
-      const currentSensor = sensor.temps.find((s) => s.port === fanConfig.tempSources[t])
-      if (!currentSensor || !currentSensor.temp) {
-        Logger.warn(`Couldn't read temperature sensor: ${inspect(currentSensor)}`)
-        allTemps[t] = undefined
-        continue
-      }
-      allTemps[t] = currentSensor.temp + Config.get('temps')[currentSensor.port].offset
-    }
-    const temps = allTemps.filter((t) => typeof t !== 'undefined') as number[]
-
-    const tempMode = fanConfig.tempMode
     const controlTemp = tempMode === 'Average' ? average(...temps) : Math.max(...temps)
 
-    const curve = fanProfiles[fanConfig.activeProfile]
+    const curve = fanProfiles[activeProfile]
     const { lower, higher } = checkPoints(
-      fanConfig.activeProfile,
+      activeProfile,
       findLessOrEqual(curve, controlTemp),
       findGreater(curve, controlTemp),
     )
     const pwm = interpolate(controlTemp, lower.temp, higher.temp, lower.pwm, higher.pwm)
 
     const fanIndex = oldFan.findIndex((f) => f.port === port)
-
     if (oldFan[fanIndex].pwm !== pwm) {
       controller.setFan(pwm, port, skipValidation)
       oldFan[fanIndex].pwm = pwm
     }
 
-    resultFans[i] = { port, name, pwm, rpm }
-  }
+    return { port, name, pwm, rpm }
+  })
+}
 
-  return resultFans
+function isNumber(n: unknown): n is number {
+  return typeof n === 'number'
 }
 
 function handleLogger(data: PartialLogData) {
