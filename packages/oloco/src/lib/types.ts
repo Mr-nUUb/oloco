@@ -57,7 +57,7 @@ export type AppConfig = {
     enabled: boolean
     warning: boolean
   }
-  rgb: RgbData & { name: string; enabled: boolean }
+  rgb: RgbData & { name: string; enabled: boolean; backOffConfig: RgbData }
   daemon: {
     logDelimiter: string
     logDirectory: string

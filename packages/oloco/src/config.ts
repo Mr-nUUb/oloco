@@ -157,8 +157,39 @@ export const schema: Schema<AppConfig> = {
         enum: RgbSpeeds.slice(),
         type: 'string',
       },
+      backOffConfig: {
+        additionalProperties: false,
+        properties: {
+          color: {
+            additionalProperties: false,
+            properties: {
+              blue: {
+                type: 'number',
+              },
+              green: {
+                type: 'number',
+              },
+              red: {
+                type: 'number',
+              },
+            },
+            required: ['red', 'green', 'blue'],
+            type: 'object',
+          },
+          mode: {
+            enum: RgbModes.slice(),
+            type: 'string',
+          },
+          speed: {
+            enum: RgbSpeeds.slice(),
+            type: 'string',
+          },
+        },
+        required: ['color', 'mode', 'speed'],
+        type: 'object',
+      },
     },
-    required: ['color', 'mode', 'speed'],
+    required: ['color', 'mode', 'speed', 'backOffConfig'],
     type: 'object',
   },
   daemon: {
@@ -303,6 +334,15 @@ export const defaults: Readonly<AppConfig> = {
       red: 0,
       green: 0,
       blue: 0,
+    },
+    backOffConfig: {
+      mode: 'Static',
+      speed: 'Normal',
+      color: {
+        red: 255,
+        green: 0,
+        blue: 0,
+      },
     },
   },
   daemon: {

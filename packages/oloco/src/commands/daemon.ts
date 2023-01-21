@@ -84,9 +84,13 @@ export const handler = async (yargs: Arguments): Promise<void> => {
 
     exitHook(() => {
       resetLogCounter(true)
-      Logger.info('Daemon terminating, setting all fans to their configured `backOffSpeed`.')
+      Logger.info(
+        'Daemon terminating, setting all fans and RGB to their configured `backOff`-settings.',
+      )
       clearInterval(interval)
       sleepSync(1000)
+
+      controller.setRgb(Config.get('rgb').backOffConfig, true)
 
       const fanConfigs = Config.get('fans')
       FanPorts.filter((port) => fanConfigs[port].enabled).forEach((port) => {
