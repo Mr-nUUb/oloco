@@ -3,19 +3,7 @@ const { existsSync, readFileSync, readdirSync } = require('fs')
 const { EOL } = require('os')
 const { basename } = require('path')
 
-const { COLORS, COLOR_RESET, DIR_PACKAGES, LIB_NAME } = require('./constants')
-
-const getFileList = (dirName) => {
-  const files = []
-  const items = readdirSync(dirName, { withFileTypes: true })
-
-  for (const item of items) {
-    const itemName = `${dirName}/${item.name}`
-    files.push(item.isDirectory() ? getFileList(itemName) : itemName)
-  }
-
-  return files.flat()
-}
+const { COLORS, COLOR_RESET, DIR_PACKAGES } = require('./constants')
 
 const getLogPrefix = (pkg) => `${getNextColor()}${getPackageName(pkg)}${COLOR_RESET}`
 
@@ -66,16 +54,6 @@ const getPackagesTopological = () => {
     .map((a) => a.location) // extract paths
 }
 
-const getPackagesWithoutLib = () => getPackages().filter((d) => !d.endsWith(LIB_NAME))
-
-const handleStdio = (buffer, func, prefix) => {
-  buffer
-    .toLocaleString()
-    .trim()
-    .split(EOL)
-    .forEach((l) => func(prefix, l))
-}
-
 const packageExists = (pkg, prefix) => {
   const result = existsSync(pkg)
   if (!result) console.warn(`${prefix}: not found, skipping...`)
@@ -83,13 +61,8 @@ const packageExists = (pkg, prefix) => {
 }
 
 module.exports = {
-  getFileList,
   getLogPrefix,
-  getNextColor,
-  getPackageName,
   getPackages,
   getPackagesTopological,
-  getPackagesWithoutLib,
-  handleStdio,
   packageExists,
 }

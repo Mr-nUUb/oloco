@@ -5,33 +5,26 @@ const { getLogPrefix, getPackages, packageExists } = require('./lib/util')
 
 const rmSyncOptions = { recursive: true, force: true }
 
-function cleanCache() {
-  rmSync('node_modules/.cache', rmSyncOptions)
-}
+const cleanCache = () => rmSync('node_modules/.cache', rmSyncOptions)
 
-function cleanDist(packages) {
-  const target = DIR_TS_OUT
+const cleanDist = (packages) => {
   packages.forEach((pkg) => {
     const prefix = getLogPrefix(pkg)
-
     if (!packageExists(pkg, prefix)) return
 
     console.time(prefix)
 
-    const targetPath = `${pkg}/${target}`
-    if (existsSync(targetPath)) {
-      rmSync(targetPath, rmSyncOptions)
-    }
-    if (target == DIR_TS_OUT) {
-      const tsBuildinfo = `${pkg}/tsconfig.tsbuildinfo`
-      if (existsSync(tsBuildinfo)) unlinkSync(tsBuildinfo)
-    }
+    let target = `${pkg}/${DIR_TS_OUT}`
+    if (existsSync(target)) rmSync(target, rmSyncOptions)
+
+    target = `${pkg}/tsconfig.tsbuildinfo`
+    if (existsSync(target)) unlinkSync(target)
 
     console.timeEnd(prefix)
   })
 }
 
-function cleanModules() {
+const cleanModules = () => {
   rmSync('.yarn/cache', rmSyncOptions)
   rmSync('.yarn/unplugged', rmSyncOptions)
   unlinkSync('.yarn/install-state.gz')
@@ -39,12 +32,12 @@ function cleanModules() {
   unlinkSync('.pnp.loader.mjs')
 }
 
-function cleanReports() {
+const cleanReports = () => {
   rmSync('reports', rmSyncOptions)
   rmSync('coverage', rmSyncOptions)
 }
 
-function _clean(target, packages) {
+const _clean = (target, packages) => {
   console.time('Overall')
   console.info(`Cleaning "${target}"...`)
 
@@ -72,9 +65,8 @@ function _clean(target, packages) {
   return 0
 }
 
-function clean(target, packages) {
-  return _clean(target, packages.length > 0 && target === DIR_TS_OUT ? packages : getPackages())
-}
+const clean = (target, packages) =>
+  _clean(target, packages.length > 0 && target === DIR_TS_OUT ? packages : getPackages())
 
 module.exports = clean
 

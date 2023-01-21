@@ -3,7 +3,7 @@ const ts = require('typescript')
 const { getLogPrefix, getPackagesTopological, packageExists } = require('./lib/util')
 const { getTsConfig, tsFormatHost } = require('./lib/util-dev')
 
-function _tsc(target, packages) {
+const _tsc = (target, packages) => {
   let exitCode = 0
 
   if (target !== 'compile' && target !== 'watch') {
@@ -16,7 +16,6 @@ function _tsc(target, packages) {
 
   packages.forEach((pkg) => {
     const prefix = getLogPrefix(pkg)
-
     if (!packageExists(pkg, prefix)) return
 
     console.time(prefix)
@@ -24,14 +23,12 @@ function _tsc(target, packages) {
     const buildMessage = (diagnostic) =>
       `${prefix}: ${ts.formatDiagnostic(diagnostic, tsFormatHost).trim()}`
 
-    function reportDiagnostic(diagnostic) {
-      console.error(buildMessage(diagnostic))
+    const reportDiagnostic = (diagnostic) => {
       exitCode = 1
+      return console.error(buildMessage(diagnostic))
     }
 
-    function reportWatchStatusChanged(diagnostic) {
-      console.info(buildMessage(diagnostic))
-    }
+    const reportWatchStatusChanged = (diagnostic) => console.info(buildMessage(diagnostic))
 
     const tsConfig = getTsConfig(pkg)
     const compilerHost = ts.createWatchCompilerHost(
@@ -75,9 +72,8 @@ function _tsc(target, packages) {
   return exitCode
 }
 
-function tsc(target, packages) {
-  return _tsc(target, packages.length > 0 ? packages : getPackagesTopological())
-}
+const tsc = (target, packages) =>
+  _tsc(target, packages.length > 0 ? packages : getPackagesTopological())
 
 module.exports = tsc
 

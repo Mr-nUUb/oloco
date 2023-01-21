@@ -23,13 +23,10 @@ const DIR_PACKAGES = 'packages'
 const DIR_TS_OUT = 'dist'
 const DIR_TS_ROOT = 'src'
 
-const LIB_NAME = '@mr-nuub/template-lib'
-
 module.exports = {
   COLORS,
   COLOR_RESET,
   DIR_PACKAGES,
   DIR_TS_OUT,
   DIR_TS_ROOT,
-  LIB_NAME,
 }
