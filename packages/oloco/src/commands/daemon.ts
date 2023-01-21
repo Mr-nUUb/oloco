@@ -136,14 +136,13 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
     (t) => tempConfigs[t].enabled,
   ).map((port) => {
     const tempConfig = tempConfigs[port]
-    const name = tempConfig.name
-    const warn = tempConfig.warning
+    const { name, warning } = tempConfig
     let temp = sensor.temps.find((t) => t.port === port)?.temp
 
     if (temp) {
       temp += tempConfig.offset
-      if (temp > warn)
-        Logger.warn(`${name || port} is above warning temperature: ${temp} > ${warn} °C!`)
+      if (temp > warning)
+        Logger.warn(`${name || port} is above warning temperature: ${temp} > ${warning} °C!`)
     } else {
       Logger.warn(`Couldn't read temperature ${name}!`)
     }
@@ -154,12 +153,12 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
   const flowConfig = Config.get('flow')
   let resultFlow: LogData['sensors']['flow'] | undefined = undefined
   if (flowConfig.enabled) {
-    const name = flowConfig.name
-    const warn = flowConfig.warning
-    const port = sensor.flow.port
+    const { name, warning } = flowConfig
+    const { port } = sensor.flow
     const flow = (sensor.flow.flow * flowConfig.signalsPerLiter) / 100
 
-    if (flow < warn) Logger.warn(`${name || port} is below warning flow: ${flow} < ${warn} l/h!`)
+    if (flow < warning)
+      Logger.warn(`${name || port} is below warning flow: ${flow} < ${warning} l/h!`)
 
     resultFlow = { port, name, flow }
   }
@@ -167,9 +166,8 @@ function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
   const levelConfig = Config.get('level')
   let resultLevel: LogData['sensors']['level'] | undefined = undefined
   if (levelConfig.enabled) {
-    const name = levelConfig.name
-    const port = sensor.level.port
-    const level = sensor.level.level
+    const { name } = levelConfig
+    const { port, level } = sensor.level
 
     if (levelConfig.warning && level === 'Warning')
       Logger.warn(`${name || port} is below warning level!`)
@@ -365,48 +363,49 @@ function buildMessage(
       msg.messages = data
       return [JSON.stringify(msg)]
     case 'Text':
-      data.forEach((d) => {
-        msg.messages.push(
-          ...(typeof d === 'string' ? [d] : buildMessageFromControllerData(d as PartialLogData)),
-        )
-      })
+      msg.messages.push(
+        ...data.flatMap((d) =>
+          typeof d === 'string' ? [d] : buildMessageFromControllerData(d as PartialLogData),
+        ),
+      )
       return [`[${msg.timestamp} ${msg.level[0]}] ${msg.messages.join(logDelimiter)}`]
   }
 }
 
 function buildMessageFromControllerData(data: PartialLogData) {
   const txtMsg: string[] = []
+  const { sensors, fans, rgb } = data
 
   // Names are optional, ports are always there
 
-  if (data.sensors) {
-    if (data.sensors.temps) {
-      data.sensors.temps.forEach((t) => {
+  if (sensors) {
+    if (sensors.temps) {
+      sensors.temps.forEach((t) => {
         const { name, port, temp } = t
         txtMsg.push(`${name || port}: ${temp} °C`)
       })
     }
 
-    if (data.sensors.flow) {
-      const { name, port, flow } = data.sensors.flow
+    if (sensors.flow) {
+      const { name, port, flow } = sensors.flow
       txtMsg.push(`${name || port}: ${flow} l/h`)
     }
 
-    if (data.sensors.level) {
-      const { name, port, level } = data.sensors.level
+    if (sensors.level) {
+      const { name, port, level } = sensors.level
       txtMsg.push(`${name || port}: ${level}`)
     }
   }
 
-  if (data.fans) {
-    data.fans.forEach((f) => {
+  if (fans) {
+    fans.forEach((f) => {
       const { name, port, rpm } = f
       txtMsg.push(`${name || port}: ${rpm} RPM`)
     })
   }
 
-  if (data.rgb) {
-    const { name, port, color, mode, speed } = data.rgb
+  if (rgb) {
+    const { name, port, color, mode, speed } = rgb
     const modeInfo = mode !== 'Off' ? `/${speed}/${color?.red},${color?.green},${color?.blue}` : ``
     txtMsg.push(`${name || port}: ${mode}${modeInfo}`)
   }
