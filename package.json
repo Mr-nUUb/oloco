@@ -25,11 +25,11 @@
     "directory": "."
   },
   "engines": {
-    "node": ">=14.18.0"
+    "node": ">=18.13.0"
   },
   "devDependencies": {
-    "@tsconfig/node14": "^1.0.3",
-    "@types/node": "^14",
+    "@tsconfig/node18": "^1",
+    "@types/node": "^18",
     "@typescript-eslint/eslint-plugin": "5.44.0",
     "@typescript-eslint/parser": "5.44.0",
     "eslint": "^8.28.0",
