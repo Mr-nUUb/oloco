@@ -24,7 +24,7 @@
     "start": "node dist/cli.js"
   },
   "dependencies": {
-    "conf": "^10.2.0",
+    "conf": "^11.0.1",
     "detect-ts-node": "^1.0.5",
     "exit-hook": "^2.2.1",
     "js-logger": "^1.6.1",
