@@ -1,7 +1,12 @@
 const ts = require('typescript')
 
-const { getLogPrefix, getPackagesTopological, packageExists } = require('./lib/util')
-const { getTsConfig, tsFormatHost } = require('./lib/util-dev')
+const {
+  getLogPrefix,
+  getPackagesTopological,
+  packageExists,
+  tsFormatHost,
+  getTsConfig,
+} = require('./lib/util')
 
 const _tsc = (target, packages) => {
   let exitCode = 0

@@ -1,9 +1,10 @@
 const { spawnSync } = require('child_process')
 const { existsSync, readFileSync, readdirSync } = require('fs')
 const { EOL } = require('os')
-const { basename } = require('path')
+const { basename, resolve } = require('path')
+const ts = require('typescript')
 
-const { COLORS, COLOR_RESET, DIR_PACKAGES } = require('./constants')
+const { COLORS, COLOR_RESET, DIR_PACKAGES, DIR_TS_OUT, DIR_TS_ROOT } = require('./constants')
 
 const getLogPrefix = (pkg) => `${getNextColor()}${getPackageName(pkg)}${COLOR_RESET}`
 
@@ -60,9 +61,26 @@ const packageExists = (pkg, prefix) => {
   return result
 }
 
+const tsFormatHost = {
+  getCanonicalFileName: (path) => path,
+  getCurrentDirectory: ts.sys.getCurrentDirectory,
+  getNewLine: () => ts.sys.newLine,
+}
+
+const getTsConfig = (pkg) => ({
+  include: [`./${DIR_TS_ROOT}/**/*.ts`],
+  exclude: [`./${DIR_TS_ROOT}/**/*.test.ts`, `./${DIR_TS_ROOT}/**/*.test.*.ts`],
+  compilerOptions: {
+    outDir: resolve(pkg, DIR_TS_OUT),
+    rootDir: resolve(pkg, DIR_TS_ROOT),
+  },
+})
+
 module.exports = {
   getLogPrefix,
   getPackages,
   getPackagesTopological,
+  getTsConfig,
   packageExists,
+  tsFormatHost,
 }
