@@ -6,7 +6,7 @@ import { Config } from '../../config'
 import { FanPorts } from '../../lib/iterables'
 
 export const command = 'fans <speed> [port]'
-export const describe = 'Set a speed of a fan or all fans.'
+export const describe = 'Set a fan or all fans to run at a certain speed.'
 
 export const builder = (yargs: Argv): Argv =>
   yargs

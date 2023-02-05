@@ -22,7 +22,7 @@ export const builder = (yargs: Argv): Argv =>
     })
     .positional('color', {
       type: 'string',
-      describe: 'Color code in hex format, eg. #FF0000 for red.',
+      describe: 'Color code in hex format with leading "#", eg. #FF0000 for red.',
     })
 
 export const handler = (yargs: Arguments): void => {
