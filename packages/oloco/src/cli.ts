@@ -19,4 +19,5 @@ yargs(hideBin(process.argv))
     describe: 'Skip packet validation.',
     type: 'boolean',
   })
+  .completion()
   .help().argv
