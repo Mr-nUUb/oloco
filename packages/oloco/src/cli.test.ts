@@ -1,6 +1,6 @@
-const argvBackup = process.argv
-const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
-const exitSpy = jest.spyOn(process, 'exit').mockImplementation()
+let argvBackup: string[]
+let consoleSpy: jest.SpyInstance
+let exitSpy: jest.SpyInstance
 
 async function runCmd(...args: string[]) {
   process.argv = ['ts-node', 'cli.ts', ...args]
@@ -8,12 +8,20 @@ async function runCmd(...args: string[]) {
 }
 
 describe('cli', () => {
+  beforeAll(() => {
+    argvBackup = process.argv
+    consoleSpy = jest.spyOn(console, 'log').mockImplementation()
+    exitSpy = jest.spyOn(process, 'exit').mockImplementation()
+  })
+
   beforeEach(() => {
-    jest.resetAllMocks()
+    jest.clearAllMocks()
     jest.resetModules()
   })
 
-  afterEach(() => {
+  afterAll(() => {
+    jest.resetAllMocks()
+    jest.restoreAllMocks()
     process.argv = argvBackup
   })
 
