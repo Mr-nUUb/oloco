@@ -44,7 +44,9 @@ export class OLoCo {
   }
 
   private static _createPacket(mode: CommMode, port: DevicePort, dataLength: number): number[] {
-    const packetLength = dataLength + 4 // 4 bytes header
+    const packetLength = dataLength + 8 // 4 bytes header + 4 bytes tail
+    if (packetLength > 63) throw new Error(`Packet length out of bounds: ${packetLength} > 63!`)
+
     const packet = new Array<number>(packetLength).fill(0x00)
 
     // header
@@ -63,12 +65,25 @@ export class OLoCo {
     packet[10] = 0x20
 
     // tail? don't forget to increase packetLength if used!
-    // packet[packetLength - 4] = 0xaa
-    // packet[packetLength - 3] = 0xbb
-    // packet[packetLength - 2] = 0x00 // checksum here?
-    // packet[packetLength - 1] = 0xed
+    packet[packetLength - 4] = 0xaa
+    packet[packetLength - 3] = 0xbb
+    // packet[packetLength - 2] = 0x00 // checksum here
+    packet[packetLength - 1] = 0xed
 
     return packet
+  }
+
+  private static _getChecksummedBoundary(packet: number[]): { start: number; end: number } {
+    return { start: packet.indexOf(0xaa), end: packet.lastIndexOf(0xed) - 1 }
+  }
+
+  private static _calculateChecksum(packet: number[]): number {
+    const { start, end } = OLoCo._getChecksummedBoundary(packet)
+
+    let checksum = 0
+    for (let i = start; i < end; i++) checksum += packet[i]
+
+    return checksum & 0xff
   }
 
   private static _validateRecv(recv: number[], write: number[]) {
@@ -78,7 +93,6 @@ export class OLoCo {
     const sensors = port[0] === 'Sensor'
     const longRecv = write[2] === 0x29
 
-    //console.log(recv.length, recv)
     const packet = recv.slice(0, 8)
     const expectPacket = [
       0x10,
@@ -91,6 +105,17 @@ export class OLoCo {
       sensors ? 0x20 : 0x10,
     ]
     OLoCo._compareBytes(packet, expectPacket)
+
+    const receivedChecksum = recv[OLoCo._getChecksummedBoundary(recv).end]
+    const expectedChecksum = OLoCo._calculateChecksum(recv)
+    if (receivedChecksum !== expectedChecksum)
+      throw new Error(
+        [
+          'Checksum mismatch',
+          `received ${OLoCo._formatBytes([receivedChecksum])}`,
+          `expected ${OLoCo._formatBytes([expectedChecksum])}`,
+        ].join(`${EOL}  `),
+      )
   }
 
   private static _compareBytes(recv: number[], expect: number[]) {
@@ -146,7 +171,7 @@ export class OLoCo {
 
   private _write(packet: number[], skipValidation = false, skipReadback = false): number[] {
     // calculate checksum here. Checksum is optional though...
-    // anybody got an idea what kind of checksum EKWB is using?
+    packet[OLoCo._getChecksummedBoundary(packet).end] = OLoCo._calculateChecksum(packet)
 
     // prepend report number for windows
     this._device.write(platform() === 'win32' ? [0x00].concat(packet) : packet)
