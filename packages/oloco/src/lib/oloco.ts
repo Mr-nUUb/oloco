@@ -45,6 +45,7 @@ export class OLoCo {
 
   private static _createPacket(mode: CommMode, port: DevicePort, dataLength: number): number[] {
     const packetLength = dataLength + 8 // 4 bytes header + 4 bytes tail
+    // it's 63 because on windows we have to prepend 0x00!
     if (packetLength > 63) throw new Error(`Packet length out of bounds: ${packetLength} > 63!`)
 
     const packet = new Array<number>(packetLength).fill(0x00)
