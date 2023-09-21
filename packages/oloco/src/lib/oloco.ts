@@ -78,6 +78,7 @@ export class OLoCo {
     return { start: packet.indexOf(0xaa), end: packet.lastIndexOf(0xed) - 1 }
   }
 
+  // you thought CoveringMarquee in setRgb() was stupid? read the following function!
   private static _calculateChecksum(packet: number[]): number {
     const { start, end } = OLoCo._getChecksummedBoundary(packet)
 
