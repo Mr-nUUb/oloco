@@ -65,7 +65,7 @@ export class OLoCo {
     packet[9] = port === 'Sensor' ? 0x20 : 0x10
     packet[10] = 0x20
 
-    // tail? don't forget to increase packetLength if used!
+    // tail
     packet[packetLength - 4] = 0xaa
     packet[packetLength - 3] = 0xbb
     // packet[packetLength - 2] = 0x00 // checksum here
@@ -91,40 +91,35 @@ export class OLoCo {
     const port = Object.entries(OLoCo._portAddresses).find(
       (p) => p[1][0] === write[6] && p[1][1] === write[7],
     ) as [DevicePort, number[]]
-    const sensors = port[0] === 'Sensor'
-    const longRecv = write[2] === 0x29
+    const isSensors = port[0] === 'Sensor'
+    const isLongRecv = isSensors || write[2] === 0x29
+    const { end } = OLoCo._getChecksummedBoundary(recv)
+    const expectChecksum = OLoCo._calculateChecksum(recv)
 
-    const packet = recv.slice(0, 8)
-    const expectPacket = [
+    let packet = recv.slice(0, 8)
+    let expectPacket = [
       0x10,
       0x12,
-      sensors || longRecv ? 0x27 : 0x17,
+      isLongRecv ? 0x27 : 0x17,
       0xaa,
       0x01,
       0x03,
       0x00,
-      sensors ? 0x20 : 0x10,
+      isSensors ? 0x20 : 0x10,
     ]
-    OLoCo._compareBytes(packet, expectPacket)
+    OLoCo._compareBytes('header', packet, expectPacket)
 
-    const receivedChecksum = recv[OLoCo._getChecksummedBoundary(recv).end]
-    const expectedChecksum = OLoCo._calculateChecksum(recv)
-    if (receivedChecksum !== expectedChecksum)
-      throw new Error(
-        [
-          'Checksum mismatch',
-          `received ${OLoCo._formatBytes([receivedChecksum])}`,
-          `expected ${OLoCo._formatBytes([expectedChecksum])}`,
-        ].join(`${EOL}  `),
-      )
+    packet = recv.slice(end - 2, end + 2)
+    expectPacket = [0xaa, 0xbb, expectChecksum, 0xed]
+    OLoCo._compareBytes('tail', packet, expectPacket)
   }
 
-  private static _compareBytes(recv: number[], expect: number[]) {
+  private static _compareBytes(section: string, recv: number[], expect: number[]) {
     try {
       const len = expect.length
       if (recv.length !== len) throw new Error(`length mismatch`)
       for (let i = 0; i < len; i++) {
-        if (recv[i] !== expect[i]) throw new Error(`mismatch on index ${i}`)
+        if (recv[i] !== expect[i]) throw new Error(`mismatch on index ${i} of ${section}`)
       }
     } catch (err) {
       const fmtHdr = OLoCo._formatBytes(recv)
