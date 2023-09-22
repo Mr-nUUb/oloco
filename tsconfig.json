@@ -12,5 +12,6 @@
     "paths": {
       "@oloco/*": ["*/src"]
     }
-  }
+  },
+  "exclude": ["**/*.js"]
 }
