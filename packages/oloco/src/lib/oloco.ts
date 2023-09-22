@@ -4,29 +4,16 @@ import type { CurveData, DeviceInformation, FanData, RgbData, SensorData } from 
 import { FanPorts, TempPorts } from './iterables'
 import type { DevicePort, FanPort } from './types'
 import { sleep } from '../util'
-import { CommMode, RgbModeEnum, RgbSpeedEnum } from './enums'
+import { CommMode, DeviceIdentifier, PortAddressEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
 
 export class OLoCo {
   private _device: HID
   private _readTimeout = 1000
 
-  private static _vendorId = 0x0483 as const
-  private static _deviceId = 0x5750 as const
-  private static _portAddresses: { [k in DevicePort]: number[] } = {
-    F1: [0xa0, 0xa0],
-    F2: [0xa0, 0xc0],
-    F3: [0xa0, 0xe0],
-    F4: [0xa1, 0x00],
-    F5: [0xa1, 0x20],
-    F6: [0xa1, 0xe0],
-    Sensor: [0xa2, 0x20],
-    RGB: [0xa2, 0x60],
-  }
-
   constructor(device?: HID) {
     if (device) this._device = device
     else {
-      const devs = devices(OLoCo._vendorId, OLoCo._deviceId).filter(
+      const devs = devices(DeviceIdentifier.VID, DeviceIdentifier.PID).filter(
         (dev) => dev.interface === 0 && dev.usage === 1,
       )
       if (devs.length === 0) {
@@ -59,8 +46,8 @@ export class OLoCo {
     // data header
     packet[4] = 0x01
     packet[5] = mode
-    packet[6] = OLoCo._portAddresses[port][0]
-    packet[7] = OLoCo._portAddresses[port][1]
+    packet[6] = (PortAddressEnum[port] >> 8) & 0xff
+    packet[7] = PortAddressEnum[port] & 0xff
     // packet[8] = 0x00
     packet[9] = port === 'Sensor' ? 0x20 : 0x10
     packet[10] = 0x20
@@ -89,10 +76,8 @@ export class OLoCo {
   }
 
   private static _validateRecv(recv: number[], write: number[]) {
-    const port = Object.entries(OLoCo._portAddresses).find(
-      (p) => p[1][0] === write[6] && p[1][1] === write[7],
-    ) as [DevicePort, number[]]
-    const isSensors = port[0] === 'Sensor'
+    const port = PortAddressEnum[(write[6] << 8) + write[7]] as keyof typeof PortAddressEnum
+    const isSensors = port === 'Sensor'
     const isLongRecv = isSensors || write[2] === 0x29
     const { end } = OLoCo._getChecksummedBoundary(recv)
     const expectChecksum = OLoCo._calculateChecksum(recv)

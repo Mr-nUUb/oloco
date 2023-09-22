@@ -1,3 +1,19 @@
+export enum DeviceIdentifier {
+  VID = 0x0483,
+  PID = 0x5750,
+}
+
+export enum PortAddressEnum {
+  F1 = 0xa0a0,
+  F2 = 0xa0c0,
+  F3 = 0xa0e0,
+  F4 = 0xa100,
+  F5 = 0xa120,
+  F6 = 0xa1e0,
+  Sensor = 0xa220,
+  RGB = 0xa260,
+}
+
 export enum RgbModeEnum {
   Off = 0x00,
   Static = 0x01,
