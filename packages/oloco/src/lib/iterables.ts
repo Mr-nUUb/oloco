@@ -1,47 +1,17 @@
-import type {
-  FanPort,
-  FanProfileName,
-  LogLevel,
-  LogMode,
-  LogTarget,
-  RgbMode,
-  RgbSpeed,
-  TempMode,
-  TempPort,
-  TimestampFormat,
-} from './types'
+import { LogLevelEnum, PortAddressEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
+import type { FanPort, LogLevel, RgbMode, RgbSpeed } from './types'
 
-export const FanPorts: ReadonlyArray<FanPort> = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6']
+export const FanPorts: readonly FanPort[] = Object.keys(PortAddressEnum).filter((k) =>
+  k.startsWith('F'),
+) as FanPort[]
 
-export const TempPorts: ReadonlyArray<TempPort> = ['T1', 'T2', 'T3']
+export const TempPorts = ['T1', 'T2', 'T3'] as const
 
-export const RgbModes: ReadonlyArray<RgbMode> = [
-  'Off',
-  'Static',
-  'Breathing',
-  'Fading',
-  'Marquee',
-  'CoveringMarquee',
-  'Pulse',
-  'SpectrumWave',
-  'Rainbow',
-  'Alternating',
-  'Candle',
-]
+export const RgbModes: readonly RgbMode[] = Object.keys(RgbModeEnum) as RgbMode[]
 
-export const RgbSpeeds: ReadonlyArray<RgbSpeed> = [
-  'Slowest',
-  'Slower',
-  'Slow',
-  'Slowish',
-  'Normal',
-  'Fastish',
-  'Fast',
-  'Faster',
-  'Fastest',
-]
+export const RgbSpeeds: readonly RgbSpeed[] = Object.keys(RgbSpeedEnum) as RgbSpeed[]
 
-export const FanProfiles: ReadonlyArray<FanProfileName> = [
+export const FanProfiles = [
   'AirSilent',
   'AirBalanced',
   'LiquidSilent',
@@ -49,14 +19,14 @@ export const FanProfiles: ReadonlyArray<FanProfileName> = [
   'LiquidPerformance',
   'Maximum',
   'Custom',
-]
+] as const
 
-export const LogLevels: ReadonlyArray<LogLevel> = ['Debug', 'Info', 'Warn', 'Error']
+export const LogLevels: readonly LogLevel[] = Object.keys(LogLevelEnum) as LogLevel[]
 
-export const LogModes: ReadonlyArray<LogMode> = ['JSON', 'Text']
+export const LogModes = ['JSON', 'Text'] as const
 
-export const TempModes: ReadonlyArray<TempMode> = ['Average', 'Maximum']
+export const TempModes = ['Average', 'Maximum'] as const
 
-export const LogTargets: ReadonlyArray<LogTarget> = ['None', 'Console', 'File']
+export const LogTargets = ['None', 'Console', 'File'] as const
 
-export const TimestampFormats: ReadonlyArray<TimestampFormat> = ['ISO', 'UNIX', 'UTC']
+export const TimestampFormats = ['ISO', 'UNIX', 'UTC'] as const
