@@ -4,7 +4,7 @@ import type { CurveData, DeviceInformation, FanData, RgbData, SensorData } from 
 import { FanPorts, TempPorts } from './iterables'
 import type { DevicePort, FanPort } from './types'
 import { sleep } from '../util'
-import { CommMode, DeviceIdentifier, PortAddressEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
+import { CommModeEnum, DeviceIdentifier, PortAddressEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
 
 export class OLoCo {
   private _device: HID
@@ -30,7 +30,7 @@ export class OLoCo {
     }
   }
 
-  private static _createPacket(mode: CommMode, port: DevicePort, dataLength: number): number[] {
+  private static _createPacket(mode: CommModeEnum, port: DevicePort, dataLength: number): number[] {
     const packetLength = dataLength + 8 // 4 bytes header + 4 bytes tail
     // it's 63 because on windows we have to prepend 0x00!
     if (packetLength > 63) throw new Error(`Packet length out of bounds: ${packetLength} > 63!`)
@@ -125,7 +125,7 @@ export class OLoCo {
   }
 
   private _getFan(port: FanPort, skipValidation = false): FanData {
-    const recv = this._write(OLoCo._createPacket(CommMode.Read, port, 8), skipValidation)
+    const recv = this._write(OLoCo._createPacket(CommModeEnum.Read, port, 8), skipValidation)
 
     return {
       port,
@@ -140,7 +140,7 @@ export class OLoCo {
     skipValidation = false,
     skipReadback = false,
   ): number[] | void {
-    const packet = OLoCo._createPacket(CommMode.Write, port, 41)
+    const packet = OLoCo._createPacket(CommModeEnum.Write, port, 41)
 
     // original packet contains RPM on bytes 15 and 16 - why?
     // eg. 2584 RPM ==> packet[15]=0x0a, packet[16]=0x18
@@ -216,7 +216,7 @@ export class OLoCo {
   }
 
   public getRgb(skipValidation = false): RgbData {
-    const recv = this._write(OLoCo._createPacket(CommMode.Read, 'RGB', 8), skipValidation)
+    const recv = this._write(OLoCo._createPacket(CommModeEnum.Read, 'RGB', 8), skipValidation)
 
     return {
       port: 'Lx',
@@ -227,7 +227,7 @@ export class OLoCo {
   }
 
   public getSensor(skipValidation = false): SensorData {
-    const packet = OLoCo._createPacket(CommMode.Read, 'Sensor', 8)
+    const packet = OLoCo._createPacket(CommModeEnum.Read, 'Sensor', 8)
     const offset = 11
 
     const recv = this._write(packet, skipValidation)
@@ -260,7 +260,7 @@ export class OLoCo {
   }
 
   public setRgb(rgb: RgbData, skipValidation = false, skipReadback = false): number[] {
-    const packet = OLoCo._createPacket(CommMode.Write, 'RGB', 41)
+    const packet = OLoCo._createPacket(CommModeEnum.Write, 'RGB', 41)
 
     packet[12] = RgbModeEnum[rgb.mode]
     packet[13] = rgb.mode === 'CoveringMarquee' ? 0xff : 0x00 // this is just dumb

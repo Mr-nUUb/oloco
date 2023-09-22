@@ -21,7 +21,7 @@ import type {
   LogTarget,
   PartialLogData,
 } from '../lib/types'
-import { LogLevel } from '../lib/enums'
+import { LogLevelEnum } from '../lib/enums'
 import exitHook from 'exit-hook'
 import { appendFile, rm } from 'fs/promises'
 import { EOL } from 'os'
@@ -263,7 +263,7 @@ function setupLogger() {
     defaultLogger = Logger.createDefaultHandler()
   }
 
-  const level = Logger[LogLevel[daemonConfig.logLevel]]
+  const level = Logger[LogLevelEnum[daemonConfig.logLevel]]
   if (Logger.getLevel() !== level) Logger.setLevel(level)
 
   if (currentLogTarget !== daemonConfig.logTarget) {

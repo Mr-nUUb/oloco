@@ -40,12 +40,12 @@ export enum RgbSpeedEnum {
   Fastest = 0x64,
 }
 
-export enum CommMode {
+export enum CommModeEnum {
   Read = 0x03,
   Write = 0x10,
 }
 
-export enum LogLevel {
+export enum LogLevelEnum {
   Debug = 'DEBUG',
   Info = 'INFO',
   Warn = 'WARN',
