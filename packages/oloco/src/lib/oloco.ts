@@ -139,7 +139,7 @@ export class OLoCo {
     }
   }
 
-  private _setFan(speed: number, port: FanPort): Packet {
+  private _setFan(speed: number, port: FanPort): FanData {
     const packet = OLoCo._createPacket(CommModeEnum.Write, port, 41)
 
     // original packet contains RPM on bytes 15 and 16 - why?
@@ -148,7 +148,11 @@ export class OLoCo {
 
     const recv = this._write(packet) as Packet
 
-    return recv
+    return {
+      port,
+      rpm: (recv[12] << 8) | recv[13],
+      pwm: recv[21],
+    }
   }
 
   private _write(packet: Packet): Packet {
@@ -250,11 +254,15 @@ export class OLoCo {
     }
   }
 
-  public setFan(speed: number, port?: FanPort): void {
+  public setFan<T extends FanPort | undefined>(speed: number, port?: FanPort): GetFanResult<T> {
     const ports = port ? [port] : FanPorts
+    const result = new Array<FanData>(ports.length) as GetFanResult<T>
+
     for (let i = 0; i < ports.length; i++) {
-      this._setFan(speed, ports[i] as FanPort)
+      result[i] = this._setFan(speed, ports[i] as FanPort)
     }
+
+    return result
   }
 
   public setRgb(rgb: RgbData): Packet {
