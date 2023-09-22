@@ -103,20 +103,18 @@ export const handler = async (): Promise<void> => {
 }
 
 function findLessOrEqual(curve: FanProfilePoint[], find: number) {
-  const maximum = curve.reduce(
-    (max, current) =>
-      current.temp < find && current.temp - find > max - find ? current.temp : max,
-    0,
-  )
+  let maximum = 0
+  for (const current of curve) {
+    if (current.temp < find && current.temp - find > maximum - find) maximum = current.temp
+  }
   return curve.find((value) => value.temp === maximum)
 }
 
 function findGreater(curve: FanProfilePoint[], find: number) {
-  const minimum = curve.reduce(
-    (min, current) =>
-      current.temp > find && current.temp + find < min + find ? current.temp : min,
-    100,
-  )
+  let minimum = 100
+  for (const current of curve) {
+    if (current.temp > find && current.temp + find < minimum + find) minimum = current.temp
+  }
   return curve.find((value) => value.temp === minimum)
 }
 
