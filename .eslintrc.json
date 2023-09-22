@@ -14,7 +14,6 @@
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:unicorn/recommended",
     "plugin:prettier/recommended",
     "prettier"
   ],
@@ -29,7 +28,7 @@
     "sourceType": "module"
   },
 
-  "plugins": ["react", "@typescript-eslint", "import", "tsdoc", "unicorn", "prettier"],
+  "plugins": ["react", "@typescript-eslint", "import", "tsdoc", "prettier"],
 
   "rules": {
     "@typescript-eslint/no-shadow": "error",
