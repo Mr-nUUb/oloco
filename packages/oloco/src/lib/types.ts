@@ -84,7 +84,9 @@ export type AppConfig = {
 export type TimestampFormat = 'ISO' | 'UNIX' | 'UTC'
 
 export type RecursivePartial<T> = {
-  [P in keyof T]?: T[P] extends (infer U)[] ? RecursivePartial<U>[] : RecursivePartial<T[P]>
+  [P in keyof T]?:
+    | (T[P] extends (infer U)[] ? RecursivePartial<U>[] : RecursivePartial<T[P]>)
+    | undefined
 }
 
 export type PartialLogData = RecursivePartial<LogData>

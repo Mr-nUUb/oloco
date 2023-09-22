@@ -1,8 +1,8 @@
 export { OLoCo } from './lib/oloco'
 
-export { DevicePort, FanPort, LevelData, RgbMode, RgbSpeed, TempPort } from './lib/types'
+export type { DevicePort, FanPort, LevelData, RgbMode, RgbSpeed, TempPort } from './lib/types'
 
-export {
+export type {
   CurveData,
   CurvePoint,
   DeviceInformation,
