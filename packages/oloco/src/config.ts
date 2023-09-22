@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-array-reduce */
 import {
   FanPorts,
   FanProfiles,
