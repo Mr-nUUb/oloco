@@ -1,63 +1,54 @@
-import type { LogLevel as LogLevelEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
+import type { LogLevelEnum, PortAddressEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
 import type { CurvePoint, FanProfilePoint, LogData, RgbData } from './interfaces'
+import type {
+  FanProfiles,
+  LogModes,
+  LogTargets,
+  TemperatureModes,
+  TemperaturePorts,
+  TimestampFormats,
+} from './iterables'
 
-export type FanProfileName =
-  | 'AirSilent'
-  | 'AirBalanced'
-  | 'LiquidSilent'
-  | 'LiquidBalanced'
-  | 'LiquidPerformance'
-  | 'Maximum'
-  | 'Custom'
-
-export type LogTarget = 'None' | 'Console' | 'File'
+export type FanProfileName = (typeof FanProfiles)[number]
+export type FanProfileCurves = { [key in FanProfileName]: FanProfilePoint[] }
 
 export type LevelData = 'Warning' | 'Good'
 
-export type FanPort = 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'F6'
-
-export type TempPort = 'T1' | 'T2' | 'T3'
-
-export type DevicePort = FanPort | 'RGB' | 'Sensor'
+export type DevicePort = keyof typeof PortAddressEnum
+export type FanPort = Extract<DevicePort, `F${number}`>
+export type TemperaturePort = (typeof TemperaturePorts)[number]
 
 export type RgbMode = keyof typeof RgbModeEnum
-
 export type RgbSpeed = keyof typeof RgbSpeedEnum
 
+export type LogTarget = (typeof LogTargets)[number]
 export type LogLevel = keyof typeof LogLevelEnum
+export type LogMode = (typeof LogModes)[number]
+export type TimestampFormat = (typeof TimestampFormats)[number]
 
-export type LogMode = 'JSON' | 'Text'
+export type TemperatureMode = (typeof TemperatureModes)[number]
 
-export type FanProfileCurves = { [key in FanProfileName]: FanProfilePoint[] }
-
-export type TempMode = 'Maximum' | 'Average'
-
+type PortConfigBase = { name: string; enabled: boolean }
 export type AppConfig = {
   fans: {
     [key in FanPort]: {
-      name: string
-      enabled: boolean
       warning: number
       backOffSpeed: number
-      tempSources: TempPort[]
-      tempMode: TempMode
+      tempSources: TemperaturePort[]
+      tempMode: TemperatureMode
       activeProfile: FanProfileName
       customProfile: string
       responseCurve: CurvePoint[]
-    }
+    } & PortConfigBase
   }
   flow: {
-    name: string
-    enabled: boolean
     warning: number
     signalsPerLiter: number
-  }
+  } & PortConfigBase
   level: {
-    name: string
-    enabled: boolean
     warning: boolean
-  }
-  rgb: RgbData & { name: string; enabled: boolean; backOffConfig: RgbData }
+  } & PortConfigBase
+  rgb: RgbData & PortConfigBase & { backOffConfig: RgbData }
   daemon: {
     logDelimiter: string
     logDirectory: string
@@ -70,21 +61,27 @@ export type AppConfig = {
     timestampFormat: TimestampFormat
   }
   temps: {
-    [key in TempPort]: {
-      name: string
-      enabled: boolean
+    [key in TemperaturePort]: {
       warning: number
       offset: number
-    }
+    } & PortConfigBase
   }
   profiles: { [key: string]: FanProfilePoint[] }
   readTimeout: number
 }
 
-export type TimestampFormat = 'ISO' | 'UNIX' | 'UTC'
-
 export type RecursivePartial<T> = {
-  [P in keyof T]?: T[P] extends (infer U)[] ? RecursivePartial<U>[] : RecursivePartial<T[P]>
+  [P in keyof T]?:
+    | (T[P] extends (infer U)[] ? RecursivePartial<U>[] : RecursivePartial<T[P]>)
+    | undefined
 }
 
 export type PartialLogData = RecursivePartial<LogData>
+
+export type FixedSizeArray<T, L extends number, R extends T[] = []> = R extends { length: L }
+  ? R
+  : FixedSizeArray<T, L, [...R, T]>
+
+export type AllowedIndexes<T, M = keyof T> = M extends `${infer N extends number}` ? N : never
+
+export type Packet = FixedSizeArray<number, 63>

@@ -1,4 +1,4 @@
-import { exit } from 'process'
+import { exit } from 'node:process'
 import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
 import type { FanProfilePoint } from '../../../lib/interfaces'
@@ -13,7 +13,7 @@ export const builder = (yargs: Argv): Argv =>
   })
 
 export const handler = (yargs: Arguments): void => {
-  const name = yargs.name as string
+  const name = yargs['name'] as string
   const profiles = Config.get('profiles')
 
   if (profiles[name]) {

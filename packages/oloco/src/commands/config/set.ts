@@ -1,4 +1,4 @@
-import { exit } from 'process'
+import { exit } from 'node:process'
 import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
 
@@ -17,19 +17,19 @@ export const builder = (yargs: Argv): Argv =>
     })
 
 export const handler = (yargs: Arguments): void => {
-  const entry = yargs.entry as string
-  const value = yargs.value as string
+  const entry = yargs['entry'] as string
+  const value = yargs['value'] as string
 
-  const val = !isNaN(Number.parseInt(value))
-    ? Number.parseInt(value)
-    : value.toLowerCase() === `${true}`
-    ? true
-    : value.toLowerCase() === `${false}`
-    ? false
-    : value
+  const value_ = Number.isNaN(Number.parseInt(value))
+    ? value.toLowerCase() === `${true}`
+      ? true
+      : value.toLowerCase() === `${false}`
+      ? false
+      : value
+    : Number.parseInt(value)
 
   try {
-    Config.set(entry, val)
+    Config.set(entry, value_)
   } catch (error) {
     console.error((error as Error).message || error)
     exit(1)

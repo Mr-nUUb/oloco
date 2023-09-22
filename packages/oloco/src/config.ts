@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-array-reduce */
 import {
   FanPorts,
   FanProfiles,
@@ -6,13 +7,13 @@ import {
   LogTargets,
   RgbModes,
   RgbSpeeds,
-  TempModes,
-  TempPorts,
+  TemperatureModes,
+  TemperaturePorts,
   TimestampFormats,
 } from './lib/iterables'
 import Conf, { Schema } from 'conf'
 import type { AppConfig } from './lib/types'
-import { dirname, resolve } from 'path'
+import { dirname, resolve } from 'node:path'
 
 const pumpSpeedDesired = 80
 
@@ -24,7 +25,7 @@ export const schema: Schema<AppConfig> = {
         additionalProperties: false,
         properties: {
           activeProfile: {
-            enum: FanProfiles.slice(),
+            enum: [...FanProfiles],
             type: 'string',
           },
           customProfile: {
@@ -54,13 +55,13 @@ export const schema: Schema<AppConfig> = {
           },
           tempSources: {
             items: {
-              enum: TempPorts.slice(),
+              enum: [...TemperaturePorts],
               type: 'string',
             },
             type: 'array',
           },
           tempMode: {
-            enum: TempModes.slice(),
+            enum: [...TemperatureModes],
             type: 'string',
           },
           warning: {
@@ -84,7 +85,7 @@ export const schema: Schema<AppConfig> = {
         type: 'object',
       },
     },
-    required: FanPorts.slice(),
+    required: [...FanPorts],
     minProperties: 6,
     maxProperties: 6,
     type: 'object',
@@ -150,11 +151,11 @@ export const schema: Schema<AppConfig> = {
         type: 'object',
       },
       mode: {
-        enum: RgbModes.slice(),
+        enum: [...RgbModes],
         type: 'string',
       },
       speed: {
-        enum: RgbSpeeds.slice(),
+        enum: [...RgbSpeeds],
         type: 'string',
       },
       backOffConfig: {
@@ -177,11 +178,11 @@ export const schema: Schema<AppConfig> = {
             type: 'object',
           },
           mode: {
-            enum: RgbModes.slice(),
+            enum: [...RgbModes],
             type: 'string',
           },
           speed: {
-            enum: RgbSpeeds.slice(),
+            enum: [...RgbSpeeds],
             type: 'string',
           },
         },
@@ -208,22 +209,22 @@ export const schema: Schema<AppConfig> = {
         type: 'number',
       },
       logLevel: {
-        enum: LogLevels.slice(),
+        enum: [...LogLevels],
         type: 'string',
       },
       logMode: {
-        enum: LogModes.slice(),
+        enum: [...LogModes],
         type: 'string',
       },
       logTarget: {
-        enum: LogTargets.slice(),
+        enum: [...LogTargets],
         type: 'string',
       },
       logThreshold: {
         type: 'number',
       },
       timestampFormat: {
-        enum: TimestampFormats.slice(),
+        enum: [...TimestampFormats],
         type: 'string',
       },
     },
@@ -262,7 +263,7 @@ export const schema: Schema<AppConfig> = {
         type: 'object',
       },
     },
-    required: TempPorts.slice(),
+    required: [...TemperaturePorts],
     minProperties: 3,
     maxProperties: 3,
     type: 'object',
@@ -298,8 +299,8 @@ export const schema: Schema<AppConfig> = {
 
 export const defaults: Readonly<AppConfig> = {
   fans: FanPorts.reduce(
-    (conf, port) => ({
-      ...conf,
+    (config, port) => ({
+      ...config,
       [port]: {
         name: port,
         enabled: true,
@@ -356,9 +357,9 @@ export const defaults: Readonly<AppConfig> = {
     logThreshold: 5,
     timestampFormat: 'ISO',
   },
-  temps: TempPorts.reduce(
-    (conf, port) => ({
-      ...conf,
+  temps: TemperaturePorts.reduce(
+    (config, port) => ({
+      ...config,
       [port]: {
         name: port,
         enabled: true,

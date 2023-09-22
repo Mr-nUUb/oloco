@@ -1,5 +1,5 @@
 import type { FanProfileCurves, FanProfileName } from '../../../lib/types'
-import { exit } from 'process'
+import { exit } from 'node:process'
 import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
 import {
@@ -26,8 +26,8 @@ export const builder = (yargs: Argv): Argv =>
     })
 
 export const handler = (yargs: Arguments): void => {
-  const name = yargs.name as string
-  const newName = yargs.newName as string
+  const name = yargs['name'] as string
+  const newName = yargs['newName'] as string
   const profiles = Config.get('profiles')
 
   if (name === newName || profiles[newName]) {

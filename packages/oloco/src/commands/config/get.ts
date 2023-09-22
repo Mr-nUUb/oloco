@@ -1,4 +1,4 @@
-import { exit } from 'process'
+import { exit } from 'node:process'
 import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../config'
 import { logObject } from '../../util'
@@ -15,7 +15,7 @@ export const builder = (yargs: Argv): Argv =>
   })
 
 export const handler = (yargs: Arguments): void => {
-  const entry = yargs.entry as string
+  const entry = yargs['entry'] as string
 
   const value = Config.get(entry)
   if (!value || !entry) {

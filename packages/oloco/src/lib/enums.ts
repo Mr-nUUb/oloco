@@ -1,3 +1,19 @@
+export enum DeviceIdentifier {
+  VID = 0x04_83,
+  PID = 0x57_50,
+}
+
+export enum PortAddressEnum {
+  F1 = 0xa0_a0,
+  F2 = 0xa0_c0,
+  F3 = 0xa0_e0,
+  F4 = 0xa1_00,
+  F5 = 0xa1_20,
+  F6 = 0xa1_e0,
+  Sensor = 0xa2_20,
+  RGB = 0xa2_60,
+}
+
 export enum RgbModeEnum {
   Off = 0x00,
   Static = 0x01,
@@ -24,12 +40,12 @@ export enum RgbSpeedEnum {
   Fastest = 0x64,
 }
 
-export enum CommMode {
+export enum CommModeEnum {
   Read = 0x03,
   Write = 0x10,
 }
 
-export enum LogLevel {
+export enum LogLevelEnum {
   Debug = 'DEBUG',
   Info = 'INFO',
   Warn = 'WARN',

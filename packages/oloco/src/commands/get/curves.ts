@@ -22,15 +22,14 @@ export const builder = (yargs: Argv): Argv =>
     })
 
 export const handler = async (yargs: Arguments): Promise<void> => {
-  const port = (yargs.port as FanPort) || undefined
-  const save = yargs.save as boolean
-  const skipValidation = yargs.skipValidation as boolean
+  const port = (yargs['port'] as FanPort) || undefined
+  const save = yargs['save'] as boolean
 
   const controller = new OLoCo()
   controller.setReadTimeout(Config.get('readTimeout'))
-  const curves = await controller.getResponseCurve(port, undefined, skipValidation)
+  const curves = await controller.getResponseCurve(port)
 
-  if (save) curves.forEach((curve) => Config.set(`fans.${curve.port}.responseCurve`, curve.curve))
+  if (save) for (const curve of curves) Config.set(`fans.${curve.port}.responseCurve`, curve.curve)
 
   logObject(curves)
   controller.close()
