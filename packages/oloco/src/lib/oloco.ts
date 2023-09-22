@@ -22,7 +22,7 @@ export class OLoCo {
     if (device) this._device = device
     else {
       const devs = devices(DeviceIdentifier.VID, DeviceIdentifier.PID).filter(
-        (dev) => dev.interface === 0 && dev.usage === 1,
+        (device_) => device_.interface === 0 && device_.usage === 1,
       )
       if (!devs || devs.length === 0 || !devs[0]) {
         throw new Error("Couldn't find controller: not connected!")
@@ -30,11 +30,11 @@ export class OLoCo {
       if (devs.length > 1) {
         throw new Error('Multiple controllers detected: not yet implemented!')
       }
-      const dev = devs[0]
-      if (!dev.path) {
+      const device_ = devs[0]
+      if (!device_.path) {
         throw new Error("Couldn't connect to controller: no path available!")
       }
-      this._device = new HID(dev.path)
+      this._device = new HID(device_.path)
     }
   }
 
@@ -76,7 +76,8 @@ export class OLoCo {
   // you thought CoveringMarquee in setRgb() was stupid? read the following function!
   private static _calculateChecksum(packet: Packet): number {
     const { start, end } = OLoCo._getChecksummedBoundary(packet)
-    const result = packet.slice(start, end).reduce((acc, val) => acc + val, 0) & 0xff
+    const result =
+      packet.slice(start, end).reduce((accumulator, value) => accumulator + value, 0) & 0xff
     return result
   }
 
@@ -107,17 +108,18 @@ export class OLoCo {
 
   private static _compareBytes(section: string, recv: number[], expect: number[]) {
     try {
-      const len = expect.length
-      if (recv.length !== len) throw new Error(`length mismatch`)
-      for (let i = 0; i < len; i++) {
-        if (recv[i] !== expect[i]) throw new Error(`mismatch on index ${i} of ${section}`)
+      const length_ = expect.length
+      if (recv.length !== length_) throw new Error(`length mismatch`)
+      for (let index = 0; index < length_; index++) {
+        if (recv[index] !== expect[index])
+          throw new Error(`mismatch on index ${index} of ${section}`)
       }
-    } catch (err) {
+    } catch (error) {
       const fmtHdr = OLoCo._formatBytes(recv)
       const fmtExp = OLoCo._formatBytes(expect)
       throw new Error(
         [
-          `Invalid packet received: ${(err as Error).message}`,
+          `Invalid packet received: ${(error as Error).message}`,
           `received ${fmtHdr}`,
           `expected ${fmtExp}`,
         ].join(`${EOL}  `),
@@ -238,10 +240,10 @@ export class OLoCo {
     const temps = Array.from({ length: TemperaturePorts.length }) as SensorData['temps']
 
     for (let index = 0; index < temps.length; index++) {
-      const temp = recv[offset + index * 4]
+      const temperature = recv[offset + index * 4]
       temps[index] = {
         port: TemperaturePorts[index] as TemperaturePort,
-        temp: temp === 231 ? undefined : temp,
+        temp: temperature === 231 ? undefined : temperature,
       }
     }
 
