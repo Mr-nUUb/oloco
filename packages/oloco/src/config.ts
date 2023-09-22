@@ -6,8 +6,8 @@ import {
   LogTargets,
   RgbModes,
   RgbSpeeds,
-  TempModes,
-  TempPorts,
+  TemperatureModes,
+  TemperaturePorts,
   TimestampFormats,
 } from './lib/iterables'
 import Conf, { Schema } from 'conf'
@@ -54,13 +54,13 @@ export const schema: Schema<AppConfig> = {
           },
           tempSources: {
             items: {
-              enum: [...TempPorts],
+              enum: [...TemperaturePorts],
               type: 'string',
             },
             type: 'array',
           },
           tempMode: {
-            enum: [...TempModes],
+            enum: [...TemperatureModes],
             type: 'string',
           },
           warning: {
@@ -262,7 +262,7 @@ export const schema: Schema<AppConfig> = {
         type: 'object',
       },
     },
-    required: [...TempPorts],
+    required: [...TemperaturePorts],
     minProperties: 3,
     maxProperties: 3,
     type: 'object',
@@ -356,7 +356,7 @@ export const defaults: Readonly<AppConfig> = {
     logThreshold: 5,
     timestampFormat: 'ISO',
   },
-  temps: TempPorts.reduce(
+  temps: TemperaturePorts.reduce(
     (config, port) => ({
       ...config,
       [port]: {

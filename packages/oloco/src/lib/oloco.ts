@@ -1,8 +1,8 @@
 import { HID, devices } from 'node-hid'
 import { EOL, platform } from 'node:os'
 import type { CurveData, DeviceInformation, FanData, RgbData, SensorData } from './interfaces'
-import { FanPorts, TempPorts } from './iterables'
-import type { DevicePort, FanPort, FixedSizeArray, Packet, TempPort } from './types'
+import { FanPorts, TemperaturePorts } from './iterables'
+import type { DevicePort, FanPort, FixedSizeArray, Packet, TemperaturePort } from './types'
 import { sleep } from '../util'
 import { CommModeEnum, DeviceIdentifier, PortAddressEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
 
@@ -235,11 +235,14 @@ export class OLoCo {
 
     const flow: SensorData['flow'] = { port: 'FLO', flow: recv[23] }
     const level: SensorData['level'] = { port: 'LVL', level: recv[27] === 100 ? 'Good' : 'Warning' }
-    const temps = Array.from({ length: TempPorts.length }) as SensorData['temps']
+    const temps = Array.from({ length: TemperaturePorts.length }) as SensorData['temps']
 
     for (let index = 0; index < temps.length; index++) {
       const temp = recv[offset + index * 4]
-      temps[index] = { port: TempPorts[index] as TempPort, temp: temp === 231 ? undefined : temp }
+      temps[index] = {
+        port: TemperaturePorts[index] as TemperaturePort,
+        temp: temp === 231 ? undefined : temp,
+      }
     }
 
     return { flow, level, temps }

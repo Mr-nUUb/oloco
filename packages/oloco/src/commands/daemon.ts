@@ -29,7 +29,7 @@ import { EOL } from 'node:os'
 import { sleepSync } from '../util'
 import { resolve } from 'node:path'
 import { existsSync, mkdirSync, readdir, stat } from 'node:fs'
-import { FanPorts, TempPorts } from '../lib/iterables'
+import { FanPorts, TemperaturePorts } from '../lib/iterables'
 
 let defaultLogger: ILogHandler
 let controller: OLoCo
@@ -134,7 +134,7 @@ function equalRgb(rgb1: RgbData, rgb2: RgbData): boolean {
 
 function handleSensor(sensor: SensorData): PartialLogData['sensors'] {
   const tempConfigs = Config.get('temps')
-  const resultTemps: LogData['sensors']['temps'] = TempPorts.filter(
+  const resultTemps: LogData['sensors']['temps'] = TemperaturePorts.filter(
     (t) => tempConfigs[t].enabled,
   ).map((port) => {
     const tempConfig = tempConfigs[port]

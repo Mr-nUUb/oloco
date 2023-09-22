@@ -1,4 +1,4 @@
-import type { FanPort, LevelData, RgbMode, RgbSpeed, TempPort } from './types'
+import type { FanPort, LevelData, RgbMode, RgbSpeed, TemperaturePort } from './types'
 
 export interface FanProfilePoint {
   temp: number
@@ -20,8 +20,8 @@ export interface FanData extends CurvePoint {
   port: FanPort
 }
 
-export interface TempData {
-  port: TempPort
+export interface TemperatureData {
+  port: TemperaturePort
   temp: number | undefined
 }
 
@@ -31,7 +31,7 @@ export interface CurveData {
 }
 
 export interface SensorData {
-  temps: TempData[]
+  temps: TemperatureData[]
   flow: {
     port: 'FLO'
     flow: number
@@ -60,7 +60,7 @@ interface NamedObject {
 }
 export interface LogData {
   sensors: SensorData & {
-    temps: (TempData & NamedObject)[]
+    temps: (TemperatureData & NamedObject)[]
     flow: SensorData['flow'] & NamedObject
     level: SensorData['level'] & NamedObject
   }

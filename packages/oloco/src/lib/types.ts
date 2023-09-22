@@ -4,8 +4,8 @@ import type {
   FanProfiles,
   LogModes,
   LogTargets,
-  TempModes,
-  TempPorts,
+  TemperatureModes,
+  TemperaturePorts,
   TimestampFormats,
 } from './iterables'
 
@@ -16,7 +16,7 @@ export type LevelData = 'Warning' | 'Good'
 
 export type DevicePort = keyof typeof PortAddressEnum
 export type FanPort = Extract<DevicePort, `F${number}`>
-export type TempPort = (typeof TempPorts)[number]
+export type TemperaturePort = (typeof TemperaturePorts)[number]
 
 export type RgbMode = keyof typeof RgbModeEnum
 export type RgbSpeed = keyof typeof RgbSpeedEnum
@@ -26,7 +26,7 @@ export type LogLevel = keyof typeof LogLevelEnum
 export type LogMode = (typeof LogModes)[number]
 export type TimestampFormat = (typeof TimestampFormats)[number]
 
-export type TempMode = (typeof TempModes)[number]
+export type TemperatureMode = (typeof TemperatureModes)[number]
 
 type PortConfigBase = { name: string; enabled: boolean }
 export type AppConfig = {
@@ -34,8 +34,8 @@ export type AppConfig = {
     [key in FanPort]: {
       warning: number
       backOffSpeed: number
-      tempSources: TempPort[]
-      tempMode: TempMode
+      tempSources: TemperaturePort[]
+      tempMode: TemperatureMode
       activeProfile: FanProfileName
       customProfile: string
       responseCurve: CurvePoint[]
@@ -61,7 +61,7 @@ export type AppConfig = {
     timestampFormat: TimestampFormat
   }
   temps: {
-    [key in TempPort]: {
+    [key in TemperaturePort]: {
       warning: number
       offset: number
     } & PortConfigBase
