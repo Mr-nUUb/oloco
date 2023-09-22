@@ -1,9 +1,10 @@
+/* eslint-disable unicorn/prefer-module */
 let argvBackup: string[]
 let consoleSpy: jest.SpyInstance
 let exitSpy: jest.SpyInstance
 
-async function runCmd(...args: string[]) {
-  process.argv = ['ts-node', 'cli.ts', ...args]
+async function runCmd(...arguments_: string[]) {
+  process.argv = ['ts-node', 'cli.ts', ...arguments_]
   return require('./cli')
 }
 

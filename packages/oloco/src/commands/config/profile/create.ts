@@ -1,4 +1,4 @@
-import { exit } from 'process'
+import { exit } from 'node:process'
 import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
 import type { FanProfilePoint } from '../../../lib/interfaces'

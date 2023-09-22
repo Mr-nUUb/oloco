@@ -1,4 +1,4 @@
-import { inspect } from 'util'
+import { inspect } from 'node:util'
 
 export function logObject(data: unknown): void {
   console.log(inspect(data, { depth: null, colors: true }))

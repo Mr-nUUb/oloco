@@ -1,4 +1,4 @@
-import { existsSync, unlinkSync } from 'fs'
+import { existsSync, unlinkSync } from 'node:fs'
 import { Config } from '../../config'
 
 export const command = 'delete'

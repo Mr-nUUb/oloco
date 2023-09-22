@@ -27,9 +27,9 @@ export const handler = async (yargs: Arguments): Promise<void> => {
 
   const controller = new OLoCo()
   controller.setReadTimeout(Config.get('readTimeout'))
-  const curves = await controller.getResponseCurve(port, undefined)
+  const curves = await controller.getResponseCurve(port)
 
-  if (save) curves.forEach((curve) => Config.set(`fans.${curve.port}.responseCurve`, curve.curve))
+  if (save) for (const curve of curves) Config.set(`fans.${curve.port}.responseCurve`, curve.curve)
 
   logObject(curves)
   controller.close()

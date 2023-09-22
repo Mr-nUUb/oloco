@@ -2,8 +2,8 @@ import { OLoCo } from '../lib/oloco'
 import type { FanProfilePoint, RgbData, SensorData, FanData, LogData } from '../lib/interfaces'
 import { Config } from '../config'
 import Logger, { ILogHandler, ILogLevel } from 'js-logger'
-import { inspect } from 'util'
-import { exit, platform } from 'process'
+import { inspect } from 'node:util'
+import { exit, platform } from 'node:process'
 import {
   AirBalanced,
   AirSilent,
@@ -24,11 +24,11 @@ import type {
 } from '../lib/types'
 import { LogLevelEnum } from '../lib/enums'
 import exitHook from 'exit-hook'
-import { appendFile, rm } from 'fs/promises'
-import { EOL } from 'os'
+import { appendFile, rm } from 'node:fs/promises'
+import { EOL } from 'node:os'
 import { sleepSync } from '../util'
-import { resolve } from 'path'
-import { existsSync, mkdirSync, readdir, stat } from 'fs'
+import { resolve } from 'node:path'
+import { existsSync, mkdirSync, readdir, stat } from 'node:fs'
 import { FanPorts, TempPorts } from '../lib/iterables'
 
 let defaultLogger: ILogHandler

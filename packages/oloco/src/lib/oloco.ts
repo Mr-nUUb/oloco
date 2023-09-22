@@ -1,5 +1,5 @@
 import { HID, devices } from 'node-hid'
-import { EOL, platform } from 'os'
+import { EOL, platform } from 'node:os'
 import type { CurveData, DeviceInformation, FanData, RgbData, SensorData } from './interfaces'
 import { FanPorts, TempPorts } from './iterables'
 import type { DevicePort, FanPort, FixedSizeArray, Packet, TempPort } from './types'
@@ -43,7 +43,7 @@ export class OLoCo {
     // it's 63 because on windows we have to prepend 0x00!
     if (packetLength > 63) throw new Error(`Packet length out of bounds: ${packetLength} > 63!`)
 
-    const packet = new Array<number>(63).fill(0x00) as Packet
+    const packet = Array.from({ length: 63 }).fill(0x00) as Packet
 
     // header
     packet[0] = 0x10
@@ -125,8 +125,8 @@ export class OLoCo {
     }
   }
 
-  private static _formatBytes(arr: number[]) {
-    return `[ ${arr.map((n) => `0x${n.toString(16).padStart(2, '0')}`).join(', ')} ]`
+  private static _formatBytes(array: number[]) {
+    return `[ ${array.map((n) => `0x${n.toString(16).padStart(2, '0')}`).join(', ')} ]`
   }
 
   private _getFan(port: FanPort): FanData {
@@ -160,7 +160,7 @@ export class OLoCo {
     packet[OLoCo._getChecksummedBoundary(packet).end] = OLoCo._calculateChecksum(packet)
 
     // prepend report number for windows
-    this._device.write(platform() === 'win32' ? [0x00].concat(packet) : packet)
+    this._device.write(platform() === 'win32' ? [0x00, ...packet] : packet)
 
     const recv = this._device.readTimeout(this._readTimeout) as Packet
     if (recv.length !== 63) throw 'Unable to read response!'
@@ -177,10 +177,10 @@ export class OLoCo {
 
   public getFan<T extends FanPort | undefined>(port?: T): GetFanResult<T> {
     const ports = port ? [port] : FanPorts
-    const result = new Array<FanData>(ports.length) as GetFanResult<T>
+    const result = Array.from({ length: ports.length }) as GetFanResult<T>
 
-    for (let i = 0; i < ports.length; i++) {
-      result[i] = this._getFan(ports[i] as FanPort)
+    for (const [index, port_] of ports.entries()) {
+      result[index] = this._getFan(port_)
     }
 
     return result
@@ -188,29 +188,28 @@ export class OLoCo {
 
   public async getResponseCurve<T extends FanPort | undefined>(
     port?: T,
-    interval = 10000,
+    interval = 10_000,
   ): Promise<GetResponseCurveResult<T>> {
     const pointsNr = 11
     const backups = this.getFan(port)
     const ports = port === undefined ? FanPorts : [port]
-    const curves = new Array<CurveData>(ports.length) as GetResponseCurveResult<T>
+    const curves = Array.from({ length: ports.length }) as GetResponseCurveResult<T>
 
-    for (let i = 0; i < ports.length; i++) {
-      curves[i] = { port: ports[i] as FanPort, curve: new Array(pointsNr) }
+    for (const [index, port_] of ports.entries()) {
+      curves[index] = { port: port_, curve: Array.from({ length: pointsNr }) }
     }
 
-    for (let i = 0; i < pointsNr; i++) {
-      this.setFan(i * 10, port)
+    for (let index = 0; index < pointsNr; index++) {
+      this.setFan(index * 10, port)
       await sleep(interval)
-      for (let c = 0; c < curves.length; c++) {
-        const curve = curves[c] as CurveData
+      for (const curve of curves) {
         const current = this._getFan(curve.port)
-        curve.curve[i] = { pwm: current.pwm, rpm: current.rpm }
+        curve.curve[index] = { pwm: current.pwm, rpm: current.rpm }
       }
     }
 
-    for (let i = 0; i < backups.length; i++) {
-      const backup = backups[i] as FanData
+    for (const backup_ of backups) {
+      const backup = backup_
       this._setFan(backup.pwm, backup.port)
     }
 
@@ -236,11 +235,11 @@ export class OLoCo {
 
     const flow: SensorData['flow'] = { port: 'FLO', flow: recv[23] }
     const level: SensorData['level'] = { port: 'LVL', level: recv[27] === 100 ? 'Good' : 'Warning' }
-    const temps = new Array(TempPorts.length) as SensorData['temps']
+    const temps = Array.from({ length: TempPorts.length }) as SensorData['temps']
 
-    for (let i = 0; i < temps.length; i++) {
-      const temp = recv[offset + i * 4]
-      temps[i] = { port: TempPorts[i] as TempPort, temp: temp !== 231 ? temp : undefined }
+    for (let index = 0; index < temps.length; index++) {
+      const temp = recv[offset + index * 4]
+      temps[index] = { port: TempPorts[index] as TempPort, temp: temp === 231 ? undefined : temp }
     }
 
     return { flow, level, temps }
@@ -248,7 +247,7 @@ export class OLoCo {
 
   public getInformation(): DeviceInformation {
     return {
-      fans: this.getFan(undefined),
+      fans: this.getFan(),
       rgb: this.getRgb(),
       sensors: this.getSensor(),
     }
@@ -256,10 +255,10 @@ export class OLoCo {
 
   public setFan<T extends FanPort | undefined>(speed: number, port?: FanPort): GetFanResult<T> {
     const ports = port ? [port] : FanPorts
-    const result = new Array<FanData>(ports.length) as GetFanResult<T>
+    const result = Array.from({ length: ports.length }) as GetFanResult<T>
 
-    for (let i = 0; i < ports.length; i++) {
-      result[i] = this._setFan(speed, ports[i] as FanPort)
+    for (const [index, port_] of ports.entries()) {
+      result[index] = this._setFan(speed, port_)
     }
 
     return result

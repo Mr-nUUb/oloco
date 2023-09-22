@@ -2,7 +2,7 @@ import type { Arguments, Argv } from 'yargs'
 import { OLoCo } from '../../lib/oloco'
 import type { RgbMode, RgbSpeed } from '../../lib/types'
 import type { RgbColor } from '../../lib/interfaces'
-import { exit } from 'process'
+import { exit } from 'node:process'
 import { logObject } from '../../util'
 import { Config } from '../../config'
 import { RgbModes, RgbSpeeds } from '../../lib/iterables'
@@ -35,9 +35,9 @@ export const handler = (yargs: Arguments): void => {
     exit(1)
   }
   const color: RgbColor = {
-    red: parseInt(userColor.slice(1, 3), 16),
-    green: parseInt(userColor.slice(3, 5), 16),
-    blue: parseInt(userColor.slice(5, 7), 16),
+    red: Number.parseInt(userColor.slice(1, 3), 16),
+    green: Number.parseInt(userColor.slice(3, 5), 16),
+    blue: Number.parseInt(userColor.slice(5, 7), 16),
   }
 
   const controller = new OLoCo()

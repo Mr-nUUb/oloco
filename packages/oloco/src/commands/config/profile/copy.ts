@@ -1,5 +1,5 @@
 import type { FanProfileCurves, FanProfileName } from '../../../lib/types'
-import { exit } from 'process'
+import { exit } from 'node:process'
 import type { Arguments, Argv } from 'yargs'
 import { Config } from '../../../config'
 import {
