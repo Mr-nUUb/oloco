@@ -1,9 +1,9 @@
 import { LogLevelEnum, PortAddressEnum, RgbModeEnum, RgbSpeedEnum } from './enums'
-import type { FanPort, LogLevel, RgbMode, RgbSpeed } from './types'
+import type { FanPort, FixedSizeArray, LogLevel, RgbMode, RgbSpeed } from './types'
 
-export const FanPorts: readonly FanPort[] = Object.keys(PortAddressEnum).filter((k) =>
+export const FanPorts = Object.keys(PortAddressEnum).filter((k) =>
   k.startsWith('F'),
-) as FanPort[]
+) as FixedSizeArray<FanPort, 6>
 
 export const TempPorts = ['T1', 'T2', 'T3'] as const
 

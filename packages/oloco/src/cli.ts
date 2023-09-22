@@ -13,11 +13,5 @@ yargs(hideBin(process.argv))
   .demandCommand()
   .alias('h', 'help')
   .alias('v', 'version')
-  .option('k', {
-    alias: 'skipValidation',
-    default: false,
-    describe: 'Skip packet validation.',
-    type: 'boolean',
-  })
   .completion()
   .help().argv

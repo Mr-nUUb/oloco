@@ -77,3 +77,11 @@ export type RecursivePartial<T> = {
 }
 
 export type PartialLogData = RecursivePartial<LogData>
+
+export type FixedSizeArray<T, L extends number, R extends T[] = []> = R extends { length: L }
+  ? R
+  : FixedSizeArray<T, L, [...R, T]>
+
+export type AllowedIndexes<T, M = keyof T> = M extends `${infer N extends number}` ? N : never
+
+export type Packet = FixedSizeArray<number, 63>
