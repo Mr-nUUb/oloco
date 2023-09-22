@@ -11,7 +11,7 @@ export const builder = (yargs: Argv): Argv =>
   })
 
 export const handler = (yargs: Arguments): void => {
-  const name = yargs.name as string
+  const name = yargs['name'] as string
   const profiles = Config.get('profiles')
   if (profiles[name]) {
     delete profiles[name]

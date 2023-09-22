@@ -26,10 +26,10 @@ export const builder = (yargs: Argv): Argv =>
     })
 
 export const handler = (yargs: Arguments): void => {
-  const mode = yargs.mode as RgbMode
-  const speed = yargs.speed as RgbSpeed
-  const userColor = yargs.color as string
-  const skipValidation = yargs.skipValidation as boolean
+  const mode = yargs['mode'] as RgbMode
+  const speed = yargs['speed'] as RgbSpeed
+  const userColor = yargs['color'] as string
+  const skipValidation = yargs['skipValidation'] as boolean
 
   if (!(userColor.length === 7 || userColor.startsWith('#'))) {
     console.log("Couln't set color: wrong format!")

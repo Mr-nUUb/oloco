@@ -7,7 +7,7 @@ export const command = 'infos'
 export const describe = 'Get all available information.'
 
 export const handler = (yargs: Arguments): void => {
-  const skipValidation = yargs.skipValidation as boolean
+  const skipValidation = yargs['skipValidation'] as boolean
 
   const controller = new OLoCo()
   controller.setReadTimeout(Config.get('readTimeout'))

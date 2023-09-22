@@ -54,7 +54,7 @@ export const describe = 'Run this tool in daemon mode using custom user Configur
 
 export const handler = async (yargs: Arguments): Promise<void> => {
   try {
-    skipValidation = yargs.skipValidation as boolean
+    skipValidation = yargs['skipValidation'] as boolean
 
     setupLogger()
 

@@ -17,8 +17,8 @@ export const builder = (yargs: Argv): Argv =>
     })
 
 export const handler = (yargs: Arguments): void => {
-  const entry = yargs.entry as string
-  const value = yargs.value as string
+  const entry = yargs['entry'] as string
+  const value = yargs['value'] as string
 
   const val = !isNaN(Number.parseInt(value))
     ? Number.parseInt(value)
